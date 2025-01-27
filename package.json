@@ -1,0 +1,12 @@
+{
+    "name": "my-awesome-package",
+    "version": "1.0.0",
+    "author": "Cameron, Atul, Doug",
+    "type": "module",
+    "scripts": {
+        "test": "jest"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0"
+    }
+}
