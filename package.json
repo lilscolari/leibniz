@@ -1,12 +1,15 @@
 {
-    "name": "my-awesome-package",
+    "name": "leibniz",
     "version": "1.0.0",
+    "description": "",
     "author": "Cameron, Atul, Doug",
+    "license": "MIT",
     "type": "module",
+    "main": "src/leibniz.js",
     "scripts": {
-        "test": "jest"
+        "test": "c8 node --test test"
     },
     "devDependencies": {
-        "jest": "^29.7.0"
+        "c8": "^10.1.3"
     }
 }
