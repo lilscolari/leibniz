@@ -2,7 +2,7 @@
     "name": "leibniz",
     "version": "1.0.0",
     "description": "",
-    "author": "Cameron, Atul, Doug",
+    "author": "Cameron, Atul, Doug, Artur",
     "license": "MIT",
     "type": "module",
     "main": "src/leibniz.js",
@@ -11,5 +11,8 @@
     },
     "devDependencies": {
         "c8": "^10.1.3"
+    },
+    "dependencies": {
+        "ohm-js": "^17.1.0"
     }
 }
