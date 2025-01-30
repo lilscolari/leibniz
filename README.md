@@ -17,6 +17,11 @@ This is the repository for the leibniz programming language created by TODO. We 
 
 ## Example programs:
 
+| leibniz    | JavaScript |
+| -------- | ------- |
+| TODO  | TODO    |
+| TODO | TODO     |
+| TODO    | TODO    |
 
 README has story of your language (2 pts)
 README lists features of the language (2 pts)
