@@ -12,10 +12,10 @@ This is the repository for the leibniz programming language created by Cameron, 
 | optionals | TODO     |
 | dynamically typed    | better for algebraic manipulation    |
 | semicolons | to mark the end of a line |
-| trig functions | to allow mor mathematic versatility |
+| trig functions | to allow more mathematic versatility |
 | shapes | to expand to geometry |
 | vectors | to serve as lists and vectors in math |
-
+| equations | data type to allow users to create their own equations which act like functions |
 
 <br>
 <br>
