@@ -31,10 +31,3 @@ This is the repository for the leibniz programming language created by Cameron, 
 | Triangle.area(b:5,h:8) = 20 |
 | f myFunction(p1, p2) { return p1 * p2; } |
 | for (_ in domain(100)) {} |
-
-README has story of your language (2 pts)
-README lists features of the language (2 pts)
-README shows examples of programs (2 pts)
-
-Examples folder has at least 5 full example programs and covers the language features (2 pts)
-
