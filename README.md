@@ -8,7 +8,7 @@ This is the repository for the leibniz programming language created by Cameron, 
 ## Features of the language:
 | Feature    | Explanation |
 | -------- | ------- |
-| TODO  | TODO    |
+| reserved words  |  to allow for easy integration of mathematical terminology   |
 | TODO | TODO     |
 | TODO    | TODO    |
 
