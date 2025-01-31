@@ -9,19 +9,28 @@ This is the repository for the leibniz programming language created by Cameron, 
 | Feature    | Explanation |
 | -------- | ------- |
 | reserved words  |  to allow for easy integration of mathematical terminology   |
-| TODO | TODO     |
-| TODO    | TODO    |
+| optionals | TODO     |
+| dynamically typed    | better for algebraic manipulation    |
+| semicolons | to mark the end of a line |
+| trig functions | to allow mor mathematic versatility |
+| shapes | to expand to geometry |
+| vectors | to serve as lists and vectors in math |
+
 
 <br>
 <br>
 
 ## Example programs:
 
-| leibniz    | JavaScript |
-| -------- | ------- |
-| TODO  | TODO    |
-| TODO | TODO     |
-| TODO    | TODO    |
+| leibniz    |
+| -------- |
+| deriv(y: x^2+6x, Optional[val:2]) = 10  |
+| integrate(y: 3x^2+5x, Optional[a,b]) = x^3+(5/2)x^2+c |
+| eval(2cos(x)-1); |
+| arctan(1, output: degrees) = 45 |
+| Triangle.area(b:5,h:8) = 20 |
+| f myFunction(p1, p2) { return p1 * p2; } |
+| for (_ in domain(100)) {} |
 
 README has story of your language (2 pts)
 README lists features of the language (2 pts)
