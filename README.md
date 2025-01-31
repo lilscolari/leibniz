@@ -9,18 +9,23 @@ This is the repository for the leibniz programming language created by Cameron, 
 | Feature    | Explanation |
 | -------- | ------- |
 | reserved words  |  to allow for easy integration of mathematical terminology   |
-| optionals | TODO     |
+| optionals | safer handling of missing values |
 | dynamically typed    | better for algebraic manipulation    |
 | semicolons | to mark the end of a line |
 | trig functions | to allow more mathematic versatility |
 | shapes | to expand to geometry |
 | vectors | to serve as lists and vectors in math |
 | equations | data type to allow users to create their own equations which act like functions |
+| error handling | for mathematical errors like division by zero |
+| immutability | to ensure values do not change |
+| pattern matching | useful when working with symbols and variables |
+| auto-simplification | to make math problems less complex |
+
 
 <br>
 <br>
 
-## Example programs:
+## Potential example programs:
 
 | leibniz    |
 | -------- |
@@ -29,5 +34,8 @@ This is the repository for the leibniz programming language created by Cameron, 
 | eval(2cos(x)-1); |
 | arctan(1, output: degrees) = 45 |
 | Triangle.area(b:5,h:8) = 20 |
-| f myFunction(p1, p2) { return p1 * p2; } |
-| for (_ in domain(100)) {} |
+| f(x, y) = {x * y;} |
+| for (_ in domain(0, 100, Optional[step])) {} |
+| distance(5m, 3s, output: mph) |
+| eq = x^2 + 6x; deriv(eq, x=2); |
+
