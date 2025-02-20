@@ -4,7 +4,7 @@ import parse from "../src/parser.js"
 
 // Programs expected to be syntactically correct
 const syntaxChecks = [  
-  
+  ["test if else", "if x { print(2); }"]
 ]
 
 // Programs with syntax errors that the parser will detect
