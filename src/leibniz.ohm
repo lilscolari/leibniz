@@ -1,0 +1,60 @@
+Leibniz {
+Program = Stmt+
+ Stmt = PrintStmt
+ | VarDec
+ | IfStmt
+ | AssignmentStmt
+ | Primary_id "++;" --increment
+ VarDec = let id "=" Exp ";"
+ PrintStmt = print "(" Exp ");"
+ IfStmt = if Exp Block (else (Block | IfStmt))?
+ AssignmentStmt = Primary_id "=" Exp ";"
+ Block = "{" Stmt+ "}"
+ 
+ 
+ Exp = Condition relop Condition --test
+ | Condition
+ Condition = Exp "+" Term --add
+ | Exp "-" Term --sub
+ | Term
+ Term = Term "*" Factor --mul
+ | Term "/" Factor --div
+ | Term "%" Factor --mod
+ | Factor
+ Factor = Primary ("**") Factor --exp
+ | "-" Primary --neg
+ | Primary
+ Primary = numeral
+ | true --true
+ | false --false
+ | stringlit --string
+ | Primary "[" Exp "]" --subscript
+ | id --id
+ | "[" ListOf<Exp, ","> "]" --array
+ | "(" Exp ")" --parens
+ 
+ print = "print" ~idchar
+ if = "if" ~idchar
+ else = "else" ~idchar
+ true = "true" ~idchar
+ false = "false" ~idchar
+ e = "e" ~idchar
+ pi = "pi" ~idchar
+ cos = "cos" ~idchar
+ sin = "sin" ~idchar
+ tan = "tan" ~idchar
+ arccos = "arccos" ~idchar
+ arcsin = "arcsin" ~idchar
+ arctan = "arctan" ~idchar
+ distance = "distance" ~idchar
+ let = "let" ~idchar
+ keyword = print | if | else | true | false | e | pi | cos | sin | tan | arccos | arcsin | arctan | distance | let
+ id = ~keyword letter idchar*
+ idchar = letter | digit | "_"
+ numeral = digit+ ("." digit+)? (("E"|"e") ("+"|"-")? digit+)?
+ stringlit = "\"" (~"\"" any)* "\""
+ 
+ relop = "<=" | "<" | "==" | "!=" | ">=" | ">"
+ 
+ space += "//" (~"\n" any)* --comment
+}
