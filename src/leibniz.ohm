@@ -1,17 +1,23 @@
 Leibniz {
   Program = Stmt+
 
-  Stmt = PrintStmt
+  Stmt = ForLoop
+       |PrintStmt
        | VarDec
        | IfStmt
+       | ObjectCreation
+       | CircleCreation
        | AssignmentStmt
        | id "++;" --increment  
+       
 
   VarDec = let id "=" Exp ";"
   PrintStmt = print "(" Exp ");"
   IfStmt = if Exp Block (else (Block | IfStmt))?
   AssignmentStmt = id "=" Exp ";"
   Block = "{" Stmt+ "}"
+  
+  ForLoop = for numeral in domain "(" numeral ")" Block
 
   Exp = Condition relop Condition --test
       | Condition
@@ -27,6 +33,8 @@ Leibniz {
          | Primary
   Primary = numeral
           | boolean
+          | ObjectCall
+          | CircleCall
           | stringlit
           | id
           | FunctionCall
@@ -36,13 +44,39 @@ Leibniz {
   boolean = "true" | "false"
 
   ExpList = ListOf<Exp, ",">
-
+  
   FunctionCall = (cos | sin | tan | arccos | arcsin | arctan | sqrt | log | distance) "(" ExpList? ")"
+  
+  NumeralList = numeral (", " | ",") numeral
+  
+  NonCircleMethod = (area | perimeter) "(" NumeralList ")"
+  CircleMethod = (area | circumference) "(" NumeralList ")"
+  
+  Object = Triangle | Rectangle
+  ObjectCreation = obj id "=" Object ";"
+  ObjectCall = Object "." NonCircleMethod
+  CircleObject = Circle
+  CircleCreation = obj id "=" CircleObject ";"
+  CircleCall = CircleObject "." CircleMethod
 
   print = "print" ~idchar
   if = "if" ~idchar
   else = "else" ~idchar
   let = "let" ~idchar
+  
+  for = "for" ~idchar
+  in = "in" ~idchar
+  domain = "domain" ~idchar
+  
+  obj = "obj" ~idchar
+
+  Triangle = "Triangle" ~idchar
+  Rectangle = "Rectangle" ~idchar
+  Circle = "Circle" ~idchar
+  
+  area = "area" ~idchar
+  perimeter = "perimeter" ~idchar
+  circumference = "circumference" ~idchar
 
   cos = "cos" ~idchar
   sin = "sin" ~idchar
@@ -56,8 +90,8 @@ Leibniz {
   pi = "pi" ~idchar
   distance = "distance" ~idchar
 
-  keyword = print | if | else | let | e | pi | distance 
-           | cos | sin | tan | arccos | arcsin | arctan | sqrt | log
+  keyword = print | if | else | let | obj | e | pi | distance | for | in | domain
+           | cos | sin | tan | arccos | arcsin | arctan | sqrt | log | area | perimeter | circumference
            
   id = ~keyword letter idchar*
   idchar = letter | digit | "_"
