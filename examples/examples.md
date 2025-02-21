@@ -30,3 +30,12 @@ Here are some example programs for our language. As you can see, we plan to have
 | for (_ in domain(0, 100, Optional[step])) {} |
 | distance(5m, 3s, output: mph) |
 | eq = x^2 + 6x; deriv(eq, x=2); |
+
+
+<br>
+| Based on HW2, here are example match cases |
+| let y = sqrt(4); |
+| let z = cos(3.14); |
+| let x = 5; |
+| print(cos(0)); |
+| let y = 3 + 2 * 5; |
