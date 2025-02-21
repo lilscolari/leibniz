@@ -7,6 +7,9 @@
 This is the repository for the leibniz programming language created by Cameron, Atul, Doug, and Artur. Our shared interest in math prompted us to want to make a programming language that supported better math functionality and allowed users to easily integrate important mathematical tools within their code to improve readability and functionality. The Leibniz calculator was the first calculator that could perform all four basic arithmetic operations so what better name to choose for our language than that. Also, Gottfried Wilhelm Leibniz was one of the creators of calculus, a mathematical field that introduces various symbols and concepts that we hope to include in our language. We hope that our language can allow people to better enjoy math and make math easier to use for people who may struggle at it.
 <br>
 <br>
+The language currently supports syntax for some function calls, function creation, for loops, print statements, variable assignment and declaration, object (shape) declaration, and an if statement. It has built in keywords and functions like 'domain', 'cos', and 'pi' for example. Basic math operations are currently supported like negation, addition, subtraction, multiplication, division, exponentiation. We also have support for conditional statements. We hope that the syntax semantics of the language can grow as we continue to work on it and may have to rework some syntax in the future when we add more features.
+<br>
+<br>
 ## Features of the language
 | Feature    | Explanation |
 | -------- | ------- |

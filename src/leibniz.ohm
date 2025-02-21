@@ -1,8 +1,9 @@
 Leibniz {
   Program = Stmt+
 
-  Stmt = ForLoop
-       |PrintStmt
+  Stmt = FuncCreation
+       | ForLoop
+       | PrintStmt
        | VarDec
        | IfStmt
        | ObjectCreation
@@ -17,7 +18,7 @@ Leibniz {
   AssignmentStmt = id "=" Exp ";"
   Block = "{" Stmt+ "}"
   
-  ForLoop = for numeral in domain "(" numeral ")" Block
+  ForLoop = for id in domain "(" numeral ")" Block
 
   Exp = Condition relop Condition --test
       | Condition
@@ -47,6 +48,8 @@ Leibniz {
   
   FunctionCall = (cos | sin | tan | arccos | arcsin | arctan | sqrt | log | distance) "(" ExpList? ")"
   
+  FuncCreation = func id "(" ExpList? ")" Block
+  
   NumeralList = numeral (", " | ",") numeral
   
   NonCircleMethod = (area | perimeter) "(" NumeralList ")"
@@ -63,6 +66,8 @@ Leibniz {
   if = "if" ~idchar
   else = "else" ~idchar
   let = "let" ~idchar
+  
+  func = "func" ~idchar
   
   for = "for" ~idchar
   in = "in" ~idchar
@@ -90,7 +95,7 @@ Leibniz {
   pi = "pi" ~idchar
   distance = "distance" ~idchar
 
-  keyword = print | if | else | let | obj | e | pi | distance | for | in | domain
+  keyword = print | if | else | let | obj | e | pi | distance | for | in | domain | func
            | cos | sin | tan | arccos | arcsin | arctan | sqrt | log | area | perimeter | circumference
            
   id = ~keyword letter idchar*
