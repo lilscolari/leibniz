@@ -33,10 +33,10 @@ Here are some example programs for our language. As you can see, we plan to have
 
 
 <br>
-| Based on HW2, here are example match cases |
-| -------- |
-| let y = sqrt(4); |
-| let z = cos(3.14); |
-| let x = 5; |
-| print(cos(0)); |
-| let y = 3 + 2 * 5; |
+Based on HW2, here are example match cases 
+
+let y = sqrt(4); 
+let z = cos(3.14); 
+let x = 5; 
+print(cos(0)); 
+let y = 3 + 2 * 5; 
