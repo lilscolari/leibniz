@@ -1,0 +1,39 @@
+print(2);
+let y = sqrt(4); 
+let z = cos(3.14); 
+let x = 5; 
+print(cos(0)); 
+let y = 3 + 2 * 5;
+
+for x in domain(10) {
+    print(x);
+}
+
+func add(x, y) {
+    print(x + y);
+}
+
+if x < 2 {
+    let y = 5;
+} else if (y == 3) {
+    print("testing");
+} else {
+    print("done");
+}
+
+if (x >= 3) {
+    print("do this");
+}
+
+obj new_circle = Circle;
+
+new_circle_area = Circle.area(3, 4);
+
+obj triangle = Triangle;
+
+triangle_perimeter = Triangle.perimeter(3, 4); //comment here
+
+// this is a comment
+// woooo comments
+
+print(sin(arcsin(2)));
