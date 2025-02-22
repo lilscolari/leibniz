@@ -17,7 +17,7 @@ Here are some features we plan to add to implement in the language:
 
 <br>
 
-Here are some example programs for our language. As you can see, we plan to have a lot of built-in functionality for recurrent topics of math.
+Here are some example programs we plan on implementing for our language. As you can see, we plan to have a lot of built-in functionality for recurrent topics of math. Check 'examples.lz' for a sample program file written in our language.
 <br>
 | leibniz    |
 | -------- |
