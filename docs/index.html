@@ -4,18 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>leibniz language</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 2rem; background-color: #f8f9fa; }
+        .container { max-width: 900px; }
+        .code-box { background-color: #272822; color: #f8f8f2; padding: 10px; border-radius: 5px; font-family: monospace; }
+        .bio-img { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; }
+    </style>
 </head>
 <body>
-    <header>
-        <h1>Welcome to My Page</h1>
-        <p>
-        This is the repository for the leibniz programming language created by Cameron, Atul, Doug, and Artur. Our shared interest in math prompted us to want to make a programming language that supported better math functionality and allowed users to easily integrate important mathematical tools within their code to improve readability and functionality. The Leibniz calculator was the first calculator that could perform all four basic arithmetic operations so what better name to choose for our language than that. Also, Gottfried Wilhelm Leibniz was one of the creators of calculus, a mathematical field that introduces various symbols and concepts that we hope to include in our language. We hope that our language can allow people to better enjoy math and make math easier to use for people who may struggle at it.
-        </p>
 
-        <p>
-        The language currently supports syntax for some function calls, function creation, for loops, print statements, variable assignment and declaration, object (shape) declaration, and an if statement. It has built in keywords and functions like 'domain', 'cos', and 'pi' for example. Basic math operations are currently supported like negation, addition, subtraction, multiplication, division, exponentiation. We also have support for conditional statements. We hope that the syntax semantics of the language can grow as we continue to work on it and may have to rework some syntax in the future when we add more features.
-        </p>
-    </header>
+    <div class="container">
+        <header class="text-center mb-5">
+            <h1 class="fw-bold">Leibniz Programming Language</h1>
+            <p class="lead">Created by Cameron, Atul, Doug, and Artur</p>
+        </header>
+
+        <section class="mb-4">
+            <h2>About the Language</h2>
+            <p>
+                The Leibniz programming language is designed to enhance mathematical functionality and readability.
+                Inspired by Leibniz, the co-creator of calculus, our goal is to make mathematical computation more intuitive and accessible.
+            </p>
+            <p>
+                Leibniz supports function calls, function creation, for loops, print statements, variable declarations, object declarations, and conditional statements.
+                It includes built-in math functions like <code>domain</code>, <code>cos</code>, and <code>pi</code>.
+            </p>
+            <p>
+                The language aims to make math enjoyable and easy to integrate into code, even for those who may struggle with it.
+            </p>
+        </section>
+
+        <section class="mb-4">
+            <h2>Example Programs</h2>
+
+            <h4>1. Variable Assignment</h4>
+            <pre class="code-box"></pre>
+
+            <h4>2. Function Definition</h4>
+            <pre class="code-box"></pre>
+
+            <h4>3. For Loop</h4>
+            <pre class="code-box"></pre>
+
+            <h4>4. Conditional Statements</h4>
+            <pre class="code-box"></pre>
+
+            <h4>5. Mathematical Computation</h4>
+            <pre class="code-box"></pre>
+        </section>
+
+        <section class="mb-4">
+            <h2>Meet the Developers</h2>
+            <div class="row">
+                <div class="col-md-3 text-center">
+                    <img src="images/cameron.jpg" alt="Cameron" class="bio-img">
+                    <h5>Cameron</h5>
+                    <p>bio</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <img src="images/atul.jpg" alt="Atul" class="bio-img">
+                    <h5>Atul</h5>
+                    <p>bio</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <img src="images/doug.jpg" alt="Doug" class="bio-img">
+                    <h5>Doug</h5>
+                    <p>bio</p>
+                </div>
+                <div class="col-md-3 text-center">
+                    <img src="images/artur.jpg" alt="Artur" class="bio-img">
+                    <h5>Artur</h5>
+                    <p>bio</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-4">
+            <h2>Project Links</h2>
+            <p>Check out the compiler source code on GitHub: <a href="https://github.com/lilscolari/leibniz" target="_blank">Leibniz Compiler Repository</a></p>
+        </section>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
