@@ -1,150 +1,28 @@
 Leibniz {
-  Program = Stmt+
-  Stmt = FuncCreation
-       | ForLoop
-       | PrintStmt
-       | VarDec
-       | IfStmt
-       | ObjectCreation
-       | AssignmentStmt
-       | id "++;" --increment
-       | id "--;" --decrement
-       
-  VarDec = let id "=" Exp ";"
-  PrintStmt = print "(" Exp ");"
-  IfStmt = if "("? Exp ")"? Block (else "("? (Block | IfStmt) ")"?)?
-  AssignmentStmt = id "=" Exp ";"
-  Block = "{" Stmt* "}"
+  Program = Statement+
   
-  ForLoop = for id in domain "(" Exp ")" Block
-  Exp = Condition relop Condition --test
-      | Condition
-  Condition = Exp "+" Term --add
-            | Exp "-" Term --sub
-            | Term
-  Term = Term "*" Factor --mul
-       | Term "/" Factor --div
-       | Term "%" Factor --mod
-       | Factor
-  Factor = Primary ("**" Factor)? --exp
-         | "-" Primary --neg
-         | Primary
-  Primary = floatLiteral
-          | integerLiteral
-          | boolean
-          | ObjectMethodCall
-          | StaticMethodCall
-          | stringlit
-          | id
-          | FunctionCall
-          | mathConstant
-          | "[" ListOf<Exp, ","> "]" --array
-          | "(" Exp ")" --parens
-  boolean = "true" | "false"
-  ExpList = ListOf<Exp, ",">
+  Statement = VarDec | Assignment | PrintStmt | FunctionCall
   
-  FunctionCall = mathFunc "(" ExpList? ")"
+  VarDec = "let" id (":" Type)? "=" Exp ";"
+  Assignment = id "=" Exp ";"
+  PrintStmt = "print" "(" Exp ")" ";"
   
-  FuncCreation = func id "(" ParamList? ")" Block
-  ParamList = ListOf<id, ",">
-  
-  VarArgsList = Exp ("," Exp)*
-  
-  // Objects
-  ObjectCreation = obj id "=" objectType ";"
-  objectType = triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj
-  
-  ObjectMethodCall = id "." methodName "(" VarArgsList? ")"
-  
-  // Calls directly to objects
-  StaticMethodCall = (triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj) "." methodName "(" VarArgsList? ")"
-  
-  methodName = areaMethod | perimeterMethod | circumferenceMethod | radiusMethod | id
-  
+  FunctionCall = id "(" ExpList? ")"
+  ExpList = Exp ("," Exp)*
 
-  print = "print" ~idchar
-  if = "if" ~idchar
-  else = "else" ~idchar
-  let = "let" ~idchar
-  func = "func" ~idchar
-  for = "for" ~idchar
-  in = "in" ~idchar
-  domain = "domain" ~idchar
-  obj = "obj" ~idchar
-  
+  Exp = Exp "+" Exp  -- add
+      | integerLiteral
+      | floatLiteral
+      | stringlit
+      | boolean
+      | id
+      | FunctionCall
 
-  triangleObj = "Triangle" ~idchar
-  rectangleObj = "Rectangle" ~idchar
-  circleObj = "Circle" ~idchar
-  polygonObj = "Polygon" ~idchar
-  vectorObj = "Vector" ~idchar
-  matrixObj = "Matrix" ~idchar
-  
-  
-  areaMethod = "area" ~idchar
-  perimeterMethod = "perimeter" ~idchar
-  circumferenceMethod = "circumference" ~idchar
-  radiusMethod = "radius" ~idchar
-  
-  
-  
-  mathFunc = cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc 
-          | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc 
-          | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc 
-          | randFunc | distanceFunc
-          
-  cosFunc = "cos" ~idchar
-  sinFunc = "sin" ~idchar
-  tanFunc = "tan" ~idchar
-  arccosFunc = "arccos" ~idchar
-  arcsinFunc = "arcsin" ~idchar
-  arctanFunc = "arctan" ~idchar
-  sqrtFunc = "sqrt" ~idchar
-  logFunc = "log" ~idchar
-  expFunc = "exp" ~idchar
-  lnFunc = "ln" ~idchar
-  log10Func = "log10" ~idchar
-  absFunc = "abs" ~idchar
-  floorFunc = "floor" ~idchar
-  ceilFunc = "ceil" ~idchar
-  roundFunc = "round" ~idchar
-  minFunc = "min" ~idchar
-  maxFunc = "max" ~idchar
-  powFunc = "pow" ~idchar
-  randFunc = "rand" ~idchar
-  distanceFunc = "distance" ~idchar
-  
-  // Constants
-  mathConstant = piConst | eConst
-  piConst = "pi" ~idchar
-  eConst = "e" ~idchar
-  
-  
-  
-  keyword = print | if | else | let | obj | for | in | domain | func
-          | triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj
-          | areaMethod | perimeterMethod | circumferenceMethod | radiusMethod
-          | cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc
-          | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc
-          | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
-          | randFunc | distanceFunc
-          | piConst | eConst
-           
-  id = ~keyword letter idchar*
-  idchar = letter | digit | "_"
-  
+  Type = "int" | "float" | "boolean" | "string"
   
   integerLiteral = digit+
-  
-  // Floats
-  floatLiteral = decimalLiteral | scientificLiteral
-  decimalLiteral = digit+ "." digit+ (("E"|"e") ("+"|"-")? digit+)?
-  scientificLiteral = digit+ ("E"|"e") ("+"|"-")? digit+
-  
+  floatLiteral = digit+ "." digit+
   stringlit = "\"" (~"\"" any)* "\""
-  
-  relop = "<=" | "<" | "==" | "!=" | ">=" | ">"
-  
-  space += "//" (~"\n" any)* --comment
-  space += "/*" (~"*/" any)* "*/" --multilineComment
+  boolean = "true" | "false"
+  id = letter (letter | digit)*
 }

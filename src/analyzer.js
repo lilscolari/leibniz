@@ -1,38 +1,14 @@
-import * as core from "./core.js";
-
-export default function analyze(match) {
-  const grammar = match.matcher.grammar;
-
-  class Context {
-    constructor(parent = null) {
-      this.locals = new Map();
-      this.parent = parent;
-    }
-    add(name, entity) {
-      this.locals.set(name, entity);
-    }
-    has(name) {
-      return this.locals.has(name);
-    }
-    lookup(name) {
-      return this.locals.get(name) ?? (this.parent && this.parent.lookup(name));
-    }
-    newChildContext() {
-      return new Context(this);
-    }
+function analyze(ast) {
+  if (ast.type === 'Program') {
+    return { type: 'Program', body: ast.body.map(analyze) };
   }
-
-  let context = new Context();
-  const target = [];
-    
-
-
-  const analyzer = grammar.createSemantics().addOperation("analyze", {
-    Program(statements) {
-      return core.program(statements.children.map((s) => s.analyze()));
-    },
-
-  });
-  return analyzer(match).analyze();
-
+  if (ast.type === 'Print') {
+    return { type: 'Print', value: analyze(ast.value) };
+  }
+  if (ast.type === 'Assignment') {
+    return { type: 'Assignment', name: ast.name, value: analyze(ast.value) };
+  }
+  return ast;
 }
+
+module.exports = { analyze };

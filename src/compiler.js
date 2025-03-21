@@ -1,17 +1,13 @@
-import parse from "./parser.js"
-import analyze from "./analyzer.js"
-import optimize from "./optimizer.js"
-import generate from "./generator.js"
+const { parse } = require('./parser');
+const { analyze } = require('./analyzer');
+const { optimize } = require('./optimizer');
+const { generate } = require('./generator');
 
-export default function compile(source, outputType) {
-  if (!["parsed", "analyzed", "optimized", "js"].includes(outputType)) {
-    throw new Error("Unknown output type")
-  }
-  const match = parse(source)
-  if (outputType === "parsed") return "Syntax is ok"
-  const analyzed = analyze(match)
-  if (outputType === "analyzed") return analyzed
-  const optimized = optimize(analyzed)
-  if (outputType === "optimized") return optimized
-  return generate(optimized)
+function compile(sourceCode) {
+  const ast = parse(sourceCode);
+  const analyzedAst = analyze(ast);
+  const optimizedAst = optimize(analyzedAst);
+  return generate(optimizedAst);
 }
+
+module.exports = { compile };
