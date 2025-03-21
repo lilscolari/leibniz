@@ -8,6 +8,7 @@ export default function analyze(match) {
       this.locals = new Map();
       this.parent = parent;
     }
+
     add(name, entity) {
       this.locals.set(name, entity);
     }
@@ -80,12 +81,12 @@ export default function analyze(match) {
     },
     PrintStmt(_print, _openParen, exp, _closeParen, _semi) {
       const argument = exp.analyze();
-      console.log("Analyzing PrintStmt:", exp.sourceString, "=>", argument);
+      // console.log("Analyzing PrintStmt:", exp.sourceString, "=>", argument);
       return core.printStatement(argument);
     },
     IfStmt(_if, _openParens, condition, _closeParens, block, _else, _openParens2, block2, _closeParens2) {
-      const conditionExpr = condition.analyze();  // Analyze the condition expression
-      checkBoolean(conditionExpr, condition);    // Ensure the condition is of type boolean
+      const conditionExpr = condition.analyze();
+      checkBoolean(conditionExpr, condition);
         
       const statements = block.analyze(); 
         
@@ -179,12 +180,12 @@ export default function analyze(match) {
     FuncCreation(_fun, id, _openParen, paramList, _closeParen, block) {
       checkNotDeclared(id.sourceString, id);
       context = context.newChildContext();
-      console.log(paramList.sourceString)
+      // console.log(paramList.sourceString)
       const parameters = paramList.sourceString.split(',').map(param => param.trim());
-      console.log("Function Parameters:", parameters);
+      // console.log("Function Parameters:", parameters);
       parameters.forEach((paramName) => {
         if (paramName) {
-          console.log("Adding parameter:", paramName);
+          // console.log("Adding parameter:", paramName);
 
           const paramNode = { 
             name: paramName, 
@@ -197,17 +198,17 @@ export default function analyze(match) {
           console.warn("Parameter name is empty:", paramName);
         }
       });
-      console.log(`Creating function: ${id.sourceString} with parameters:`, parameters);
+      // console.log(`Creating function: ${id.sourceString} with parameters:`, parameters);
       const body = block.analyze()
       context = context.parent;
       const fun = core.func(id.sourceString, parameters, body);
       context.add(id.sourceString, fun);
-      console.log(`Added function ${id.sourceString} to context`);
+      // console.log(`Added function ${id.sourceString} to context`);
       return core.functionDeclaration(fun, body);
     },
     FunctionCall(id, _openParen, args, _closeParen) {
       const funcName = id.sourceString;
-      console.log(`Calling function: ${funcName}`);
+      // console.log(`Calling function: ${funcName}`);
       
       const isMathFunc = ["cos", "sin", "tan", "arccos", "arcsin", "arctan", "sqrt", "log", "exp", "ln", "log10", "abs", "floor", "ceil", "round", "min", "max", "pow", "rand", "distance"]
         .includes(funcName);
@@ -220,7 +221,7 @@ export default function analyze(match) {
 
       if (args && args.analyze) {
         params = flatten(args.analyze());
-        console.log(`Arguments for ${funcName}:`, params);
+        // console.log(`Arguments for ${funcName}:`, params);
       }
 
       const funcContext = context.newChildContext();
@@ -268,10 +269,10 @@ export default function analyze(match) {
       }
     },
     scientificLiteral(digits1, _e, _sign, digits2) {
-      console.log("digits1:", digits1, "digits2:", digits2, "_sign:", _sign, "_e:", _e);
+      // console.log("digits1:", digits1, "digits2:", digits2, "_sign:", _sign, "_e:", _e);
 
       let number = parseFloat(digits1.sourceString);
-      console.log(digits1.sourceString)
+      // console.log(digits1.sourceString)
     
       if (_e !== undefined) {
         const exponent = parseInt(digits2.sourceString, 10);
@@ -279,7 +280,7 @@ export default function analyze(match) {
         number *= Math.pow(10, sign * exponent);
       }
     
-      console.log("Final Parsed Value:", number);
+      // console.log("Final Parsed Value:", number);
       return { value: number, type: "scientific" };
     },  
     decimalLiteral(digits1, _dot, digits2, _e, _sign, digits3) {
@@ -384,7 +385,7 @@ export default function analyze(match) {
     },
     stringlit(_open, chars, _close) {
       return chars.sourceString;
-    },
+    },      
   });
   return analyzer(match).analyze();
 
