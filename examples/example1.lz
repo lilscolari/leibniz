@@ -59,3 +59,10 @@ print(new_rectangle.perimeter());
 obj s = Triangle(5, 4, 4, pow(3));
 
 print(π);
+
+print(cos(3.14159265));
+print(tan(5));
+print(log(2));
+print(abs(-5));
+print(ceil(323.323));
+print(floor(232.68));
