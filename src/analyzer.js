@@ -7,6 +7,19 @@ export default function analyze(match) {
     constructor(parent = null) {
       this.locals = new Map();
       this.parent = parent;
+      this.classes = new Map();
+      this.addBuiltInClasses();
+    }
+
+    addBuiltInClasses() {
+      this.classes.set('Triangle', core.Triangle);
+      this.classes.set('Circle', core.Circle);
+      this.classes.set('Rectangle', core.Rectangle);
+    }
+  
+    // Look up classes in the context
+    lookupClass(name) {
+      return this.classes.get(name) ?? (this.parent && this.parent.lookupClass(name));
     }
 
     add(name, entity) {
@@ -385,7 +398,86 @@ export default function analyze(match) {
     },
     stringlit(_open, chars, _close) {
       return chars.sourceString;
-    },      
+    }, 
+    ObjectMethodCall(id, _dot, methodName, _openParens, _closeParens) {
+      const objName = id.sourceString;
+      const methodNameStr = methodName.sourceString;
+      
+      let object = context.lookup(objName);
+
+      if (!object) {
+        throw new Error(`Object ${objName} not found.`);
+      }
+
+      if (object.type === "Triangle" || object.type === "Rectangle") {
+        const allowedMethods = ['area', 'perimeter'];
+        if (!allowedMethods.includes(methodNameStr)) {
+          throw new Error(`${methodNameStr} is not a valid method for ${object.type}.`);
+        }
+      } else if (object.type === "Circle") {
+        const allowedMethods = ['area', 'circumference'];
+        if (!allowedMethods.includes(methodNameStr)) {
+          throw new Error(`${methodNameStr} is not a valid method for Circle.`);
+        }
+      } else {
+        throw new Error(`Unknown object type: ${object.type}`);
+      }
+
+      return {
+        object: objName,
+        method: methodNameStr,
+        result: object[methodNameStr]()
+      };
+    }, 
+    ObjectCreation(_obj, id, _eq, className, _openParens, params, _closeParens, _semi) {
+      const objName = id.sourceString;
+      const classNameStr = className.sourceString;
+      let constructorArgs = params ? params.analyze() : [];
+    
+      if (constructorArgs.length === 1 && typeof constructorArgs[0] === "string") {
+        constructorArgs = constructorArgs[0].split(",").map(arg => arg.trim());
+      }
+    
+      let object;
+    
+      if (classNameStr === "Triangle" || classNameStr === "Rectangle") {
+        if (constructorArgs.length < 2) {
+          throw new Error(`${classNameStr} requires exactly 2 arguments (base, height), but got ${constructorArgs.length}.`);
+        }
+        if (constructorArgs.length > 2) {
+          console.warn(`${classNameStr} expects only 2 arguments. Ignoring extra arguments.`);
+          constructorArgs.splice(2);
+        }
+        object = classNameStr === "Triangle"
+          ? core.Triangle(constructorArgs[0], constructorArgs[1])
+          : core.Rectangle(constructorArgs[0], constructorArgs[1]);
+      } else if (classNameStr === "Circle") {
+        if (constructorArgs.length < 1) {
+          throw new Error(`Circle requires exactly 1 argument (radius), but got ${constructorArgs.length}.`);
+        }
+        if (constructorArgs.length > 1) {
+          console.warn(`Circle expects only 1 argument. Ignoring extra arguments.`);
+          constructorArgs.splice(1);
+        }
+        object = core.Circle(constructorArgs[0]);
+      } else {
+        throw new Error(`Unknown class: ${classNameStr}`);
+      }
+      context.add(objName, object);
+      return core.assignmentStatement(object, core.variable(objName, 'object'));
+    },
+    mathConstant(node) {
+      if (node.sourceString === "pi") {
+        return Math.PI;
+      } else if (node.sourceString === "e") {
+        return Math.E;
+      } else if (node.sourceString === "π") {
+        return Math.PI;
+      } else {
+        throw new Error(`Unexpected math constant: ${node.sourceString}`);
+      }
+    }
+
   });
   return analyzer(match).analyze();
 

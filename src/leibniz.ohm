@@ -54,10 +54,16 @@ Leibniz {
   VarArgsList = Exp ("," Exp)*
   
   // Objects
-  ObjectCreation = obj id "=" objectType ";"
-  objectType = triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj
+  ObjectCreation = obj id "=" objectType "(" ExpList ")" ";"
+
+  // ArgumentList = Argument ("," Argument)*
+  // Argument = id | mathConstant | integerLiteral | floatLiteral
+
+  objectType = triangleObj | rectangleObj | circleObj
+  // | polygonObj | vectorObj | matrixObj
+
   
-  ObjectMethodCall = id "." methodName "(" VarArgsList? ")"
+  ObjectMethodCall = id "." methodName "(" ")"
   
   // Calls directly to objects
   StaticMethodCall = (triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj) "." methodName "(" VarArgsList? ")"
@@ -122,9 +128,10 @@ Leibniz {
   distanceFunc = "distance" ~idchar
   
   // Constants
-  mathConstant = piConst | eConst
+  mathConstant = piConst | eConst | piSymbol
   piConst = "pi" ~idchar
   eConst = "e" ~idchar
+  piSymbol = "π" ~idchar
   
   
   
@@ -135,7 +142,7 @@ Leibniz {
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
           | randFunc | distanceFunc
-          | piConst | eConst | true | false
+          | piConst | eConst | piSymbol| true | false
            
   id = ~keyword letter idchar*
   idchar = letter | digit | "_"

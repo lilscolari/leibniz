@@ -160,6 +160,69 @@ export const standardLibrary = Object.freeze({
   distance: intrinsicFunction("distance", floatToFloatType),
 })
 
+export function Triangle(base, height) {
+  return {
+    type: 'Triangle',
+    base: base,
+    height: height,
+    area: function() {
+      return 0.5 * this.base * this.height;
+    },
+    perimeter: function() {
+      const side = Math.sqrt(Math.pow(this.base, 2) + Math.pow(this.height, 2));
+      return this.base + this.height + side;
+    },
+    callMethod: function(methodName) {
+      const allowedMethods = ['area', 'perimeter'];
+      if (!allowedMethods.includes(methodName)) {
+        throw new Error(`${methodName} is not a valid method for Triangle.`);
+      }
+      return this[methodName]();
+    }
+  };
+}
+
+export function Circle(radius) {
+  return {
+    type: 'Circle',
+    radius: radius,
+    area: function() {
+      return Math.PI * Math.pow(this.radius, 2);
+    },
+    circumference: function() {
+      return 2 * Math.PI * this.radius;
+    },
+    callMethod: function(methodName) {
+      const allowedMethods = ['area', 'circumference'];
+      if (!allowedMethods.includes(methodName)) {
+        throw new Error(`${methodName} is not a valid method for Circle.`);
+      }
+      return this[methodName]();
+    }
+  };
+}
+
+export function Rectangle(width, height) {
+  return {
+    type: 'Rectangle',
+    width: width,
+    height: height,
+    area: function() {
+      return this.width * this.height;
+    },
+    perimeter: function() {
+      return 2 * (this.width + this.height);
+    },
+    callMethod: function(methodName) {
+      const allowedMethods = ['area', 'perimeter'];
+      if (!allowedMethods.includes(methodName)) {
+        throw new Error(`${methodName} is not a valid method for Rectangle.`);
+      }
+      return this[methodName]();
+    }
+  };
+}
+
 String.prototype.type = stringType
 Number.prototype.type = floatType
 BigInt.prototype.type = intType
