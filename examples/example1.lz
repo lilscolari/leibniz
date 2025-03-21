@@ -1,0 +1,52 @@
+let dog = 3;
+let cat = 5;
+print(dog);
+cat = 2;
+func add(x, y) {
+  return 2;
+}
+print(add);
+let found = true;
+print(false);
+let x = 4;
+let y = 3;
+print(x);
+print(5 + 2);
+print(5 - 2);
+print(x - y);
+print(x > y);
+print(x == y);
+if (2 > 3) {
+    print(5);
+} else {
+    print(3);
+}
+
+
+if true {
+    let x2 = 4;
+} else if false {
+    print(true);
+} else {
+    let in_the_else = 7;
+}
+
+print(floor(3.3232));
+
+for dude in domain(4) {
+    print(dude);
+}
+
+print(4+3 * 2 - 1);
+
+for i in domain(3) {
+    let hi2 = 32913.321;
+    let hi = 32783E-10;
+}
+
+print(213.3);
+
+print(3213.31E10);
+
+print(e);
+

@@ -7,16 +7,16 @@ Leibniz {
        | IfStmt
        | ObjectCreation
        | AssignmentStmt
-       | id "++;" --increment
-       | id "--;" --decrement
+       | id "++" ";" --increment
+       | id "--" ";" --decrement
        
   VarDec = let id "=" Exp ";"
-  PrintStmt = print "(" Exp ");"
+  PrintStmt = print "(" Exp ")" ";"
   IfStmt = if "("? Exp ")"? Block (else "("? (Block | IfStmt) ")"?)?
   AssignmentStmt = id "=" Exp ";"
   Block = "{" Stmt* "}"
   
-  ForLoop = for id in domain "(" Exp ")" Block
+  ForLoop = for id in domain "(" integerLiteral ")" Block
   Exp = Condition relop Condition --test
       | Condition
   Condition = Exp "+" Term --add
@@ -40,12 +40,15 @@ Leibniz {
           | mathConstant
           | "[" ListOf<Exp, ","> "]" --array
           | "(" Exp ")" --parens
-  boolean = "true" | "false"
+  boolean = true | false
   ExpList = ListOf<Exp, ",">
+
   
-  FunctionCall = mathFunc "(" ExpList? ")"
+  FunctionCall = funcName "(" ExpList? ")"
+
+  FuncBody = "{" Stmt* "return" Exp ";" "}"
   
-  FuncCreation = func id "(" ParamList? ")" Block
+  FuncCreation = func id "(" ParamList? ")" FuncBody
   ParamList = ListOf<id, ",">
   
   VarArgsList = Exp ("," Exp)*
@@ -71,6 +74,9 @@ Leibniz {
   in = "in" ~idchar
   domain = "domain" ~idchar
   obj = "obj" ~idchar
+  true = "true" ~idchar
+  false = "false" ~idchar
+  return = "return" ~idchar
   
 
   triangleObj = "Triangle" ~idchar
@@ -87,7 +93,8 @@ Leibniz {
   radiusMethod = "radius" ~idchar
   
   
-  
+  funcName = mathFunc | userFunc
+  userFunc = id
   mathFunc = cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc 
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc 
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc 
@@ -121,14 +128,14 @@ Leibniz {
   
   
   
-  keyword = print | if | else | let | obj | for | in | domain | func
+  keyword = print | if | else | let | obj | for | in | domain | func | return
           | triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj
           | areaMethod | perimeterMethod | circumferenceMethod | radiusMethod
           | cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
           | randFunc | distanceFunc
-          | piConst | eConst
+          | piConst | eConst | true | false
            
   id = ~keyword letter idchar*
   idchar = letter | digit | "_"
