@@ -48,5 +48,6 @@ print(213.3);
 
 print(3213.31E10);
 
-print(e);
+let test_string = "thuwe"; //test
+
 

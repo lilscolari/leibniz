@@ -153,5 +153,4 @@ Leibniz {
   relop = "<=" | "<" | "==" | "!=" | ">=" | ">"
   
   space += "//" (~"\n" any)* --comment
-  space += "/*" (~"*/" any)* "*/" --multilineComment
 }

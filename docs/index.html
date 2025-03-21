@@ -30,7 +30,8 @@
                 Inspired by Leibniz, the co-creator of calculus, our goal is to make mathematical computation more intuitive and accessible.
             </p>
             <p>
-                Leibniz supports function calls, function creation, for loops, print statements, variable declarations, object declarations, and conditional statements.
+                Leibniz currently supports for loops, print statements, variable declarations, and conditional statements. We are working on ensuring that function calls, function creation,
+                and object declarations work as intended.
                 It includes built-in math functions like <code>domain</code>, <code>cos</code>, and <code>pi</code>.
             </p>
             <p>
@@ -42,19 +43,29 @@
             <h2>Example Programs</h2>
 
             <h4>1. Variable Assignment</h4>
-            <pre class="code-box"></pre>
+            <pre class="code-box">let x = 10;</pre>
 
             <h4>2. Function Definition</h4>
-            <pre class="code-box"></pre>
+            <pre class="code-box">func add(x, y) {
+                return 2;
+              }</pre>
 
             <h4>3. For Loop</h4>
-            <pre class="code-box"></pre>
+            <pre class="code-box">for i in domain(3) {
+                print(i);
+            }</pre>
 
             <h4>4. Conditional Statements</h4>
-            <pre class="code-box"></pre>
+            <pre class="code-box">if true {
+                let x2 = 4;
+            } else if false {
+                print(true);
+            } else {
+                let in_the_else = 7;
+            }</pre>
 
             <h4>5. Mathematical Computation</h4>
-            <pre class="code-box"></pre>
+            <pre class="code-box">print(4 + 3 * 2 - 1);</pre>
         </section>
 
         <section class="mb-4">
