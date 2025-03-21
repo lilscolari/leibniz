@@ -1,4 +1,5 @@
 Leibniz {
+  // comments to show difference from current and original for when we revert back and make changes
   Program = Stmt+
   Stmt = FuncCreation
        | ForLoop
@@ -7,16 +8,16 @@ Leibniz {
        | IfStmt
        | ObjectCreation
        | AssignmentStmt
-       | id "++" ";" --increment
-       | id "--" ";" --decrement
+       | id "++" ";" --increment  // Changed from `id "++;"` to explicitly separate tokens
+       | id "--" ";" --decrement  // Changed from `id "--;"` to explicitly separate tokens
        
-  VarDec = let id "=" Exp ";"
-  PrintStmt = print "(" Exp ")" ";"
+  VarDec = let id "=" Exp ";"  // The first version had optional type annotations with ":" Type
+  PrintStmt = print "(" Exp ")" ";"  // Explicit semicolon token separation
   IfStmt = if "("? Exp ")"? Block (else "("? (Block | IfStmt) ")"?)?
   AssignmentStmt = id "=" Exp ";"
   Block = "{" Stmt* "}"
   
-  ForLoop = for id in domain "(" integerLiteral ")" Block
+  ForLoop = for id in domain "(" integerLiteral ")" Block  // First version accepted any Exp, this only accepts integerLiteral
   Exp = Condition relop Condition --test
       | Condition
   Condition = Exp "+" Term --add
@@ -40,30 +41,30 @@ Leibniz {
           | mathConstant
           | "[" ListOf<Exp, ","> "]" --array
           | "(" Exp ")" --parens
-  boolean = true | false
+  boolean = true | false  // First version used string literals "true" | "false"
   ExpList = ListOf<Exp, ",">
 
   
-  FunctionCall = funcName "(" ExpList? ")"
+  FunctionCall = funcName "(" ExpList? ")"  // First version used mathFunc directly instead of funcName
 
-  FuncBody = "{" Stmt* "return" Exp ";" "}"
+  FuncBody = "{" Stmt* "return" Exp ";" "}"  // This is new, not in first version
   
-  FuncCreation = func id "(" ParamList? ")" FuncBody
-  ParamList = ListOf<id, ",">
+  FuncCreation = func id "(" ParamList? ")" FuncBody  // First version had Block and optional return type
+  ParamList = ListOf<id, ",">  // First version had Param objects with optional types
   
   VarArgsList = Exp ("," Exp)*
   
   // Objects
-  ObjectCreation = obj id "=" objectType "(" ExpList ")" ";"
+  ObjectCreation = obj id "=" objectType "(" ExpList ")" ";"  // Added parentheses with ExpList
 
-  // ArgumentList = Argument ("," Argument)*
-  // Argument = id | mathConstant | integerLiteral | floatLiteral
+  // ArgumentList = Argument ("," Argument)*  // This is commented out, not in first version
+  // Argument = id | mathConstant | integerLiteral | floatLiteral  // This is commented out, not in first version
 
   objectType = triangleObj | rectangleObj | circleObj
-  // | polygonObj | vectorObj | matrixObj
+  // | polygonObj | vectorObj | matrixObj  // Commented out part of objectType
 
   
-  ObjectMethodCall = id "." methodName "(" ")"
+  ObjectMethodCall = id "." methodName "(" ")"  // First version allowed arguments in the parentheses
   
   // Calls directly to objects
   StaticMethodCall = (triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj) "." methodName "(" VarArgsList? ")"
@@ -80,9 +81,9 @@ Leibniz {
   in = "in" ~idchar
   domain = "domain" ~idchar
   obj = "obj" ~idchar
-  true = "true" ~idchar
-  false = "false" ~idchar
-  return = "return" ~idchar
+  true = "true" ~idchar  // Added these as explicit keywords
+  false = "false" ~idchar  // Added these as explicit keywords
+  return = "return" ~idchar  // Added this as an explicit keyword
   
 
   triangleObj = "Triangle" ~idchar
@@ -99,8 +100,8 @@ Leibniz {
   radiusMethod = "radius" ~idchar
   
   
-  funcName = mathFunc | userFunc
-  userFunc = id
+  funcName = mathFunc | userFunc  // This is new, allows both math and user functions
+  userFunc = id  // This is new
   mathFunc = cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc 
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc 
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc 
@@ -128,21 +129,21 @@ Leibniz {
   distanceFunc = "distance" ~idchar
   
   // Constants
-  mathConstant = piConst | eConst | piSymbol
+  mathConstant = piConst | eConst | piSymbol  // Added piSymbol
   piConst = "pi" ~idchar
   eConst = "e" ~idchar
-  piSymbol = "π" ~idchar
+  piSymbol = "π" ~idchar  // This is new
   
   
   
-  keyword = print | if | else | let | obj | for | in | domain | func | return
+  keyword = print | if | else | let | obj | for | in | domain | func | return  // Added return
           | triangleObj | rectangleObj | circleObj | polygonObj | vectorObj | matrixObj
           | areaMethod | perimeterMethod | circumferenceMethod | radiusMethod
           | cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
           | randFunc | distanceFunc
-          | piConst | eConst | piSymbol| true | false
+          | piConst | eConst | piSymbol | true | false  // Added piSymbol, true, false
            
   id = ~keyword letter idchar*
   idchar = letter | digit | "_"
@@ -160,4 +161,4 @@ Leibniz {
   relop = "<=" | "<" | "==" | "!=" | ">=" | ">"
   
   space += "//" (~"\n" any)* --comment
-}
+}  // Removed multiline comments that were in first version
