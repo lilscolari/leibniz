@@ -69,15 +69,11 @@ export function typeDeclaration(type) {
   }
 }
 
-export const booleanType = "boolean"
+// export const booleanType = "boolean"
 export const intType = "int"
-export const floatType = "float"
-export const scientificType = "scientific"
-export const stringType = "string"
-
-export function field(name, type) {
-  return { kind: "Field", name, type }
-}
+// export const floatType = "float"
+// export const scientificType = "scientific"
+// export const stringType = "string"
 
 export function functionDeclaration(func) {
   return { kind: "FunctionDeclaration", func }
@@ -91,146 +87,50 @@ export function intrinsicFunction(name, type) {
   return { kind: "Function", name, type, intrinsic: true }
 }
 
-export function functionType(paramTypes, returnType) {
-  return { kind: "FunctionType", paramTypes, returnType }
-}
+// export function functionType(paramTypes, returnType) {
+//   return { kind: "FunctionType", paramTypes, returnType }
+// }
 
-export function increment(variable) {
-  return { kind: "Increment", variable }
-}
-  
-export function decrement(variable) {
-  return { kind: "Decrement", variable }
-}
-
-export function assignment(target, source) {
-  return { kind: "Assignment", target, source }
-}
-
-export function returnStatement(expression) {
-  return { kind: "ReturnStatement", expression }
-}
-  
-export function shortIfStatement(test, consequent) {
-  return { kind: "ShortIfStatement", test, consequent }
-}
+// export function returnStatement(expression) {
+//   return { kind: "ReturnStatement", expression }
+// }
 
 export function forStatement(iterator, collection, body) {
   return { kind: "ForStatement", iterator, collection, body }
 }
-  
-export function conditional(test, consequent, alternate, type) {
-  return { kind: "Conditional", test, consequent, alternate, type }
-}
 
-export function constructorCall(callee, args) {
-  return { kind: "ConstructorCall", callee, args, type: callee }
-}
+// const floatToFloatType = functionType([floatType], floatType)
+// const floatFloatToFloatType = functionType([floatType, floatType], floatType)
 
-const floatToFloatType = functionType([floatType], floatType)
-const floatFloatToFloatType = functionType([floatType, floatType], floatType)
-
-function validateArgs(args, expectedCount, validator = () => true) {
-  if (args.length !== expectedCount) {
-    throw new Error(`Error: ${expectedCount} argument(s) expected, but got ${args.length}.`);
-  }
-  if (!args.every((arg) => typeof arg === "number")) {
-    throw new Error("Error: All arguments must be numbers.");
-  }
-  if (!validator(...args)) {
-    throw new Error(`Error: Invalid input for function.`);
-  }
-}
-
-export const standardLibrary = Object.freeze({
-  int: intType,
-  float: floatType,
-  scientific: scientificType,
-  boolean: booleanType,
-  string: stringType,
-  π: variable("π", false, floatType),
-  e: variable("e", false, floatType),
-
-  sqrt: intrinsicFunction("sqrt", floatToFloatType, (args) => {
-    validateArgs(args, 1, (x) => x >= 0);
-    return Math.sqrt(args[0]);
-  }),
-
-  sin: intrinsicFunction("sin", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.sin(args[0]);
-  }),
-
-  cos: intrinsicFunction("cos", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.cos(args[0]);
-  }),
-
-  tan: intrinsicFunction("tan", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.tan(args[0]);
-  }),
-
-  log: intrinsicFunction("log", floatToFloatType, (args) => {
-    validateArgs(args, 1, (x) => x > 0);
-    return Math.log(args[0]);
-  }),
-
-  log10: intrinsicFunction("log10", floatToFloatType, (args) => {
-    validateArgs(args, 1, (x) => x > 0);
-    return Math.log10(args[0]);
-  }),
-
-  abs: intrinsicFunction("abs", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.abs(args[0]);
-  }),
-
-  floor: intrinsicFunction("floor", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.floor(args[0]);
-  }),
-
-  ceil: intrinsicFunction("ceil", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.ceil(args[0]);
-  }),
-
-  round: intrinsicFunction("round", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.round(args[0]);
-  }),
-
-  min: intrinsicFunction("min", floatToFloatType, (args) => {
-    validateArgs(args, 2);
-    return Math.min(...args);
-  }),
-
-  max: intrinsicFunction("max", floatToFloatType, (args) => {
-    validateArgs(args, 2);
-    return Math.max(...args);
-  }),
-
-  pow: intrinsicFunction("pow", floatToFloatType, (args) => {
-    validateArgs(args, 2);
-    return Math.pow(args[0], args[1]);
-  }),
-
-  exp: intrinsicFunction("exp", floatToFloatType, (args) => {
-    validateArgs(args, 1);
-    return Math.exp(args[0]);
-  }),
-
-  rand: intrinsicFunction("rand", floatToFloatType, (args) => {
-    validateArgs(args, 0);
-    return Math.random();
-  }),
-
-  distance: intrinsicFunction("distance", floatToFloatType, (args) => {
-    validateArgs(args, 4);
-    return Math.sqrt((args[2] - args[0]) ** 2 + (args[3] - args[1]) ** 2);
-  }),
-});
+// export const standardLibrary = Object.freeze({
+//   int: intType,
+//   float: floatType,
+//   scientific: scientificType,
+//   boolean: booleanType,
+//   string: stringType,
+//   π: variable("π", false, floatType),
+//   e: variable("e", false, floatType),
+//   sqrt: intrinsicFunction("sqrt", floatToFloatType),
+//   sin: intrinsicFunction("sin", floatToFloatType),
+//   cos: intrinsicFunction("cos", floatToFloatType),
+//   tan: intrinsicFunction("tan:", floatToFloatType),
+//   arcsin: intrinsicFunction("arcsin", floatToFloatType),
+//   arccos: intrinsicFunction("arccos", floatToFloatType),
+//   arctan: intrinsicFunction("arctan:", floatToFloatType),
+//   log: intrinsicFunction("log", floatToFloatType),
+//   log10: intrinsicFunction("log10", floatToFloatType),
+//   ln: intrinsicFunction("ln", floatToFloatType),
+//   abs: intrinsicFunction("abs:", floatToFloatType),
+//   floor: intrinsicFunction("floor", floatToFloatType),
+//   ceil: intrinsicFunction("ceil", floatToFloatType),
+//   round: intrinsicFunction("round:", floatToFloatType),
+//   min: intrinsicFunction("min", floatToFloatType),
+//   max: intrinsicFunction("max", floatToFloatType),
+//   pow: intrinsicFunction("pow:", floatToFloatType),  
+//   exp: intrinsicFunction("exp", floatToFloatType),
+//   rand: intrinsicFunction("rand", floatToFloatType),
+//   distance: intrinsicFunction("distance", floatToFloatType),
+// })
 
 export function Triangle(base, height) {
   return {
@@ -295,7 +195,7 @@ export function Rectangle(width, height) {
   };
 }
 
-String.prototype.type = stringType
-Number.prototype.type = floatType
+//String.prototype.type = stringType
+//Number.prototype.type = floatType
 BigInt.prototype.type = intType
-Boolean.prototype.type = booleanType
+//Boolean.prototype.type = booleanType

@@ -12,25 +12,11 @@ import {
     binaryExpression, 
     incrementStatement, 
     typeDeclaration, 
-    booleanType, 
-    intType, 
-    floatType, 
-    scientificType, 
-    stringType, 
-    field, 
+    intType,
     functionDeclaration, 
     func, 
     intrinsicFunction, 
-    functionType, 
-    increment, 
-    decrement, 
-    assignment, 
-    returnStatement, 
-    shortIfStatement, 
     forStatement, 
-    conditional, 
-    constructorCall, 
-    standardLibrary, 
     Triangle, 
     Circle, 
     Rectangle 
@@ -68,6 +54,9 @@ const semanticChecks = [
   ["valid math constant e", "print(e);"],  
   ["valid math constant π", "print(π);"],  
   ["string literal", "print(\"test\");"],
+  ["assignment statement", "let x = 2; x = 4;"],
+  ["nested if else", "if true {let x2 = 4;} else if false {print(true);} else {let in_the_else = 7;}"],
+
 
 ]
 
@@ -89,6 +78,7 @@ const semanticErrors = [
   ["constructor call with wrong arguments", "obj rect = Rectangle();", /Error: Rectangle requires exactly 2 arguments \(base, height\), but got 0\./],
   ["calling method on non-object", "let x = 5.area();", /Expected a digit/],
   ["undefined method on object", "obj triangle = Triangle(3,4); let p = triangle.volume();", /Error: volume is not a valid method for Triangle./],
+  ["assigning new type", "let x = 2; x = \"dog\";", /Operands must have the same type/],
 
 
   //["'circumference' for Circle no args", "obj circle = Circle(); let x = circle.circumference();", /Error: Circle requires exactly 1 argument\(radius\), but got 0\./]
