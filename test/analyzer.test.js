@@ -63,7 +63,11 @@ const semanticChecks = [
   ["scientific number (+ sign)", "print(3213.31E+10);"],
   ["scientific number2 (- sign)", "print(3213.31E-10);"],
   ["valid method 'area' for Circle", "obj new_circle = Circle(3); let y = new_circle.area();"],
-  ["valid method 'circumference' for Circle", "obj new_circle = Circle(4); let x = new_circle.circumference();"]
+  ["valid method 'circumference' for Circle", "obj new_circle = Circle(4); let x = new_circle.circumference();"],
+  ["valid math constant pi", "print(pi);"],  
+  ["valid math constant e", "print(e);"],  
+  ["valid math constant π", "print(π);"],  
+  ["string literal", "print(\"test\");"],
 
 ]
 
@@ -75,11 +79,21 @@ const semanticErrors = [
   ["relation not number", "print(3.5<1.2);", /Expected number/],
   ["call method for undefined object", "print(new_triangle.area());", /Error: Object new_triangle not found./],
   ["one argument to rectangle", "obj new_rect = Rectangle(5);", /Error: Rectangle requires exactly 2 arguments \(base, height\), but got 1\./],
-  ["invalid method for Circle", "obj circle = Circle(2); let x = circle.diameter();", /Error: diameter is not a valid method for Circle./]
+  ["invalid method for Circle", "obj circle = Circle(2); let x = circle.diameter();", /Error: diameter is not a valid method for Circle./],
+  ["unknown object type", "obj unknown = Square(5);", /Expected "Circle", "Rectangle", or "Triangle"/],
+  ["invalid method for Rectangle", "obj rectangle = Rectangle(2, 3); let x = rectangle.circumference();", /Error: circumference is not a valid method for Rectangle./],
+  ["invalid print argument", "print(π + \"text\");", /Operands must have the same type/],
+  ["assignment to undeclared variable", "x = 10;", /x not declared/],
+  ["undeclared function call", "let result = unknownFunction(5);", /Expected ";"/],
+  ["invalid binary operation", "let result = true + 5;", /Expected number or string/],
+  ["constructor call with wrong arguments", "obj rect = Rectangle();", /Error: Rectangle requires exactly 2 arguments \(base, height\), but got 0\./],
+  ["calling method on non-object", "let x = 5.area();", /Expected a digit/],
+  ["undefined method on object", "obj triangle = Triangle(3,4); let p = triangle.volume();", /Error: volume is not a valid method for Triangle./],
+
+
   //["'circumference' for Circle no args", "obj circle = Circle(); let x = circle.circumference();", /Error: Circle requires exactly 1 argument\(radius\), but got 0\./]
   
 ];
-  
 
 describe("The analyzer", () => {
   for (const [scenario, source] of semanticChecks) {
@@ -92,15 +106,15 @@ describe("The analyzer", () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
     })
   }
-//   it("produces the expected representation for a trivial program", () => {
-//     assert.deepEqual(
-//       analyze(parse("let x = π + 2.2;")),
-//       program([
-//         variableDeclaration(
-//           variable("x", true, floatType),
-//           binary("+", variable("π", false, floatType), 2.2, floatType)
-//         ),
-//       ])
-//     )
-//   })
+
+  // it("produces the expected representation for a trivial program", () => {
+  //   assert.deepEqual(
+  //       analyze(parse("let x = 2.2;")),
+  //       program([
+  //       variableDeclaration(
+  //         variable("x", floatType, 2.2),
+  //       ),
+  //     ])
+  //   )
+  // })
 })

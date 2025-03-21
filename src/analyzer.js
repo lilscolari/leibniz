@@ -223,60 +223,68 @@ export default function analyze(match) {
       const funcName = id.sourceString;
       // console.log(`Calling function: ${funcName}`);
       
-      const isMathFunc = ["cos", "sin", "tan", "arccos", "arcsin", "arctan", "sqrt", "log", "exp", "ln", "log10", "abs", "floor", "ceil", "round", "min", "max", "pow", "rand", "distance"]
-        .includes(funcName);
-
+      // List of built-in math functions
+      const mathFunctions = {
+        cos: { value: Math.cos, paramCount: 1 },
+        sin: { value: Math.sin, paramCount: 1 },
+        tan: { value: Math.tan, paramCount: 1 },
+        arccos: { value: Math.acos, paramCount: 1 },
+        arcsin: { value: Math.asin, paramCount: 1 },
+        arctan: { value: Math.atan, paramCount: 1 },
+        sqrt: { value: Math.sqrt, paramCount: 1 },
+        log: { value: Math.log, paramCount: 1 },
+        exp: { value: Math.exp, paramCount: 1 },
+        ln: { value: Math.log, paramCount: 1 },
+        log10: { value: Math.log10, paramCount: 1 },
+        abs: { value: Math.abs, paramCount: 1 },
+        floor: { value: Math.floor, paramCount: 1 },
+        ceil: { value: Math.ceil, paramCount: 1 },
+        round: { value: Math.round, paramCount: 1 },
+        min: { value: Math.min, paramCount: -1 }, // -1 means variable number of arguments
+        max: { value: Math.max, paramCount: -1 },
+        pow: { value: Math.pow, paramCount: 2 },
+        rand: { value: Math.random, paramCount: 0 },
+        distance: { value: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), paramCount: 4 }
+      };
+    
       function flatten(arr) {
         return arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatten(val) : val), []);
       }
-      
+    
       let params = [];
-
+    
       if (args && args.analyze) {
         params = flatten(args.analyze());
         // console.log(`Arguments for ${funcName}:`, params);
       }
-
+    
       const funcContext = context.newChildContext();
-
+    
       const userFunc = context.lookup(funcName);
       if (userFunc) {
+        // Handle user-defined function
         userFunc.params.forEach((param, index) => {
           funcContext.add(param.sourceString, params[index]);
         });
         const result = core.functionCall(funcName, params);
         context = context.parent;
         return result;
-      } else if (isMathFunc) {
-        const mathFunctions = {
-          cos: Math.cos,
-          sin: Math.sin,
-          tan: Math.tan,
-          arccos: Math.acos,
-          arcsin: Math.asin,
-          arctan: Math.atan,
-          sqrt: Math.sqrt,
-          log: Math.log,
-          exp: Math.exp,
-          ln: Math.log,
-          log10: Math.log10,
-          abs: Math.abs,
-          floor: Math.floor,
-          ceil: Math.ceil,
-          round: Math.round,
-          min: Math.min,
-          max: Math.max,
-          pow: Math.pow,
-          rand: Math.random,
-          distance: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-        };
-
-        if (mathFunctions[funcName]) {
-          const result = mathFunctions[funcName](...params);
-          return result;
-        } else {
-          throw new Error(`Math function ${funcName} is not defined.`);
+      } else if (mathFunctions[funcName]) {
+        // Validate the number of arguments
+        const mathFunc = mathFunctions[funcName];
+        const expectedParamCount = mathFunc.paramCount;
+    
+        if (expectedParamCount !== -1 && params.length !== expectedParamCount) {
+          throw new Error(`Function ${funcName} expects ${expectedParamCount} argument(s), but received ${params.length}.`);
         }
+    
+        if (expectedParamCount === -1 && params.length < 1) {
+          throw new Error(`Function ${funcName} requires at least one argument.`);
+        }
+    
+        // Call the actual math function
+        const result = mathFunc.value(...params);
+        return result;
       } else {
         throw new Error(`Function ${funcName} is not defined`);
       }

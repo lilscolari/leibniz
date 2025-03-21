@@ -130,6 +130,18 @@ export function constructorCall(callee, args) {
 const floatToFloatType = functionType([floatType], floatType)
 const floatFloatToFloatType = functionType([floatType, floatType], floatType)
 
+function validateArgs(args, expectedCount, validator = () => true) {
+  if (args.length !== expectedCount) {
+    throw new Error(`Error: ${expectedCount} argument(s) expected, but got ${args.length}.`);
+  }
+  if (!args.every((arg) => typeof arg === "number")) {
+    throw new Error("Error: All arguments must be numbers.");
+  }
+  if (!validator(...args)) {
+    throw new Error(`Error: Invalid input for function.`);
+  }
+}
+
 export const standardLibrary = Object.freeze({
   int: intType,
   float: floatType,
@@ -138,27 +150,87 @@ export const standardLibrary = Object.freeze({
   string: stringType,
   π: variable("π", false, floatType),
   e: variable("e", false, floatType),
-  sqrt: intrinsicFunction("sqrt", floatToFloatType),
-  sin: intrinsicFunction("sin", floatToFloatType),
-  cos: intrinsicFunction("cos", floatToFloatType),
-  tan: intrinsicFunction("tan:", floatToFloatType),
-  arcsin: intrinsicFunction("arcsin", floatToFloatType),
-  arccos: intrinsicFunction("arccos", floatToFloatType),
-  arctan: intrinsicFunction("arctan:", floatToFloatType),
-  log: intrinsicFunction("log", floatToFloatType),
-  log10: intrinsicFunction("log10", floatToFloatType),
-  ln: intrinsicFunction("ln", floatToFloatType),
-  abs: intrinsicFunction("abs:", floatToFloatType),
-  floor: intrinsicFunction("floor", floatToFloatType),
-  ceil: intrinsicFunction("ceil", floatToFloatType),
-  round: intrinsicFunction("round:", floatToFloatType),
-  min: intrinsicFunction("min", floatToFloatType),
-  max: intrinsicFunction("max", floatToFloatType),
-  pow: intrinsicFunction("pow:", floatToFloatType),  
-  exp: intrinsicFunction("exp", floatToFloatType),
-  rand: intrinsicFunction("rand", floatToFloatType),
-  distance: intrinsicFunction("distance", floatToFloatType),
-})
+
+  sqrt: intrinsicFunction("sqrt", floatToFloatType, (args) => {
+    validateArgs(args, 1, (x) => x >= 0);
+    return Math.sqrt(args[0]);
+  }),
+
+  sin: intrinsicFunction("sin", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.sin(args[0]);
+  }),
+
+  cos: intrinsicFunction("cos", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.cos(args[0]);
+  }),
+
+  tan: intrinsicFunction("tan", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.tan(args[0]);
+  }),
+
+  log: intrinsicFunction("log", floatToFloatType, (args) => {
+    validateArgs(args, 1, (x) => x > 0);
+    return Math.log(args[0]);
+  }),
+
+  log10: intrinsicFunction("log10", floatToFloatType, (args) => {
+    validateArgs(args, 1, (x) => x > 0);
+    return Math.log10(args[0]);
+  }),
+
+  abs: intrinsicFunction("abs", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.abs(args[0]);
+  }),
+
+  floor: intrinsicFunction("floor", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.floor(args[0]);
+  }),
+
+  ceil: intrinsicFunction("ceil", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.ceil(args[0]);
+  }),
+
+  round: intrinsicFunction("round", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.round(args[0]);
+  }),
+
+  min: intrinsicFunction("min", floatToFloatType, (args) => {
+    validateArgs(args, 2);
+    return Math.min(...args);
+  }),
+
+  max: intrinsicFunction("max", floatToFloatType, (args) => {
+    validateArgs(args, 2);
+    return Math.max(...args);
+  }),
+
+  pow: intrinsicFunction("pow", floatToFloatType, (args) => {
+    validateArgs(args, 2);
+    return Math.pow(args[0], args[1]);
+  }),
+
+  exp: intrinsicFunction("exp", floatToFloatType, (args) => {
+    validateArgs(args, 1);
+    return Math.exp(args[0]);
+  }),
+
+  rand: intrinsicFunction("rand", floatToFloatType, (args) => {
+    validateArgs(args, 0);
+    return Math.random();
+  }),
+
+  distance: intrinsicFunction("distance", floatToFloatType, (args) => {
+    validateArgs(args, 4);
+    return Math.sqrt((args[2] - args[0]) ** 2 + (args[3] - args[1]) ** 2);
+  }),
+});
 
 export function Triangle(base, height) {
   return {
