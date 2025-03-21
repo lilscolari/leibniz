@@ -56,7 +56,7 @@ obj c = Circle(d);
 
 print(new_rectangle.perimeter());
 
-obj s = Triangle(5, 4, 4, pow(3));
+obj s = Triangle(5, pow(3));
 
 print(π);
 
@@ -66,4 +66,12 @@ print(log(2));
 print(abs(-5));
 print(ceil(323.323));
 print(floor(232.68));
+
+print(-3);
+
+let this = (3 + 4) * 2;
+
+let inc = 5;
+
+++inc;
 

@@ -55,6 +55,15 @@ export function binaryExpression(op, left, right, type) {
   };
 }
 
+export function unaryExpression(op, operand, type) {
+  return {
+    kind: "UnaryExpression",
+    op,
+    operand,
+    type,
+  };
+}
+
 export function incrementStatement(variable) {
   return {
     kind: "IncrementStatement",

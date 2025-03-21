@@ -44,6 +44,7 @@ const semanticChecks = [
   ["rectangle creation", "obj new_rect = Rectangle(l, 5);"],
   ["triangle creation", "obj new_triangle = Triangle(4, 5);"],
   ["area call on triangle", "obj new_triangle = Triangle(3, 2); print(new_triangle.area());"],
+  ["perimeter call on triangle", "obj new_triangle = Triangle(3, 2); print(new_triangle.perimeter());"],
   ["decimal number", "print(213.3);"],
   ["scientific number (no sign)", "print(3213.31E10);"],
   ["scientific number (+ sign)", "print(3213.31E+10);"],
@@ -56,6 +57,13 @@ const semanticChecks = [
   ["string literal", "print(\"test\");"],
   ["assignment statement", "let x = 2; x = 4;"],
   ["nested if else", "if true {let x2 = 4;} else if false {print(true);} else {let in_the_else = 7;}"],
+  ["perimeter function on rectangle", "obj new_rect = Rectangle(6, 5); print(new_rect.perimeter());"],
+  ["area function on rectangle", "obj new_rect = Rectangle(6, 5); print(new_rect.area());"],
+  ["negative number", "let neg = -3;"],
+  ["primary parentheses", "let this = (3 + 4) * 2;"],
+  ["not equal check on strings", "let yes = (\"test\" != \"3.4\");"],
+  ["increment", "let inc = 5; ++inc;"],
+
 
 
 ]
@@ -79,6 +87,10 @@ const semanticErrors = [
   ["calling method on non-object", "let x = 5.area();", /Expected a digit/],
   ["undefined method on object", "obj triangle = Triangle(3,4); let p = triangle.volume();", /Error: volume is not a valid method for Triangle./],
   ["assigning new type", "let x = 2; x = \"dog\";", /Operands must have the same type/],
+  ["too many arguments for Circle", "obj circle = Circle(2, 3);", /Error: Circle requires exactly 1 argument \(radius\), but got 2\./],
+  ["calling unknown object", "print(unknown.circumference());", /Error: Object unknown not found./],
+  ["equality check on different types", "let does_it_work = (4 == 3.4);", /Type mismatch/],
+  
 
 
   //["'circumference' for Circle no args", "obj circle = Circle(); let x = circle.circumference();", /Error: Circle requires exactly 1 argument\(radius\), but got 0\./]

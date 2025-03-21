@@ -17,7 +17,6 @@ export default function analyze(match) {
       this.classes.set('Rectangle', core.Rectangle);
     }
   
-    // Look up classes in the context
     lookupClass(name) {
       return this.classes.get(name) ?? (this.parent && this.parent.lookupClass(name));
     }
@@ -223,7 +222,6 @@ export default function analyze(match) {
       const funcName = id.sourceString;
       // console.log(`Calling function: ${funcName}`);
       
-      // List of built-in math functions
       const mathFunctions = {
         cos: { value: Math.cos, paramCount: 1 },
         sin: { value: Math.sin, paramCount: 1 },
@@ -240,7 +238,7 @@ export default function analyze(match) {
         floor: { value: Math.floor, paramCount: 1 },
         ceil: { value: Math.ceil, paramCount: 1 },
         round: { value: Math.round, paramCount: 1 },
-        min: { value: Math.min, paramCount: -1 }, // -1 means variable number of arguments
+        min: { value: Math.min, paramCount: -1 },
         max: { value: Math.max, paramCount: -1 },
         pow: { value: Math.pow, paramCount: 2 },
         rand: { value: Math.random, paramCount: 0 },
@@ -262,7 +260,6 @@ export default function analyze(match) {
     
       const userFunc = context.lookup(funcName);
       if (userFunc) {
-        // Handle user-defined function
         userFunc.params.forEach((param, index) => {
           funcContext.add(param.sourceString, params[index]);
         });
@@ -270,7 +267,6 @@ export default function analyze(match) {
         context = context.parent;
         return result;
       } else if (mathFunctions[funcName]) {
-        // Validate the number of arguments
         const mathFunc = mathFunctions[funcName];
         const expectedParamCount = mathFunc.paramCount;
     
@@ -282,7 +278,6 @@ export default function analyze(match) {
           throw new Error(`Function ${funcName} requires at least one argument.`);
         }
     
-        // Call the actual math function
         const result = mathFunc.value(...params);
         return result;
       } else {
@@ -331,6 +326,7 @@ export default function analyze(match) {
       return Number(digits.sourceString);
     },
     Stmt_increment(_op, id, _semi) {
+      console.log(id)
       const variable = id.analyze();
       return core.incrementStatement(variable);
     },
@@ -387,11 +383,12 @@ export default function analyze(match) {
       return core.binaryExpression("%", x, y, "number");
     },
     Primary_parens(_open, exp, _close) {
+      console.log(exp)
       return exp.analyze();
     },
     Factor_neg(_op, operand) {
       checkNumber(operand.analyze(), operand);
-      return unaryExpression("-", operand.analyze(), "number");
+      return core.unaryExpression("-", operand.analyze(), "number");
     },
     id(_first, _rest) {
       const entity = context.lookup(this.sourceString);
@@ -427,8 +424,6 @@ export default function analyze(match) {
         if (!allowedMethods.includes(methodNameStr)) {
           throw new Error(`${methodNameStr} is not a valid method for Circle.`);
         }
-      } else {
-        throw new Error(`Unknown object type: ${object.type}`);
       }
 
       return {
@@ -449,27 +444,17 @@ export default function analyze(match) {
       let object;
     
       if (classNameStr === "Triangle" || classNameStr === "Rectangle") {
-        if (constructorArgs.length < 2) {
+        if (constructorArgs.length != 2) {
           throw new Error(`${classNameStr} requires exactly 2 arguments (base, height), but got ${constructorArgs.length}.`);
-        }
-        if (constructorArgs.length > 2) {
-          console.warn(`${classNameStr} expects only 2 arguments. Ignoring extra arguments.`);
-          constructorArgs.splice(2);
         }
         object = classNameStr === "Triangle"
           ? core.Triangle(constructorArgs[0], constructorArgs[1])
           : core.Rectangle(constructorArgs[0], constructorArgs[1]);
       } else if (classNameStr === "Circle") {
-        if (constructorArgs.length < 1) {
+        if (constructorArgs.length != 1) {
           throw new Error(`Circle requires exactly 1 argument (radius), but got ${constructorArgs.length}.`);
         }
-        if (constructorArgs.length > 1) {
-          console.warn(`Circle expects only 1 argument. Ignoring extra arguments.`);
-          constructorArgs.splice(1);
-        }
         object = core.Circle(constructorArgs[0]);
-      } else {
-        throw new Error(`Unknown class: ${classNameStr}`);
       }
       context.add(objName, object);
       return core.assignmentStatement(object, core.variable(objName, 'object'));
@@ -481,8 +466,6 @@ export default function analyze(match) {
         return Math.E;
       } else if (node.sourceString === "π") {
         return Math.PI;
-      } else {
-        throw new Error(`Unexpected math constant: ${node.sourceString}`);
       }
     }
 

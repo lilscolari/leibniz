@@ -7,8 +7,8 @@ Leibniz {
        | IfStmt
        | ObjectCreation
        | AssignmentStmt
-       | id "++" ";" --increment
-       | id "--" ";" --decrement
+       | "++" id ";" --increment
+       | "--" id ";" --decrement
        
   VarDec = let id "=" Exp ";"
   PrintStmt = print "(" Exp ")" ";"
