@@ -22,7 +22,7 @@ export default function analyze(match) {
     }
   }
 
-  // Current context for tracking variables
+  // THIS IS THE CURRENT CONTEXT THAT WE ARE TRACKING
   let context = new Context();
 
   function check(condition, message, parseTreeNode) {
@@ -33,21 +33,91 @@ export default function analyze(match) {
     }
   }
 
-  // Type checking helpers
+  function checkType(e, type, parseTreeNode) {
+    check(e.type === type, `Expected ${type}`, parseTreeNode);
+  }
+
   function checkNumber(e, parseTreeNode) {
     check(
-      e.type === "number" || e.type === "int" || e.type === "float",
-      `Expected number type, got ${e.type}`,
+      e.type === "number" || e.type === "integer" || e.type === "float",
+      `Expected number, integer, or float`,
       parseTreeNode
     );
   }
 
-  function checkBoolean(e, parseTreeNode) {
-    check(e.type === "boolean", `Expected boolean type, got ${e.type}`, parseTreeNode);
+  function checkInteger(e, parseTreeNode) {
+    check(e.type === "integer", `Expected integer`, parseTreeNode);
   }
 
-  function checkString(e, parseTreeNode) {
-    check(e.type === "string", `Expected string type, got ${e.type}`, parseTreeNode);
+  function checkFloat(e, parseTreeNode) {
+    check(e.type === "float", `Expected float`, parseTreeNode);
+  }
+
+  function checkBoolean(e, parseTreeNode) {
+    check(e.type === "boolean", `Expected boolean`, parseTreeNode);
+  }
+
+  function checkNumberOrString(e, parseTreeNode) {
+    check(
+      e.type === "number" || e.type === "integer" || e.type === "float" || e.type === "string",
+      `Expected number, integer, float, or string`,
+      parseTreeNode
+    );
+  }
+
+  function checkArrayOrString(e, parseTreeNode) {
+    check(
+      e.type === "string" || e.type.endsWith("[]"),
+      `Expected string or array`,
+      parseTreeNode
+    );
+  }
+
+  function checkSameTypes(x, y, parseTreeNode) {
+    // Special case for numeric types: allow integer, float, and number to be compatible
+    if (isNumericType(x.type) && isNumericType(y.type)) {
+      return;
+    }
+    check(x.type === y.type, `Operands must have the same type`, parseTreeNode);
+  }
+
+  function isNumericType(type) {
+    return type === "number" || type === "integer" || type === "float";
+  }
+
+  function getTypeCoercion(type1, type2) {
+    // If both are numeric types, find the more general one
+    if (isNumericType(type1) && isNumericType(type2)) {
+      if (type1 === "float" || type2 === "float") {
+        return "float";
+      } else if (type1 === "number" || type2 === "number") {
+        return "number";
+      }
+      return "integer";
+    }
+    // If types are the same, no coercion needed
+    if (type1 === type2) {
+      return type1;
+    }
+    // No coercion possible
+    return null;
+  }
+
+  function checkAllElementsHaveSameType(elements, parseTreeNode) {
+    if (elements.length > 0) {
+      const type = elements[0].type;
+      for (const e of elements) {
+        // For numeric types, allow mixing integers, floats, and numbers
+        if (isNumericType(type) && isNumericType(e.type)) {
+          continue;
+        }
+        check(
+          e.type === type,
+          `All elements must have the same type`,
+          parseTreeNode
+        );
+      }
+    }
   }
 
   function checkNotDeclared(name, parseTreeNode) {
@@ -58,269 +128,348 @@ export default function analyze(match) {
     );
   }
 
-  function checkDeclared(name, parseTreeNode) {
-    check(
-      context.lookup(name),
-      `Variable not declared: ${name}`,
-      parseTreeNode
-    );
+  function checkIsMutable(variable, parseTreeNode) {
+    check(variable.mutable, `Assignment to immutable variable`, parseTreeNode);
   }
 
-  function checkSameTypes(x, y, parseTreeNode) {
-    check(
-      x.type === y.type,
-      `Type mismatch: ${x.type} and ${y.type}`,
-      parseTreeNode
-    );
-  }
-
-  function checkArrayElementTypes(elements, parseTreeNode) {
-    if (elements.length > 0) {
-      const type = elements[0].type;
-      for (const e of elements) {
-        check(
-          e.type === type,
-          `All elements must have the same type, expected ${type} but got ${e.type}`,
-          parseTreeNode
-        );
-      }
+  function checkTypesCompatible(sourceType, targetType, parseTreeNode) {
+    // Check if types are exactly the same
+    if (sourceType === targetType) {
+      return true;
     }
+    
+    // Check if both are numeric types (integer, float, number)
+    if (isNumericType(sourceType) && isNumericType(targetType)) {
+      // Allow assignment from more specific to more general type
+      if (sourceType === "integer" && (targetType === "number" || targetType === "float")) {
+        return true;
+      }
+      if (sourceType === "float" && targetType === "number") {
+        return true;
+      }
+      // Don't allow assignment from more general to more specific type
+      // (e.g., number -> integer, float -> integer)
+      check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
+    }
+    
+    // If we got here, types are not compatible
+    check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
   }
 
   const analyzer = grammar.createSemantics().addOperation("analyze", {
     Program(statements) {
       return core.program(statements.children.map((s) => s.analyze()));
     },
-    
-    // Statement handling
-    Stmt_increment(_inc, id, _semi) {
+    Stmt_increment(_op, id, _semi) {
       const variable = id.analyze();
       checkNumber(variable, id);
       return core.incrementStatement(variable);
     },
-    
-    Stmt_decrement(_dec, id, _semi) {
-      const variable = id.analyze();
-      checkNumber(variable, id);
-      return core.decrementStatement(variable);
+    Stmt_break(_break, _semi) {
+      return core.breakStatement();
     },
-    
-    VarDec(_let, id, _eq, exp, _semi) {
+    VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
       checkNotDeclared(id.sourceString, id);
+      const declaredType = type.analyze();
       const initializer = exp.analyze();
-      const variable = core.variable(id.sourceString, initializer.type, true);
+      
+      // Check that initializer type is compatible with declared type
+      checkTypesCompatible(initializer.type, declaredType, exp);
+      
+      const mutable = qualifier.sourceString === "let";
+      const variable = core.variable(
+        id.sourceString,
+        declaredType,
+        mutable
+      );
       context.add(id.sourceString, variable);
       return core.variableDeclaration(variable, initializer);
     },
-    
-    PrintStmt(_print, _open, exp, _close, _semi) {
+    FunDec(_fun, id, params, _colon, returnType, _eq, exp, _semi) {
+      checkNotDeclared(id.sourceString, id);
+      const declaredReturnType = returnType.analyze();
+      
+      context = context.newChildContext();
+      const parameters = params.analyze();
+      const body = exp.analyze();
+      
+      // Check that body's type is compatible with declared return type
+      checkTypesCompatible(body.type, declaredReturnType, exp);
+      
+      context = context.parent;
+      const fun = core.función(id.sourceString, parameters, declaredReturnType);
+      context.add(id.sourceString, fun);
+      return core.functionDeclaration(fun, body);
+    },
+    Params(_open, params, _close) {
+      // Handle params that may or may not be iterated
+      return params.children.map(p => p.analyze());
+    },
+    Param(id, _colon, type) {
+      checkNotDeclared(id.sourceString, id);
+      const paramType = type.analyze();
+      const param = core.variable(id.sourceString, paramType, false);
+      context.add(id.sourceString, param);
+      return param;
+    },
+    Type_array(baseType, _brackets) {
+      const base = baseType.analyze();
+      return `${base}[]`;
+    },
+    Type_number(_) { return "number"; },
+    Type_integer(_) { return "integer"; },
+    Type_float(_) { return "float"; },
+    Type_boolean(_) { return "boolean"; },
+    Type_string(_) { return "string"; },
+    PrintStmt(_print, exp, _semi) {
       const argument = exp.analyze();
       return core.printStatement(argument);
     },
-    
     AssignmentStmt(id, _eq, exp, _semi) {
       const source = exp.analyze();
-      checkDeclared(id.sourceString, id);
       const target = id.analyze();
-      checkSameTypes(source, target, id);
+      
+      // Check that source type is compatible with target type
+      checkTypesCompatible(source.type, target.type, id);
+      
+      checkIsMutable(target, id);
       return core.assignmentStatement(source, target);
     },
-    
-    IfStmt(_if, _openOptional, condition, _closeOptional, thenBlock, _elseOptional, elseBlock) {
-      const test = condition.analyze();
-      checkBoolean(test, condition);
-      const consequent = thenBlock.analyze();
-      const alternate = elseBlock.children[0] ? elseBlock.children[0].analyze() : null;
-      return core.ifStatement(test, consequent, alternate);
-    },
-    
-    ForLoop(_for, id, _in, _domain, _open, count, _close, block) {
-      const countExp = count.analyze();
-      checkNumber(countExp, count);
-      
-      // New scope for the loop variable
-      const outerContext = context;
-      context = context.newChildContext();
-      
-      // Add the loop variable to the context
-      const loopVar = core.variable(id.sourceString, "int", false);
-      context.add(id.sourceString, loopVar);
-      
+    WhileStmt(_while, exp, block) {
+      const test = exp.analyze();
+      checkBoolean(test, exp);
       const body = block.analyze();
-      
-      // Restore the outer context
-      context = outerContext;
-      
-      return core.forLoop(loopVar, countExp, body);
+      return core.whileStatement(test, body);
     },
-    
+    IfStmt(_if, exp, consequent, _else, alternate) {
+      const test = exp.analyze();
+      checkBoolean(test, exp);
+      const consequentBlock = consequent.analyze();
+      
+      // Handle the optional alternate branch
+      let alternateBlock = null;
+      if (alternate && alternate.children && alternate.children.length > 0) {
+        alternateBlock = alternate.children[0].analyze();
+      }
+      
+      return core.ifStatement(test, consequentBlock, alternateBlock);
+    },
     Block(_open, statements, _close) {
-      // Create a new context for blocks
-      const outerContext = context;
-      context = context.newChildContext();
-      
+      // Direct access to children instead of using asIteration
       const stmts = statements.children.map(s => s.analyze());
-      
-      // Restore outer context
-      context = outerContext;
-      
       return core.block(stmts);
     },
-    
-    // Expression handling
     Exp_test(left, op, right) {
       const x = left.analyze();
       const y = right.analyze();
-      
       if (op.sourceString === "==" || op.sourceString === "!=") {
-        // For equality operators, types must match
-        checkSameTypes(x, y, op);
+        // For equality operators, types must be compatible
+        const compatibleType = getTypeCoercion(x.type, y.type);
+        check(compatibleType !== null, `Type mismatch`, op);
       } else {
-        // For comparison operators (<, >, etc.), operands must be numeric
+        // For other relational operators, operands must be numeric
         checkNumber(x, left);
         checkNumber(y, right);
       }
-      
       return core.binaryExpression(op.sourceString, x, y, "boolean");
     },
-    
     Condition_add(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
       
-      if (x.type === "string" || y.type === "string") {
-        // String concatenation
+      // For addition, accept either:
+      // 1. Both operands are numeric (integer, float, number)
+      // 2. Both operands are strings (for concatenation)
+      if (isNumericType(x.type) && isNumericType(y.type)) {
+        // Result type is the more general of the two types
+        const resultType = getTypeCoercion(x.type, y.type);
+        return core.binaryExpression("+", x, y, resultType);
+      } else if (x.type === "string" && y.type === "string") {
         return core.binaryExpression("+", x, y, "string");
       } else {
-        // Numeric addition
-        checkNumber(x, left);
-        checkNumber(y, right);
-        
-        // Determine result type (float or int)
-        const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
-        return core.binaryExpression("+", x, y, resultType);
+        check(false, `Cannot add ${x.type} and ${y.type}`, left);
       }
     },
-    
     Condition_sub(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      
-      // Determine result type (float or int)
-      const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+      // Result type is the more general of the two types
+      const resultType = getTypeCoercion(x.type, y.type);
       return core.binaryExpression("-", x, y, resultType);
     },
-    
     Term_mul(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      
-      // Determine result type (float or int)
-      const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+      // Result type is the more general of the two types
+      const resultType = getTypeCoercion(x.type, y.type);
       return core.binaryExpression("*", x, y, resultType);
     },
-    
     Term_div(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      
-      // Division always produces float
+      // Division always returns float (except when explicitly handling integer division)
       return core.binaryExpression("/", x, y, "float");
     },
-    
     Term_mod(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      
-      // Modulo with integers produces int, with floats produces float
-      const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+      // Modulo operation typically returns the same type as the operands,
+      // but we'll use integer for integer operands, otherwise float
+      const resultType = (x.type === "integer" && y.type === "integer") ? "integer" : "float";
       return core.binaryExpression("%", x, y, resultType);
     },
-    
-    Factor_exp(primary, _op, factor) {
-      const base = primary.analyze();
-      const exponent = factor ? factor.analyze() : null;
-      
-      if (exponent) {
-        checkNumber(base, primary);
-        checkNumber(exponent, factor);
-        
-        // Exponentiation usually produces float except in special cases
-        return core.binaryExpression("**", base, exponent, "float");
-      }
-      
-      return base;
-    },
-    
-    Factor_neg(_op, operand) {
-      const expr = operand.analyze();
-      checkNumber(expr, operand);
-      return core.unaryExpression("-", expr, expr.type);
-    },
-    
     Primary_parens(_open, exp, _close) {
       return exp.analyze();
     },
-    
+    Factor_exp(left, _op, right) {
+      const x = left.analyze();
+      const y = right.analyze();
+      checkNumber(x, left);
+      checkNumber(y, right);
+      // Exponentiation typically returns float unless both are integers and the exponent is positive
+      return core.binaryExpression("**", x, y, "float");
+    },
+    Factor_neg(_op, operand) {
+      const x = operand.analyze();
+      checkNumber(x, operand);
+      return core.unaryExpression("-", x, x.type);
+    },
+    Factor_not(_op, operand) {
+      const x = operand.analyze();
+      checkBoolean(x, operand);
+      return core.unaryExpression("!", x, "boolean");
+    },
+    Factor_len(_op, operand) {
+      const e = operand.analyze();
+      checkArrayOrString(e, operand);
+      return core.unaryExpression("#", e, "integer");
+    },
+    Primary_int(_) {
+      return { type: "integer", value: parseInt(this.sourceString) };
+    },
+    Primary_float(_) {
+      return { type: "float", value: parseFloat(this.sourceString) };
+    },
     Primary_array(_open, elements, _close) {
-      const analyzedElements = elements.asIteration().children.map(e => e.analyze());
-      checkArrayElementTypes(analyzedElements, elements);
+      // Handle elements without using asIteration
+      const contents = elements.children.map(e => e.analyze());
+      checkAllElementsHaveSameType(contents, _open);
       
-      const elementType = analyzedElements.length > 0 ? analyzedElements[0].type : "any";
-      return core.arrayExpression(analyzedElements, `${elementType}[]`);
-    },
-    
-    // Literal handling
-    integerLiteral(_digits) {
-      return core.literalExpression(Number(this.sourceString), "int");
-    },
-    
-    floatLiteral(_) {
-      return core.literalExpression(Number(this.sourceString), "float");
-    },
-    
-    boolean(value) {
-      return core.literalExpression(value.sourceString === "true", "boolean");
-    },
-    
-    stringlit(_open, chars, _close) {
-      return core.literalExpression(chars.sourceString, "string");
-    },
-    
-    // Math constants
-    mathConstant(constant) {
-      const value = constant.sourceString;
-      let numericValue;
-      
-      if (value === "pi" || value === "π") {
-        numericValue = Math.PI;
-      } else if (value === "e") {
-        numericValue = Math.E;
+      let elementType;
+      if (contents.length > 0) {
+        // If elements are numeric, use the most general numeric type
+        if (isNumericType(contents[0].type)) {
+          elementType = contents.reduce((type, elem) => getTypeCoercion(type, elem.type), contents[0].type);
+        } else {
+          elementType = contents[0].type;
+        }
+      } else {
+        elementType = "any";
       }
       
-      return core.literalExpression(numericValue, "float");
+      return core.arrayExpression(contents, `${elementType}[]`);
     },
-    
-    // Identifier resolution
-    id(_first, _rest) {
+    Primary_subscript(array, _open, index, _close) {
+      const e = array.analyze();
+      const i = index.analyze();
+      checkArrayOrString(e, array);
+      checkNumber(i, index);
+      const baseType = e.type.endsWith("[]") 
+        ? e.type.slice(0, -2) 
+        : "string";
+      return core.subscriptExpression(e, i, baseType);
+    },
+    Primary_mathfunc(call) {
+      return call.analyze();
+    },
+    MathFuncCall_trig(func, _open, arg, _close) {
+      const x = arg.analyze();
+      checkNumber(x, arg);
+      return core.callExpression(func.sourceString, [x], "float");
+    },
+    MathFuncCall_binary(func, _open, arg1, _comma, arg2, _close) {
+      const x = arg1.analyze();
+      const y = arg2.analyze();
+      checkNumber(x, arg1);
+      checkNumber(y, arg2);
+      
+      // Determine return type based on function
+      let returnType;
+      if (func.sourceString === "min" || func.sourceString === "max") {
+        // min/max return the more general of the two input types
+        returnType = getTypeCoercion(x.type, y.type);
+      } else if (func.sourceString === "pow") {
+        // pow typically returns float
+        returnType = "float";
+      } else {
+        returnType = "float"; // Default for any other binary math functions
+      }
+      
+      return core.callExpression(func.sourceString, [x, y], returnType);
+    },
+    MathFuncCall_unary(func, _open, arg, _close) {
+      const x = arg.analyze();
+      checkNumber(x, arg);
+      
+      // Determine return type based on function
+      let returnType;
+      if (func.sourceString === "floor" || func.sourceString === "ceil" || func.sourceString === "round") {
+        returnType = "integer";
+      } else if (func.sourceString === "abs") {
+        // abs preserves the input type
+        returnType = x.type;
+      } else {
+        returnType = "float"; // Default for most math functions (sqrt, exp, ln, log10)
+      }
+      
+      return core.callExpression(func.sourceString, [x], returnType);
+    },
+    Primary_true(_) {
+      return { type: "boolean", value: true };
+    },
+    Primary_false(_) {
+      return { type: "boolean", value: false };
+    },
+    Primary_string(_) {
+      return { type: "string", value: this.sourceString.slice(1, -1) };
+    },
+    Primary_id(_) {
       const entity = context.lookup(this.sourceString);
       check(entity, `${this.sourceString} not declared`, this);
       return entity;
-    }
+    },
+    id(_first, _rest) {
+      // When id is used outside of variable reference context
+      return this.sourceString;
+    },
+    _iter(...children) {
+      return children.map(child => child.analyze());
+    },
+    NonemptyListOf(first, _sep, rest) {
+      return [first.analyze(), ...rest.children.map(child => child.analyze())];
+    },
+    EmptyListOf() {
+      return [];
+    },
   });
 
   return analyzer(match).analyze();
 }
 
-// Extend prototype for primitives
+// Add type properties to prototype objects
 Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
+
+// Add these to make integer and float literals work properly
+Object.defineProperty(Number.prototype, "value", {
+  get() { return this; }
+});

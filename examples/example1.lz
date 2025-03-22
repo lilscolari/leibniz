@@ -1,1 +1,14 @@
-let x = 5;
+const x: integer = 5;
+const y: integer = 10;
+let sum: integer = x + y;
+
+const numbers: integer[] = [1, 2, 3, 4];
+
+const intValue: integer = 42;
+let floatValue: float = intValue;
+
+const a: integer = 10;
+const b: integer = 3;
+let result: float = a / b;
+
+fnc add(a: integer, b: integer): integer = a + b;

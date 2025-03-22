@@ -1,19 +1,29 @@
-// Core module for Leibniz language
-// This module provides the constructs used by the analyzer
-
 export function program(statements) {
   return {
     kind: "Program",
-    statements
+    statements,
   };
 }
 
-export function variable(name, type, mutable = true) {
+export function variable(name, type, mutable) {
   return {
     kind: "Variable",
     name,
     type,
-    mutable
+    mutable,
+  };
+}
+
+export function incrementStatement(variable) {
+  return {
+    kind: "IncrementStatement",
+    variable,
+  };
+}
+
+export function breakStatement() {
+  return {
+    kind: "BreakStatement",
   };
 }
 
@@ -21,28 +31,31 @@ export function variableDeclaration(variable, initializer) {
   return {
     kind: "VariableDeclaration",
     variable,
-    initializer
+    initializer,
   };
 }
 
-export function incrementStatement(variable) {
+export function functionDeclaration(fun, body) {
   return {
-    kind: "IncrementStatement",
-    variable
+    kind: "FunctionDeclaration",
+    fun,
+    body,
   };
 }
 
-export function decrementStatement(variable) {
+export function función(name, parameters, returnType) {
   return {
-    kind: "DecrementStatement",
-    variable
+    kind: "Function",
+    name,
+    parameters,
+    returnType,
   };
 }
 
 export function printStatement(argument) {
   return {
     kind: "PrintStatement",
-    argument
+    argument,
   };
 }
 
@@ -50,49 +63,7 @@ export function assignmentStatement(source, target) {
   return {
     kind: "AssignmentStatement",
     source,
-    target
-  };
-}
-
-export function block(statements) {
-  return {
-    kind: "Block",
-    statements
-  };
-}
-
-export function ifStatement(test, consequent, alternate) {
-  return {
-    kind: "IfStatement",
-    test,
-    consequent,
-    alternate
-  };
-}
-
-export function forLoop(loopVariable, count, body) {
-  return {
-    kind: "ForLoop",
-    loopVariable,
-    count,
-    body
-  };
-}
-
-export function literalExpression(value, type) {
-  return {
-    kind: "LiteralExpression",
-    value,
-    type
-  };
-}
-
-export function unaryExpression(op, operand, type) {
-  return {
-    kind: "UnaryExpression",
-    op,
-    operand,
-    type
+    target,
   };
 }
 
@@ -102,7 +73,16 @@ export function binaryExpression(op, left, right, type) {
     op,
     left,
     right,
-    type
+    type,
+  };
+}
+
+export function unaryExpression(op, operand, type) {
+  return {
+    kind: "UnaryExpression",
+    op,
+    operand,
+    type,
   };
 }
 
@@ -110,25 +90,48 @@ export function arrayExpression(elements, type) {
   return {
     kind: "ArrayExpression",
     elements,
-    type
+    type,
   };
 }
 
-// Function-related structures
-export function functionDeclaration(func, body) {
+export function subscriptExpression(array, index, type) {
   return {
-    kind: "FunctionDeclaration",
-    func,
-    body
+    kind: "SubscriptExpression",
+    array,
+    index,
+    type,
   };
 }
 
-export function función(name, parameters, returnType) {
+export function whileStatement(test, body) {
   return {
-    kind: "Function",
-    name,
-    parameters,
-    type: returnType,
-    kind: "Function"
+    kind: "WhileStatement",
+    test,
+    body,
+  };
+}
+
+export function ifStatement(test, consequent, alternate) {
+  return {
+    kind: "IfStatement",
+    test,
+    consequent,
+    alternate,
+  };
+}
+
+export function block(statements) {
+  return {
+    kind: "Block",
+    statements,
+  };
+}
+
+export function callExpression(callee, args, type) {
+  return {
+    kind: "CallExpression",
+    callee,
+    args,
+    type,
   };
 }
