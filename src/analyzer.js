@@ -220,9 +220,8 @@ export default function analyze(match) {
         userFunc.params.forEach((param, index) => {
           funcContext.add(param.sourceString, params[index]);
         });
-        const result = core.functionCall(funcName, params);
         context = context.parent;
-        return result;
+        return core.functionCall(funcName, params);
       } else if (mathFunctions[funcName]) {
         const mathFunc = mathFunctions[funcName];
         const expectedParamCount = mathFunc.paramCount;

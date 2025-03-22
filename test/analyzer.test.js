@@ -11,7 +11,6 @@ import {
     assignmentStatement, 
     binaryExpression, 
     incrementStatement, 
-    typeDeclaration, 
     intType,
     functionDeclaration, 
     func, 

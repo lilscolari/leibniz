@@ -71,13 +71,6 @@ export function incrementStatement(variable) {
   };
 }
 
-export function typeDeclaration(type) {
-  return {
-    kind: "TypeDeclaration",
-    type,
-  }
-}
-
 // export const booleanType = "boolean"
 export const intType = "int"
 // export const floatType = "float"
@@ -156,13 +149,6 @@ export function Triangle(base, height) {
     perimeter: function() {
       const side = Math.sqrt(Math.pow(this.base, 2) + Math.pow(this.height, 2));
       return this.base + this.height + side;
-    },
-    callMethod: function(methodName) {
-      const allowedMethods = ['area', 'perimeter'];
-      if (!allowedMethods.includes(methodName)) {
-        throw new Error(`${methodName} is not a valid method for Triangle.`);
-      }
-      return this[methodName]();
     }
   };
 }
@@ -176,13 +162,6 @@ export function Circle(radius) {
     },
     circumference: function() {
       return 2 * Math.PI * this.radius;
-    },
-    callMethod: function(methodName) {
-      const allowedMethods = ['area', 'circumference'];
-      if (!allowedMethods.includes(methodName)) {
-        throw new Error(`${methodName} is not a valid method for Circle.`);
-      }
-      return this[methodName]();
     }
   };
 }
@@ -197,13 +176,6 @@ export function Rectangle(width, height) {
     },
     perimeter: function() {
       return 2 * (this.width + this.height);
-    },
-    callMethod: function(methodName) {
-      const allowedMethods = ['area', 'perimeter'];
-      if (!allowedMethods.includes(methodName)) {
-        throw new Error(`${methodName} is not a valid method for Rectangle.`);
-      }
-      return this[methodName]();
     }
   };
 }

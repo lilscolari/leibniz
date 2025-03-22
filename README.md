@@ -14,6 +14,31 @@ This is the repository for the leibniz programming language created by Cameron, 
 The language currently supports syntax for some function calls, function creation, for loops, print statements, variable assignment and declaration, object (shape) declaration, and an if statement. It has built in keywords and functions like 'domain', 'cos', and 'pi' for example. Basic math operations are currently supported like negation, addition, subtraction, multiplication, division, exponentiation. We also have support for conditional statements. We hope that the syntax semantics of the language can grow as we continue to work on it and may have to rework some syntax in the future when we add more features.
 <br>
 <br>
+## Examples of static errors
+| Example |
+| ------- |
+| Expected number |
+| Expected a digit |
+| Type mismatch |
+| Expected number or string |
+| Operands must have the same type |
+| x not declared |
+| Error: Object new_triangle not found. |
+| Expected "Circle", "Rectangle", or "Triangle" |
+| Error: Rectangle requires exactly 2 arguments (base, height), but got 1. |
+| Error: Triangle requires exactly 2 arguments (base, height), but got 1. |
+| Error: Rectangle requires exactly 2 arguments (base, height), but got 0. |
+| Error: Triangle requires exactly 2 arguments (base, height), but got 0. |
+| Error: Circle requires exactly 1 argument (radius), but got 2. |
+| Error: diameter is not a valid method for Circle. |
+| Error: circumference is not a valid method for Rectangle. |
+| TypeError: Cannot read properties of undefined (reading 'type') |
+| Error: volume is not a valid method for Triangle. |
+| Error: Function sin expects 1 argument(s), but received 0 |
+
+
+<br>
+<br>
 ## Features of the language
 | Feature    | Explanation |
 | -------- | ------- |
