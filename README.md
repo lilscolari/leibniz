@@ -39,6 +39,7 @@ The language currently supports syntax for some function calls, function creatio
 
 <br>
 <br>
+
 ## Features of the language
 | Feature    | Explanation |
 | -------- | ------- |

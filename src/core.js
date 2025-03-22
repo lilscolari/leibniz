@@ -85,9 +85,9 @@ export function func(name, params, body) {
   return { kind: "Function", name, params, body }
 }
 
-export function intrinsicFunction(name, type) {
-  return { kind: "Function", name, type, intrinsic: true }
-}
+// export function intrinsicFunction(name, type) {
+//   return { kind: "Function", name, type, intrinsic: true }
+// }
 
 export function functionCall(name, params) {
   return { kind: "FunctionCall", name, params }

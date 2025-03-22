@@ -14,7 +14,6 @@ import {
     intType,
     functionDeclaration, 
     func, 
-    intrinsicFunction, 
     forStatement, 
     Triangle, 
     Circle, 
