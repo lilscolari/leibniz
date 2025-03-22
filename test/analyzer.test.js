@@ -1,6 +1,7 @@
 import { describe, it } from "node:test"
 import assert from "node:assert/strict"
 import parse from "../src/parser.js"
+import { flatten } from "../src/analyzer.js"
 import analyze from "../src/analyzer.js"
 import { 
     program, 
@@ -66,8 +67,7 @@ const semanticChecks = [
   ["increment", "let inc = 5; ++inc;"],
   ["exponent", "let x = 2 ** 7;"],
   ["calling user func", "func add(x, y) { return 2; } print(add(3, 4));"],
-  ["test", "func subtract(hi, dude) {let none = 3;none = 2;return none;}"]
-
+  ["test", "func subtract(hi, dude) {let none = 3;none = 2;return none;}"],
 ]
 
 // Programs that are syntactically correct but have semantic errors
@@ -94,12 +94,6 @@ const semanticErrors = [
   ["equality check on different types", "let does_it_work = (4 == 3.4);", /Type mismatch/],
   ["sin call no arguments", "let x = sin();", /Error: Function sin expects 1 argument\(s\), but received 0\./],
   ["loop over non-digit", "for y in domain(dog) {print(2);}", /Expected a digit/],
-
-  
-
-
-  //["'circumference' for Circle no args", "obj circle = Circle(); let x = circle.circumference();", /Error: Circle requires exactly 1 argument\(radius\), but got 0\./]
-  
 ];
 
 describe("The analyzer", () => {
@@ -113,9 +107,6 @@ describe("The analyzer", () => {
       assert.throws(() => analyze(parse(source)), errorMessagePattern)
     })
   }
-
-
-
   // it("produces the expected representation for a trivial program", () => {
   //   assert.deepEqual(
   //       analyze(parse("let x = 2.2;")),
@@ -127,3 +118,41 @@ describe("The analyzer", () => {
   //   )
   // })
 })
+
+describe('flatten', () => {
+  it('should flatten an array with multiple levels of nesting', () => {
+    const input = [1, [2, 3], [4, [5, 6]]];
+    const expected = [1, 2, 3, 4, 5, 6];
+    assert.deepEqual(flatten(input), expected);
+  });
+
+  it('should return an empty array if input is empty', () => {
+    const input = [];
+    const expected = [];
+    assert.deepEqual(flatten(input), expected);
+  });
+
+  it('should return the same array if no nesting', () => {
+    const input = [1, 2, 3];
+    const expected = [1, 2, 3];
+    assert.deepEqual(flatten(input), expected);
+  });
+
+  it('should handle an array with only one level of nesting', () => {
+    const input = [1, [2], 3];
+    const expected = [1, 2, 3];
+    assert.deepEqual(flatten(input), expected);
+  });
+
+  it('should handle deeply nested arrays', () => {
+    const input = [1, [2, [3, [4, 5]]]];
+    const expected = [1, 2, 3, 4, 5];
+    assert.deepEqual(flatten(input), expected);
+  });
+
+  it('should handle arrays with mixed types', () => {
+    const input = [1, 'hello', [2, 3], [4, 'world']];
+    const expected = [1, 'hello', 2, 3, 4, 'world'];
+    assert.deepEqual(flatten(input), expected);
+  });
+});

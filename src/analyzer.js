@@ -1,5 +1,22 @@
 import * as core from "./core.js";
 
+export function flatten(arr) {
+  const stack = [...arr];
+  const result = [];
+
+  while (stack.length > 0) {
+    const value = stack.pop();
+
+    if (Array.isArray(value)) {
+      stack.push(...value);
+    } else {
+      result.push(value);
+    }
+  }
+
+  return result.reverse();
+}
+
 export default function analyze(match) {
   const grammar = match.matcher.grammar;
 
@@ -202,10 +219,6 @@ export default function analyze(match) {
         distance: { value: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), paramCount: 4 }
       };
     
-      function flatten(arr) {
-        return arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatten(val) : val), []);
-      } 
-    
       let params = [];
     
       if (args && args.analyze) {
@@ -254,8 +267,12 @@ export default function analyze(match) {
       let number3 = number1 + number2
       if (_e.sourceString !== "") {
         const exponent = parseInt(digits3.sourceString.replace("E", "").replace("E+").replace("E-"), 10);
-        const sign = _sign.sourceString === "-" ? -1 : 1;
-        console.log(sign)
+        let sign;
+        if (_sign.sourceString === "-") {
+          sign = -1;
+        } else {
+          sign = 1;
+        }
         number3 *= Math.pow(10, sign * exponent);
         return { value: number3, type: "scientific" };
       }
