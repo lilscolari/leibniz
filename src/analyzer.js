@@ -202,6 +202,10 @@ export default function analyze(match) {
         distance: { value: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), paramCount: 4 }
       };
     
+      function flatten(arr) {
+        return arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatten(val) : val), []);
+      } 
+    
       let params = [];
     
       if (args && args.analyze) {

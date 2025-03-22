@@ -114,6 +114,8 @@ describe("The analyzer", () => {
     })
   }
 
+
+
   // it("produces the expected representation for a trivial program", () => {
   //   assert.deepEqual(
   //       analyze(parse("let x = 2.2;")),
