@@ -268,7 +268,7 @@ export default function analyze(match) {
       if (_e.sourceString !== "") {
         const exponent = parseInt(digits3.sourceString.replace("E", "").replace("E+").replace("E-"), 10);
         let sign;
-        if (_sign.sourceString === "-") {
+        if (_sign.sourceString.includes("-")) {
           sign = -1;
         } else {
           sign = 1;
@@ -400,7 +400,10 @@ export default function analyze(match) {
     ObjectCreation(_obj, id, _eq, className, _openParens, params, _closeParens, _semi) {
       const objName = id.sourceString;
       const classNameStr = className.sourceString;
-      let constructorArgs = params ? params.analyze() : [];
+      let constructorArgs = [];
+      if (params) {
+        constructorArgs = params.analyze();
+      }
     
       if (constructorArgs.length === 1 && typeof constructorArgs[0] === "string") {
         constructorArgs = constructorArgs[0].split(",").map(arg => arg.trim());
