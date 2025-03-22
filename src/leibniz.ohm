@@ -1,28 +1,23 @@
 Leibniz {
   Program = Statement+
   
-  Statement = VarDec | Assignment | PrintStmt | FunctionCall
+  Statement = VarDec | Assignment | PrintStmt | Expression
   
-  VarDec = "let" id (":" Type)? "=" Exp ";"
-  Assignment = id "=" Exp ";"
-  PrintStmt = "print" "(" Exp ")" ";"
+  VarDec = "let" identifier ":" Type "=" Expression
+  Assignment = identifier "=" Expression
+  PrintStmt = "print" "(" identifier ")"
   
-  FunctionCall = id "(" ExpList? ")"
-  ExpList = Exp ("," Exp)*
+  Expression = Term (AddSub Term)*
+  AddSub = "+" | "-"
+  
+  Term = Factor (MulDiv Factor)*
+  MulDiv = "*" | "/" | "%"
+  
+  Factor = Number | Boolean | identifier | ParenExpr
+  ParenExpr = "(" Expression ")"  
 
-  Exp = Exp "+" Exp  -- add
-      | integerLiteral
-      | floatLiteral
-      | stringlit
-      | boolean
-      | id
-      | FunctionCall
-
-  Type = "int" | "float" | "boolean" | "string"
-  
-  integerLiteral = digit+
-  floatLiteral = digit+ "." digit+
-  stringlit = "\"" (~"\"" any)* "\""
-  boolean = "true" | "false"
-  id = letter (letter | digit)*
+  Number = digit+
+  Boolean = "true" | "false"
+  identifier = letter (letter | digit)*
+  Type = "int" | "boolean"
 }

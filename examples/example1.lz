@@ -1,10 +1,1 @@
-let dog: int = 3;
-let cat: int = 5;
-print(dog);
-cat = 2;
-print(add); 
-let found: boolean = true;
-print(false);
-let x: int = 4;
-let y: int = 3;
-print(x);
+let x = 5;

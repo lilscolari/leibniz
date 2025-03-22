@@ -1,7 +1,6 @@
 import * as core from "./core.js";
 
 export default function analyze(match) {
-  // Retrieve the grammar from the match
   const grammar = match.matcher.grammar;
 
   class Context {
@@ -10,378 +9,318 @@ export default function analyze(match) {
       this.parent = parent;
     }
     add(name, entity) {
-      if (this.locals.has(name)) {
-        throw new Error(`Variable already declared: ${name}`);
-      }
       this.locals.set(name, entity);
     }
+    has(name) {
+      return this.locals.has(name);
+    }
     lookup(name) {
-      return this.locals.get(name) || (this.parent && this.parent.lookup(name));
+      return this.locals.get(name) ?? (this.parent && this.parent.lookup(name));
     }
     newChildContext() {
       return new Context(this);
     }
   }
+
+  // Current context for tracking variables
   let context = new Context();
 
-  function check(condition, message, node) {
+  function check(condition, message, parseTreeNode) {
     if (!condition) {
-      throw new Error(`${node.source.getLineAndColumnMessage()} ${message}`);
+      throw new Error(
+        `${parseTreeNode.source.getLineAndColumnMessage()} ${message}`
+      );
     }
   }
-  function checkType(e, expected, node) {
-    check(e.type === expected, `Expected type ${expected} but got ${e.type}`, node);
-  }
-  function checkSameType(e1, e2, node) {
-    check(e1.type === e2.type, `Type mismatch: ${e1.type} vs ${e2.type}`, node);
+
+  // Type checking helpers
+  function checkNumber(e, parseTreeNode) {
+    check(
+      e.type === "number" || e.type === "int" || e.type === "float",
+      `Expected number type, got ${e.type}`,
+      parseTreeNode
+    );
   }
 
-  const semantics = grammar.createSemantics().addOperation("analyze", {
-    // --- Top Level ---
-    Program(children) {
-      return core.program(children.children.map(child => child.analyze()));
+  function checkBoolean(e, parseTreeNode) {
+    check(e.type === "boolean", `Expected boolean type, got ${e.type}`, parseTreeNode);
+  }
+
+  function checkString(e, parseTreeNode) {
+    check(e.type === "string", `Expected string type, got ${e.type}`, parseTreeNode);
+  }
+
+  function checkNotDeclared(name, parseTreeNode) {
+    check(
+      !context.has(name),
+      `Variable already declared: ${name}`,
+      parseTreeNode
+    );
+  }
+
+  function checkDeclared(name, parseTreeNode) {
+    check(
+      context.lookup(name),
+      `Variable not declared: ${name}`,
+      parseTreeNode
+    );
+  }
+
+  function checkSameTypes(x, y, parseTreeNode) {
+    check(
+      x.type === y.type,
+      `Type mismatch: ${x.type} and ${y.type}`,
+      parseTreeNode
+    );
+  }
+
+  function checkArrayElementTypes(elements, parseTreeNode) {
+    if (elements.length > 0) {
+      const type = elements[0].type;
+      for (const e of elements) {
+        check(
+          e.type === type,
+          `All elements must have the same type, expected ${type} but got ${e.type}`,
+          parseTreeNode
+        );
+      }
+    }
+  }
+
+  const analyzer = grammar.createSemantics().addOperation("analyze", {
+    Program(statements) {
+      return core.program(statements.children.map((s) => s.analyze()));
     },
-
-
-    increment(...children) {
-      const idNode = children[0];
-      const variable = idNode.analyze();
+    
+    // Statement handling
+    Stmt_increment(_inc, id, _semi) {
+      const variable = id.analyze();
+      checkNumber(variable, id);
       return core.incrementStatement(variable);
     },
-
-    // For the alternative: id "--;" --decrement
-    decrement(...children) {
-      const idNode = children[0];
-      const variable = idNode.analyze();
-      return core.decrement(variable);
+    
+    Stmt_decrement(_dec, id, _semi) {
+      const variable = id.analyze();
+      checkNumber(variable, id);
+      return core.decrementStatement(variable);
     },
-
-    // VarDec = let id (":" Type)? "=" Exp ";"
-    VarDec(...children) {
-
-      const idNode = children[1];
-      const optType = children[2];
-      const expNode = children[4];
-      let declaredType = core.anyType;
-      if (optType.numChildren > 0) {
-        declaredType = optType.children[1].analyze();
-      }
-      check(!context.lookup(idNode.sourceString), `Variable already declared: ${idNode.sourceString}`, idNode);
-      const initializer = expNode.analyze();
-      const variable = core.variable(idNode.sourceString, declaredType);
-      context.add(idNode.sourceString, variable);
+    
+    VarDec(_let, id, _eq, exp, _semi) {
+      checkNotDeclared(id.sourceString, id);
+      const initializer = exp.analyze();
+      const variable = core.variable(id.sourceString, initializer.type, true);
+      context.add(id.sourceString, variable);
       return core.variableDeclaration(variable, initializer);
     },
-
-    // PrintStmt = print "(" Exp ");"
+    
     PrintStmt(_print, _open, exp, _close, _semi) {
       const argument = exp.analyze();
       return core.printStatement(argument);
     },
-
-    // IfStmt = if "("? Exp ")"? Block (else "("? (Block | IfStmt) ")"?)?
-    IfStmt(...children) {
-
-      const test = children[1].analyze();
-      checkType(test, core.booleanType, children[1]);
-      const consequent = children[2].analyze();
-      let alternate = null;
-      if (children.length > 3) {
-        alternate = children[3].analyze();
-      }
-      return core.ifStatement(test, consequent, alternate);
-    },
-
-    // --- Assignment Statement ---
-    // AssignmentStmt = id "=" Exp ";"
-    AssignmentStmt(...children) {
-      const idNode = children[0];
-      const expNode = children[2];
-      const target = idNode.analyze();
-      const source = expNode.analyze();
-      checkSameType(target, source, idNode);
+    
+    AssignmentStmt(id, _eq, exp, _semi) {
+      const source = exp.analyze();
+      checkDeclared(id.sourceString, id);
+      const target = id.analyze();
+      checkSameTypes(source, target, id);
       return core.assignmentStatement(source, target);
     },
-
-    // --- Block ---
-    // Block = "{" Stmt* "}"
-    Block(_open, statements, _close) {
-      const oldContext = context;
-      context = context.newChildContext();
-      const stmts = statements.children.map(child => child.analyze());
-      context = oldContext;
-      return stmts;
+    
+    IfStmt(_if, _openOptional, condition, _closeOptional, thenBlock, _elseOptional, elseBlock) {
+      const test = condition.analyze();
+      checkBoolean(test, condition);
+      const consequent = thenBlock.analyze();
+      const alternate = elseBlock.children[0] ? elseBlock.children[0].analyze() : null;
+      return core.ifStatement(test, consequent, alternate);
     },
-
-    // --- For Loop ---
-    // ForLoop = for id in domain "(" Exp ")" Block
-    ForLoop(_for, id, _in, _domain, _open, exp, _close, block) {
-      const collection = exp.analyze();
-      checkType(collection, core.intType, exp);
-      const oldContext = context;
+    
+    ForLoop(_for, id, _in, _domain, _open, count, _close, block) {
+      const countExp = count.analyze();
+      checkNumber(countExp, count);
+      
+      // New scope for the loop variable
+      const outerContext = context;
       context = context.newChildContext();
-      context.add(id.sourceString, core.variable(id.sourceString, core.intType));
+      
+      // Add the loop variable to the context
+      const loopVar = core.variable(id.sourceString, "int", false);
+      context.add(id.sourceString, loopVar);
+      
       const body = block.analyze();
-      context = oldContext;
-      return core.forStatement(id.sourceString, collection, body);
+      
+      // Restore the outer context
+      context = outerContext;
+      
+      return core.forLoop(loopVar, countExp, body);
     },
-
-    // --- Expression ---
-    // Exp = Condition relop Condition --test | Condition
+    
+    Block(_open, statements, _close) {
+      // Create a new context for blocks
+      const outerContext = context;
+      context = context.newChildContext();
+      
+      const stmts = statements.children.map(s => s.analyze());
+      
+      // Restore outer context
+      context = outerContext;
+      
+      return core.block(stmts);
+    },
+    
+    // Expression handling
     Exp_test(left, op, right) {
-      const l = left.analyze();
-      const r = right.analyze();
+      const x = left.analyze();
+      const y = right.analyze();
+      
       if (op.sourceString === "==" || op.sourceString === "!=") {
-        check(l.type === r.type, `Operands must be the same type`, op);
+        // For equality operators, types must match
+        checkSameTypes(x, y, op);
       } else {
-        checkType(l, core.intType, left);
-        checkType(r, core.intType, right);
+        // For comparison operators (<, >, etc.), operands must be numeric
+        checkNumber(x, left);
+        checkNumber(y, right);
       }
-      return core.binaryExpression(op.sourceString, l, r, core.booleanType);
+      
+      return core.binaryExpression(op.sourceString, x, y, "boolean");
     },
-    Exp_condition(cond) {
-      return cond.analyze();
+    
+    Condition_add(left, _op, right) {
+      const x = left.analyze();
+      const y = right.analyze();
+      
+      if (x.type === "string" || y.type === "string") {
+        // String concatenation
+        return core.binaryExpression("+", x, y, "string");
+      } else {
+        // Numeric addition
+        checkNumber(x, left);
+        checkNumber(y, right);
+        
+        // Determine result type (float or int)
+        const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+        return core.binaryExpression("+", x, y, resultType);
+      }
     },
-
-    // --- Condition ---
-    // Condition = Exp "+" Term --add
-    //           | Exp "-" Term --sub
-    //           | Term
-    Condition_add(left, _plus, right) {
-      const l = left.analyze();
-      const r = right.analyze();
-      checkType(l, core.intType, left);
-      checkType(r, core.intType, right);
-      return core.binaryExpression("+", l, r, core.intType);
+    
+    Condition_sub(left, _op, right) {
+      const x = left.analyze();
+      const y = right.analyze();
+      checkNumber(x, left);
+      checkNumber(y, right);
+      
+      // Determine result type (float or int)
+      const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+      return core.binaryExpression("-", x, y, resultType);
     },
-    Condition_sub(left, _minus, right) {
-      const l = left.analyze();
-      const r = right.analyze();
-      checkType(l, core.intType, left);
-      checkType(r, core.intType, right);
-      return core.binaryExpression("-", l, r, core.intType);
-    },
-    Condition_term(term) {
-      return term.analyze();
-    },
-
-    // --- Term ---
-    // Term = Term "*" Factor --mul
-    //      | Term "/" Factor --div
-    //      | Term "%" Factor --mod
-    //      | Factor
+    
     Term_mul(left, _op, right) {
-      const l = left.analyze();
-      const r = right.analyze();
-      checkType(l, core.intType, left);
-      checkType(r, core.intType, right);
-      return core.binaryExpression("*", l, r, core.intType);
+      const x = left.analyze();
+      const y = right.analyze();
+      checkNumber(x, left);
+      checkNumber(y, right);
+      
+      // Determine result type (float or int)
+      const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+      return core.binaryExpression("*", x, y, resultType);
     },
+    
     Term_div(left, _op, right) {
-      const l = left.analyze();
-      const r = right.analyze();
-      checkType(l, core.intType, left);
-      checkType(r, core.intType, right);
-      return core.binaryExpression("/", l, r, core.intType);
+      const x = left.analyze();
+      const y = right.analyze();
+      checkNumber(x, left);
+      checkNumber(y, right);
+      
+      // Division always produces float
+      return core.binaryExpression("/", x, y, "float");
     },
+    
     Term_mod(left, _op, right) {
-      const l = left.analyze();
-      const r = right.analyze();
-      checkType(l, core.intType, left);
-      checkType(r, core.intType, right);
-      return core.binaryExpression("%", l, r, core.intType);
+      const x = left.analyze();
+      const y = right.analyze();
+      checkNumber(x, left);
+      checkNumber(y, right);
+      
+      // Modulo with integers produces int, with floats produces float
+      const resultType = (x.type === "float" || y.type === "float") ? "float" : "int";
+      return core.binaryExpression("%", x, y, resultType);
     },
-    Term_factor(factor) {
-      return factor.analyze();
-    },
-
-    // --- Factor ---
-    // Factor = Primary ("**" Factor)? --exp
-    //        | "-" Primary --neg
-    //        | Primary
-    Factor_exp(primary, _pow, factor) {
+    
+    Factor_exp(primary, _op, factor) {
       const base = primary.analyze();
-      const exponent = factor.analyze();
-      checkType(base, core.intType, primary);
-      checkType(exponent, core.intType, factor);
-      return core.binaryExpression("**", base, exponent, core.intType);
-    },
-    Factor_neg(_minus, primary) {
-      const p = primary.analyze();
-      checkType(p, core.intType, primary);
-      return core.unaryExpression("-", p, core.intType);
-    },
-    Factor_primary(primary) {
-      return primary.analyze();
-    },
-
-    // --- Primary ---
-    // Primary = floatLiteral
-    //         | integerLiteral
-    //         | boolean
-    //         | ObjectMethodCall
-    //         | StaticMethodCall
-    //         | stringlit
-    //         | id
-    //         | FunctionCall
-    //         | mathConstant
-    //         | "[" ListOf<Exp, ","> "]" --array
-    //         | "(" Exp ")" --parens
-    Primary_floatLiteral(fl) {
-      const value = parseFloat(fl.sourceString);
-      return core.floatLiteral(value);
-    },
-    Primary_integerLiteral(il) {
-      const value = parseInt(il.sourceString, 10);
-      return core.integerLiteral(value);
-    },
-    Primary_boolean(b) {
-      const val = b.sourceString === "true";
-      return core.booleanLiteral(val);
-    },
-    Primary_stringlit(str) {
-      const raw = str.sourceString;
-      const value = raw.slice(1, -1);
-      return core.stringLiteral(value);
-    },
-    Primary_ObjectMethodCall(call) {
-      return call.analyze();
-    },
-    Primary_StaticMethodCall(call) {
-      return call.analyze();
-    },
-    Primary_id(id) {
-      const entity = context.lookup(id.sourceString);
-      check(entity, `${id.sourceString} not declared`, id);
-      return entity;
-    },
-    Primary_FunctionCall(call) {
-      return call.analyze();
-    },
-    Primary_mathConstant(mc) {
-      const name = mc.sourceString;
-      return core.constant ? core.constant(name) : null;
-    },
-    Primary_array(_open, exps, _close) {
-      const elements = exps.asIteration().children.map(e => e.analyze());
-      if (elements.length > 0) {
-        const firstType = elements[0].type;
-        for (const e of elements) {
-          check(e.type === firstType, `All array elements must have the same type`, _open);
-        }
+      const exponent = factor ? factor.analyze() : null;
+      
+      if (exponent) {
+        checkNumber(base, primary);
+        checkNumber(exponent, factor);
+        
+        // Exponentiation usually produces float except in special cases
+        return core.binaryExpression("**", base, exponent, "float");
       }
-      return core.arrayExpression(elements);
+      
+      return base;
     },
+    
+    Factor_neg(_op, operand) {
+      const expr = operand.analyze();
+      checkNumber(expr, operand);
+      return core.unaryExpression("-", expr, expr.type);
+    },
+    
     Primary_parens(_open, exp, _close) {
       return exp.analyze();
     },
-
-
-    ExpList(...children) {
-      return children.filter(child => child.ctorName !== "Comma").map(child => child.analyze());
-    },
-
-    FunctionCall(func, _open, optExpList, _close) {
-      const name = func.sourceString;
-      const args = optExpList.numChildren > 0 ? optExpList.analyze() : [];
-      return core.mathFunctionCall(name, args);
-    },
-
     
-    FuncCreation(...children) {
-  
+    Primary_array(_open, elements, _close) {
+      const analyzedElements = elements.asIteration().children.map(e => e.analyze());
+      checkArrayElementTypes(analyzedElements, elements);
       
-      const idNode = children[1];
-      const paramListNode = children[3];
-      const optReturnType = children[5];
-      const blockNode = children[6];
-      check(!context.lookup(idNode.sourceString), `Function already declared: ${idNode.sourceString}`, idNode);
-      const oldContext = context;
-      context = context.newChildContext();
-      let parameters = [];
-      if (paramListNode.numChildren > 0) {
-        parameters = paramListNode.analyze();
+      const elementType = analyzedElements.length > 0 ? analyzedElements[0].type : "any";
+      return core.arrayExpression(analyzedElements, `${elementType}[]`);
+    },
+    
+    // Literal handling
+    integerLiteral(_digits) {
+      return core.literalExpression(Number(this.sourceString), "int");
+    },
+    
+    floatLiteral(_) {
+      return core.literalExpression(Number(this.sourceString), "float");
+    },
+    
+    boolean(value) {
+      return core.literalExpression(value.sourceString === "true", "boolean");
+    },
+    
+    stringlit(_open, chars, _close) {
+      return core.literalExpression(chars.sourceString, "string");
+    },
+    
+    // Math constants
+    mathConstant(constant) {
+      const value = constant.sourceString;
+      let numericValue;
+      
+      if (value === "pi" || value === "π") {
+        numericValue = Math.PI;
+      } else if (value === "e") {
+        numericValue = Math.E;
       }
-      let returnType = core.voidType;
-      if (optReturnType.numChildren > 0) {
-        returnType = optReturnType.children[1].analyze();
-      }
-      parameters.forEach(param => {
-        context.add(param.name, param);
-      });
-      const body = blockNode.analyze();
-      context = oldContext;
-      const fun = core.func(idNode.sourceString, parameters, body);
-      fun.returnType = returnType;
-      context.add(idNode.sourceString, fun);
-      return core.functionDeclaration(fun);
+      
+      return core.literalExpression(numericValue, "float");
     },
-
     
-
-    ParamList(...children) {
-      return children.filter(child => child.ctorName !== "Comma").map(child => child.analyze());
-    },
-
-    
-
-    Param(...children) {
-      const idNode = children[0];
-      let type = core.anyType;
-      if (children.length > 1 && children[1].numChildren > 0) {
-        type = children[1].children[1].analyze();
-      }
-      return { name: idNode.sourceString, type };
-    },
-
-
-    
-    VarArgsList(first, ...rest) {
-      const result = [first.analyze()];
-      rest.forEach(r => {
-        result.push(r.children[1].analyze());
-      });
-      return result;
-    },
-
-
-    
-    ObjectCreation(_obj, id, _eq, objType, _semi) {
-      const typeName = objType.sourceString;
-      const objectEntity = core.object(id.sourceString, typeName);
-      context.add(id.sourceString, objectEntity);
-      return core.objectDeclaration(objectEntity);
-    },
-
-  
-    
-    ObjectMethodCall(id, _dot, method, _open, optArgs, _close) {
-      const objectEntity = context.lookup(id.sourceString);
-      check(objectEntity, `${id.sourceString} not declared`, id);
-      const methodName = method.sourceString;
-      const args = optArgs && optArgs.numChildren > 0 ? optArgs.analyze() : [];
-      return core.methodCall(objectEntity, methodName, args);
-    },
-
-
-    StaticMethodCall(objType, _dot, method, _open, optArgs, _close) {
-      const typeName = objType.sourceString;
-      const methodName = method.sourceString;
-      const args = optArgs && optArgs.numChildren > 0 ? optArgs.analyze() : [];
-      return core.staticMethodCall(typeName, methodName, args);
-    },
-
-    Type_int(_t) { return core.intType; },
-    Type_float(_t) { return core.floatType; },
-    Type_string(_t) { return core.stringType; },
-    Type_bool(_t) { return core.booleanType; },
-    Type_void(_t) { return core.voidType; },
-    Type_any(_t) { return core.anyType; },
+    // Identifier resolution
+    id(_first, _rest) {
+      const entity = context.lookup(this.sourceString);
+      check(entity, `${this.sourceString} not declared`, this);
+      return entity;
+    }
   });
 
-  return semantics(match).analyze();
+  return analyzer(match).analyze();
 }
 
+// Extend prototype for primitives
 Number.prototype.type = "number";
-Boolean.prototype.type = "bool";
+Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
