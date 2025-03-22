@@ -16,10 +16,6 @@ export default function analyze(match) {
       this.classes.set('Circle', core.Circle);
       this.classes.set('Rectangle', core.Rectangle);
     }
-  
-    lookupClass(name) {
-      return this.classes.get(name) ?? (this.parent && this.parent.lookupClass(name));
-    }
 
     add(name, entity) {
       this.locals.set(name, entity);
@@ -56,19 +52,6 @@ export default function analyze(match) {
 
   function checkSameTypes(x, y, parseTreeNode) {
     check(x.type === y.type, `Operands must have the same type`, parseTreeNode);
-  }
-
-  function checkAllElementsHaveSameType(elements, parseTreeNode) {
-    if (elements.length > 0) {
-      const type = elements[0].type;
-      for (const e of elements) {
-        check(
-          e.type === type,
-          `All elements must have the same type`,
-          parseTreeNode
-        );
-      }
-    }
   }
 
   function checkNumber(e, parseTreeNode) {
@@ -112,9 +95,6 @@ export default function analyze(match) {
     },
     ForLoop(_for, id, _in, domain, _openParens, exp, _closeParens, block) {
       const rangeSizeExpr = exp.analyze();
-      if (typeof rangeSizeExpr !== "number") {
-        throw new Error("Expected a number for the loop range, but got: " + typeof rangeSizeExpr);
-      }
       const range = Array.from({ length: rangeSizeExpr }, (_, i) => i);
 
       const iterator = core.variable(id.sourceString, core.intType)
@@ -136,39 +116,17 @@ export default function analyze(match) {
       context.add(id.sourceString, variable);
       return core.variableDeclaration(variable, initializer);
     },
-    NonemptyListOf(first, _comma, rest) {
-      const firstElement = first.analyze();
-      const restElements = rest.children ? rest.children.map(child => child.analyze()) : [];
-      return [firstElement, ...restElements];
-    },
     _iter(...children) {
       return children.map(child => child.analyze());
     },
     ExpList(params) {
-      if (!params || params.length === 0) {
+      if (params._node.matchLength === 0) {
         return [];
       }
         
       return params.children.map(paramNode => {
         if (paramNode && paramNode.sourceString) {
           return paramNode.sourceString.trim();
-        } else {
-          console.warn("Unexpected parameter node:", paramNode);
-          return null;
-        }
-      }).filter(result => result !== null);
-    },
-    ParamList(params) {
-      if (!params || params.length === 0) {
-        return [];
-      }
-      
-      return params.children.map(paramNode => {
-        if (paramNode && paramNode.sourceString) {
-          return paramNode.sourceString.trim();
-        } else {
-          console.warn("Unexpected parameter node:", paramNode);
-          return null;
         }
       }).filter(result => result !== null);
     },
@@ -206,13 +164,12 @@ export default function analyze(match) {
           };
     
           context.add(paramName, paramNode);
-        } else {
-          console.warn("Parameter name is empty:", paramName);
         }
       });
       // console.log(`Creating function: ${id.sourceString} with parameters:`, parameters);
       const body = block.analyze()
       context = context.parent;
+
       const fun = core.func(id.sourceString, parameters, body);
       context.add(id.sourceString, fun);
       // console.log(`Added function ${id.sourceString} to context`);
@@ -247,7 +204,7 @@ export default function analyze(match) {
     
       function flatten(arr) {
         return arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatten(val) : val), []);
-      }
+      } 
     
       let params = [];
     
@@ -258,7 +215,7 @@ export default function analyze(match) {
     
       const funcContext = context.newChildContext();
     
-      const userFunc = context.lookup(funcName);
+      const userFunc = funcContext.lookup(funcName);
       if (userFunc) {
         userFunc.params.forEach((param, index) => {
           funcContext.add(param.sourceString, params[index]);
@@ -272,16 +229,9 @@ export default function analyze(match) {
     
         if (expectedParamCount !== -1 && params.length !== expectedParamCount) {
           throw new Error(`Function ${funcName} expects ${expectedParamCount} argument(s), but received ${params.length}.`);
-        }
-    
-        if (expectedParamCount === -1 && params.length < 1) {
-          throw new Error(`Function ${funcName} requires at least one argument.`);
-        }
-    
+        }    
         const result = mathFunc.value(...params);
         return result;
-      } else {
-        throw new Error(`Function ${funcName} is not defined`);
       }
     },
     scientificLiteral(digits1, _e, _sign, digits2) {
@@ -306,6 +256,7 @@ export default function analyze(match) {
       if (_e.sourceString !== "") {
         const exponent = parseInt(digits3.sourceString.replace("E", "").replace("E+").replace("E-"), 10);
         const sign = _sign.sourceString === "-" ? -1 : 1;
+        console.log(sign)
         number3 *= Math.pow(10, sign * exponent);
         return { value: number3, type: "scientific" };
       }
@@ -326,7 +277,6 @@ export default function analyze(match) {
       return Number(digits.sourceString);
     },
     Stmt_increment(_op, id, _semi) {
-      console.log(id)
       const variable = id.analyze();
       return core.incrementStatement(variable);
     },
@@ -383,7 +333,6 @@ export default function analyze(match) {
       return core.binaryExpression("%", x, y, "number");
     },
     Primary_parens(_open, exp, _close) {
-      console.log(exp)
       return exp.analyze();
     },
     Factor_neg(_op, operand) {

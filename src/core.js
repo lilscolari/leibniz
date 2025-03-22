@@ -96,6 +96,10 @@ export function intrinsicFunction(name, type) {
   return { kind: "Function", name, type, intrinsic: true }
 }
 
+export function functionCall(name, params) {
+  return { kind: "FunctionCall", name, params }
+}
+
 // export function functionType(paramTypes, returnType) {
 //   return { kind: "FunctionType", paramTypes, returnType }
 // }

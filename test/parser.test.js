@@ -27,13 +27,12 @@ const syntaxChecks = [
   ["exponentiation", "print(2 ** 3);"],
   ["negation", "x = -2;"],
   ["numeral with decimal", "x = 2.332132;"],
-  ["numeral with exponent", "if (x < 2) {x = 2E10;} else {x = 2e-10;}"]
+  ["numeral with exponent", "if (x < 2) {x = 2E10;} else {x = 2e-10;}"],
 ]
 
 // Programs with syntax errors that the parser will detect
 const syntaxErrors = [
   ["test for loop with no statement in block", "for 2 in domain(2) {}"],
-  ["cosine function call with no arguments", "x = cos();"],
   ["creating object named 'let'", "obj let = Circle;"],
   ["calling circumference on square", "x = Square.circumference(3, 2);"],
   ["calling area on square with args", "x = Square.area(3, 5);"],
@@ -42,7 +41,6 @@ const syntaxErrors = [
   ["extra semicolon", "let x = 2;;"],
   ["assignment to keyword", "for = true;"],
   ["no program", ""],
-  ["bad function call", "x = blob(x, y);"],
   ["bad function creation", "func add(x, y) {}"],
   ["improper comment", "print(x); # this is a comment"],
   ["factorial", "x = 10!;"],

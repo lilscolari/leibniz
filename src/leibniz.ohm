@@ -36,8 +36,8 @@ Leibniz {
           | ObjectMethodCall
           | StaticMethodCall
           | stringlit
-          | id
           | FunctionCall
+          | id
           | mathConstant
           | "[" ListOf<Exp, ","> "]" --array
           | "(" Exp ")" --parens
@@ -45,12 +45,11 @@ Leibniz {
   ExpList = ListOf<Exp, ",">
 
   
-  FunctionCall = funcName "(" ExpList? ")"  // First version used mathFunc directly instead of funcName
+  FunctionCall = (mathFunc | id) "(" ExpList ")"  // First version used mathFunc directly instead of funcName
 
   FuncBody = "{" Stmt* "return" Exp ";" "}"  // This is new, not in first version
   
-  FuncCreation = func id "(" ParamList? ")" FuncBody  // First version had Block and optional return type
-  ParamList = ListOf<id, ",">  // First version had Param objects with optional types
+  FuncCreation = func id "(" ListOf<id, ",">? ")" FuncBody  // First version had Block and optional return type
   
   VarArgsList = Exp ("," Exp)*
   

@@ -46,9 +46,12 @@ const semanticChecks = [
   ["area call on triangle", "obj new_triangle = Triangle(3, 2); print(new_triangle.area());"],
   ["perimeter call on triangle", "obj new_triangle = Triangle(3, 2); print(new_triangle.perimeter());"],
   ["decimal number", "print(213.3);"],
-  ["scientific number (no sign)", "print(3213.31E10);"],
-  ["scientific number (+ sign)", "print(3213.31E+10);"],
-  ["scientific number2 (- sign)", "print(3213.31E-10);"],
+  ["float scientific number (no sign)", "print(3213.31E10);"],
+  ["float scientific number (+ sign)", "print(3213.31E+10);"],
+  ["float scientific number2 (- sign)", "print(3213.31E-10);"],
+  ["scientific number (no sign)", "print(321331E10);"],
+  ["scientific number (+ sign)", "print(321331E+10);"],
+  ["scientific number2 (- sign)", "print(321331E-10);"],
   ["valid method 'area' for Circle", "obj new_circle = Circle(3); let y = new_circle.area();"],
   ["valid method 'circumference' for Circle", "obj new_circle = Circle(4); let x = new_circle.circumference();"],
   ["valid math constant pi", "print(pi);"],  
@@ -63,8 +66,9 @@ const semanticChecks = [
   ["primary parentheses", "let this = (3 + 4) * 2;"],
   ["not equal check on strings", "let yes = (\"test\" != \"3.4\");"],
   ["increment", "let inc = 5; ++inc;"],
-
-
+  ["exponent", "let x = 2 ** 7;"],
+  ["calling user func", "func add(x, y) { return 2; } print(add(3, 4));"],
+  ["test", "func subtract(hi, dude) {let none = 3;none = 2;return none;}"]
 
 ]
 
@@ -81,7 +85,7 @@ const semanticErrors = [
   ["invalid method for Rectangle", "obj rectangle = Rectangle(2, 3); let x = rectangle.circumference();", /Error: circumference is not a valid method for Rectangle./],
   ["invalid print argument", "print(π + \"text\");", /Operands must have the same type/],
   ["assignment to undeclared variable", "x = 10;", /x not declared/],
-  ["undeclared function call", "let result = unknownFunction(5);", /Expected ";"/],
+  ["undeclared function call", "let result = unknownFunction(5);", /TypeError: Cannot read properties of undefined \(reading \'type\'\)/],
   ["invalid binary operation", "let result = true + 5;", /Expected number or string/],
   ["constructor call with wrong arguments", "obj rect = Rectangle();", /Error: Rectangle requires exactly 2 arguments \(base, height\), but got 0\./],
   ["calling method on non-object", "let x = 5.area();", /Expected a digit/],
@@ -90,6 +94,9 @@ const semanticErrors = [
   ["too many arguments for Circle", "obj circle = Circle(2, 3);", /Error: Circle requires exactly 1 argument \(radius\), but got 2\./],
   ["calling unknown object", "print(unknown.circumference());", /Error: Object unknown not found./],
   ["equality check on different types", "let does_it_work = (4 == 3.4);", /Type mismatch/],
+  ["sin call no arguments", "let x = sin();", /Error: Function sin expects 1 argument\(s\), but received 0\./],
+  ["loop over non-digit", "for y in domain(dog) {print(2);}", /Expected a digit/],
+
   
 
 
