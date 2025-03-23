@@ -1,8 +1,19 @@
 const x: integer = 5;
 const y: integer = 10;
-let sum: integer = x + y;
+let total: integer = x + y;
 
-const numbers: integer[] = [1, 2, 3, 4];
+// Function that adds two integers
+fnc addition(a: integer, b: integer): integer = a + b;
+
+// Function that calculates area of a circle
+fnc circleArea(radius: float): float = 3.14159 * (radius ** 2);
+
+// Function using math functions instead of if expressions
+fnc maximum(a: integer, b: integer): integer = max(a, b);
+
+// Function with string concatenation
+fnc greeting(name: string): string = "Hello, " + name;
+
 
 const intValue: integer = 42;
 let floatValue: float = intValue;
@@ -11,4 +22,13 @@ const a: integer = 10;
 const b: integer = 3;
 let result: float = a / b;
 
-fnc add(a: integer, b: integer): integer = a + b;
+
+let sum: integer = 0;
+let counter: integer = 1;
+while true {
+    sum = sum + counter;
+    if sum > 100 {
+        break;
+    }
+    counter = counter + 1;
+}

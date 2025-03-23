@@ -120,6 +120,33 @@ export default function analyze(match) {
     }
   }
 
+  function checkArrayTypeMatches(arrayElements, declaredType, parseTreeNode) {
+    if (arrayElements.length === 0) {
+      // Empty arrays can match any array type
+      return;
+    }
+    
+    // Extract the element type from the array type (remove the '[]')
+    const expectedElementType = declaredType.slice(0, -2);
+    
+    // Check that all elements match the expected type
+    for (const element of arrayElements) {
+      if (isNumericType(expectedElementType) && isNumericType(element.type)) {
+        // For numeric types, allow implicit conversion if it's safe
+        if (expectedElementType === "number" || 
+            (expectedElementType === "float" && element.type === "integer")) {
+          continue;
+        }
+      }
+      
+      check(
+        element.type === expectedElementType,
+        `Expected array element of type ${expectedElementType}, got ${element.type}`,
+        parseTreeNode
+      );
+    }
+  }
+
   function checkNotDeclared(name, parseTreeNode) {
     check(
       !context.has(name),
@@ -136,6 +163,15 @@ export default function analyze(match) {
     // Check if types are exactly the same
     if (sourceType === targetType) {
       return true;
+    }
+    
+    // Check if both are array types
+    if (sourceType.endsWith("[]") && targetType.endsWith("[]")) {
+      const sourceElementType = sourceType.slice(0, -2);
+      const targetElementType = targetType.slice(0, -2);
+      
+      // Check if element types are compatible
+      return checkTypesCompatible(sourceElementType, targetElementType, parseTreeNode);
     }
     
     // Check if both are numeric types (integer, float, number)
@@ -173,8 +209,13 @@ export default function analyze(match) {
       const declaredType = type.analyze();
       const initializer = exp.analyze();
       
-      // Check that initializer type is compatible with declared type
-      checkTypesCompatible(initializer.type, declaredType, exp);
+      // Special handling for array types
+      if (declaredType.endsWith("[]") && initializer.kind === "ArrayExpression") {
+        checkArrayTypeMatches(initializer.elements, declaredType, exp);
+      } else {
+        // Check that initializer type is compatible with declared type
+        checkTypesCompatible(initializer.type, declaredType, exp);
+      }
       
       const mutable = qualifier.sourceString === "let";
       const variable = core.variable(
