@@ -262,7 +262,7 @@ export default function analyze(match) {
     Type_float(_) { return "float"; },
     Type_boolean(_) { return "boolean"; },
     Type_string(_) { return "string"; },
-    PrintStmt(_print, exp, _semi) {
+    PrintStmt(_print, _open, exp, _close, _semi) {
       const argument = exp.analyze();
       return core.printStatement(argument);
     },
@@ -394,10 +394,14 @@ export default function analyze(match) {
       return core.unaryExpression("#", e, "integer");
     },
     Primary_int(_) {
-      return { type: "integer", value: parseInt(this.sourceString) };
+      // Handle the optional negative sign in the grammar
+      const value = parseInt(this.sourceString, 10);
+      return { type: "integer", value: value };
     },
     Primary_float(_) {
-      return { type: "float", value: parseFloat(this.sourceString) };
+      // Handle the optional negative sign in the grammar
+      const value = parseFloat(this.sourceString);
+      return { type: "float", value: value };
     },
     Primary_array(_open, elements, _close) {
       // Handle elements without using asIteration

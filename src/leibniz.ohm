@@ -18,7 +18,7 @@ Leibniz {
             | "float"                         --float
             | "boolean"                       --boolean
             | "string"                        --string
-  PrintStmt = print Exp ";"
+  PrintStmt = print "(" Exp ")" ";"
   AssignmentStmt = Primary_id "=" Exp ";"
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   WhileStmt = while Exp Block
@@ -100,8 +100,8 @@ Leibniz {
             
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"
-  intlit    = digit+
-  floatlit  = digit+ "." digit+ (("E"|"e") ("+"|"-")? digit+)?
+  intlit    = ("-")? digit+
+  floatlit  = ("-")? digit+ "." digit+ (("E"|"e") ("+"|"-")? digit+)?
   stringlit = "\"" (~"\"" any)* "\""
   relop     = "<=" | "<" | "==" | "!=" | ">=" | ">"
   space    += "//" (~"\n" any)*          --comment

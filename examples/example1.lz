@@ -1,17 +1,17 @@
 const x: integer = 5;
-const y: integer = 10;
-let total: integer = x + y;
+const y: integer = -10; 
+let total: integer = x + y; 
 
-// Function that adds two integers
+print(x);  
+print(total);
+
+
 fnc addition(a: integer, b: integer): integer = a + b;
 
-// Function that calculates area of a circle
 fnc circleArea(radius: float): float = 3.14159 * (radius ** 2);
 
-// Function using math functions instead of if expressions
 fnc maximum(a: integer, b: integer): integer = max(a, b);
 
-// Function with string concatenation
 fnc greeting(name: string): string = "Hello, " + name;
 
 
@@ -32,3 +32,5 @@ while true {
     }
     counter = counter + 1;
 }
+
+print(sum);
