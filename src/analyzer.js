@@ -86,7 +86,7 @@ export default function analyze(match) {
   }
 
   function getTypeCoercion(type1, type2) {
-    // If both are numeric types, find the more general one
+
     if (isNumericType(type1) && isNumericType(type2)) {
       if (type1 === "float" || type2 === "float") {
         return "float";
@@ -95,11 +95,11 @@ export default function analyze(match) {
       }
       return "integer";
     }
-    // If types are the same, no coercion needed
+
     if (type1 === type2) {
       return type1;
     }
-    // No coercion possible
+
     return null;
   }
 
@@ -184,7 +184,6 @@ export default function analyze(match) {
         return true;
       }
       // Don't allow assignment from more general to more specific type
-      // (e.g., number -> integer, float -> integer)
       check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
     }
     
@@ -472,9 +471,7 @@ export default function analyze(match) {
         // abs preserves the input type
         returnType = x.type;
       } else {
-        returnType = "float"; // Default for most math functions (sqrt, exp, ln, log10)
-      }
-      
+        returnType = "float"; 
       return core.callExpression(func.sourceString, [x], returnType);
     },
     Primary_true(_) {
@@ -509,12 +506,14 @@ export default function analyze(match) {
   return analyzer(match).analyze();
 }
 
-// Add type properties to prototype objects
+
 Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
 
-// Add these to make integer and float literals work properly
+
+
+// try to make integer and float literals work properly
 Object.defineProperty(Number.prototype, "value", {
   get() { return this; }
 });
