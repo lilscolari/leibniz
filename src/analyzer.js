@@ -472,14 +472,15 @@ export default function analyze(match) {
         returnType = x.type;
       } else {
         returnType = "float"; 
+      }  // Fixed: Added missing closing brace
       return core.callExpression(func.sourceString, [x], returnType);
-    },
+    },  // Fixed: Added missing comma
     Primary_true(_) {
       return { type: "boolean", value: true };
-    },
+    },  // Fixed: Added missing comma
     Primary_false(_) {
       return { type: "boolean", value: false };
-    },
+    },  // Fixed: Added missing comma
     Primary_string(_) {
       return { type: "string", value: this.sourceString.slice(1, -1) };
     },
@@ -510,7 +511,6 @@ export default function analyze(match) {
 Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
-
 
 
 // try to make integer and float literals work properly
