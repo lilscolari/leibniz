@@ -149,7 +149,7 @@ export default function analyze(match) {
 
   function checkNotDeclared(name, parseTreeNode) {
     check(
-      !context.has(name),
+      !context.locals.has(name),
       `Variable already declared: ${name}`,
       parseTreeNode
     );
@@ -295,8 +295,13 @@ export default function analyze(match) {
       return core.ifStatement(test, consequentBlock, alternateBlock);
     },
     Block(_open, statements, _close) {
+      // Create a new context for this block
+      const savedContext = context;
+      context = context.newChildContext();
       // Direct access to children instead of using asIteration
       const stmts = statements.children.map(s => s.analyze());
+      // Restore the previous context when we're done
+      context = savedContext;
       return core.block(stmts);
     },
     Exp_test(left, op, right) {
@@ -472,15 +477,15 @@ export default function analyze(match) {
         returnType = x.type;
       } else {
         returnType = "float"; 
-      }  // Fixed: Added missing closing brace
+      }
       return core.callExpression(func.sourceString, [x], returnType);
-    },  // Fixed: Added missing comma
+    },
     Primary_true(_) {
       return { type: "boolean", value: true };
-    },  // Fixed: Added missing comma
+    },
     Primary_false(_) {
       return { type: "boolean", value: false };
-    },  // Fixed: Added missing comma
+    },
     Primary_string(_) {
       return { type: "string", value: this.sourceString.slice(1, -1) };
     },
@@ -511,6 +516,7 @@ export default function analyze(match) {
 Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
+
 
 
 // try to make integer and float literals work properly

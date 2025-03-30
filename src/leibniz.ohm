@@ -50,23 +50,18 @@ Leibniz {
             | "[" ListOf<Exp, ","> "]"   --array
             | "(" Exp ")"                --parens
   
-
-
   MathFuncCall = TrigFunc "(" Exp ")"            --trig
                | BinaryMathFunc "(" Exp "," Exp ")"  --binary
                | UnaryMathFunc "(" Exp ")"       --unary
   
   TrigFunc   = cosFunc | sinFunc | tanFunc 
              | arccosFunc | arcsinFunc | arctanFunc
-             
-
+  
   UnaryMathFunc = sqrtFunc | expFunc | lnFunc | log10Func 
-          
                 | absFunc | floorFunc | ceilFunc | roundFunc
                 
   BinaryMathFunc = minFunc | maxFunc | powFunc
   
-
   let       = "let" ~idchar
   const     = "const" ~idchar
   fnc       = "fnc" ~idchar
@@ -78,8 +73,6 @@ Leibniz {
   true      = "true" ~idchar
   false     = "false" ~idchar
   
-
-
   cosFunc = "cos" ~idchar
   sinFunc = "sin" ~idchar
   tanFunc = "tan" ~idchar
@@ -98,7 +91,6 @@ Leibniz {
   maxFunc = "max" ~idchar
   powFunc = "pow" ~idchar
   
-
   keyword   = let | const | fnc | print | while | if | else
             | break | true | false | cosFunc | sinFunc | tanFunc
             | arccosFunc | arcsinFunc | arctanFunc | sqrtFunc
