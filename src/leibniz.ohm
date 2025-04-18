@@ -104,7 +104,7 @@ Leibniz {
   mathFunc = cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc 
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc 
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc 
-          | randFunc | distanceFunc
+          | randFunc | distanceFunc | derivativeFunction
           
   cosFunc = "cos" ~idchar
   sinFunc = "sin" ~idchar
@@ -126,6 +126,7 @@ Leibniz {
   powFunc = "pow" ~idchar
   randFunc = "rand" ~idchar
   distanceFunc = "distance" ~idchar
+  derivativeFunction = "derivative" ~idchar
   
   // Constants
   mathConstant = piConst | eConst | piSymbol  // Added piSymbol
@@ -141,7 +142,7 @@ Leibniz {
           | cosFunc | sinFunc | tanFunc | arccosFunc | arcsinFunc | arctanFunc
           | sqrtFunc | logFunc | expFunc | lnFunc | log10Func | absFunc
           | floorFunc | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
-          | randFunc | distanceFunc
+          | randFunc | distanceFunc | derivativeFunction
           | piConst | eConst | piSymbol | true | false  // Added piSymbol, true, false
            
   id = ~keyword letter idchar*

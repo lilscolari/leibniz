@@ -1,4 +1,5 @@
 import * as core from "./core.js";
+import * as math from 'mathjs';
 
 export function flatten(arr) {
   const stack = [...arr];
@@ -140,12 +141,18 @@ export default function analyze(match) {
       if (params._node.matchLength === 0) {
         return [];
       }
-        
+    
       return params.children.map(paramNode => {
         if (paramNode && paramNode.sourceString) {
-          return paramNode.sourceString.trim();
+          if (paramNode.sourceString.includes('(') && paramNode.sourceString.includes(')')) {
+            return paramNode.sourceString.trim();
+          } else {
+            return paramNode.sourceString.split(',').map(str => {
+              return str.trim().replace(/^"(.*)"$/, '$1');
+            });
+          }
         }
-      }).filter(result => result !== null);
+      }).flat().filter(result => result !== null);
     },
     Block(_openCurly, stmts, _closeCurly) {
       return stmts.children.map(stmt => stmt.analyze());
@@ -216,7 +223,29 @@ export default function analyze(match) {
         max: { value: Math.max, paramCount: -1 },
         pow: { value: Math.pow, paramCount: 2 },
         rand: { value: Math.random, paramCount: 0 },
-        distance: { value: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), paramCount: 4 }
+        distance: { value: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), paramCount: 4 },
+        derivative: {
+          value: (...args) => {
+            const [expr, variable, value] = args;
+            console.log(args)
+        
+            let numericValue = value;
+            if (value !== undefined) {
+              numericValue = Number(value);
+              if (isNaN(numericValue)) {
+                throw new Error("The third argument (value) must be a valid number (int or float).");
+              }
+            }
+        
+            const derivative = math.derivative(expr, variable);
+            if (value === undefined) {
+              return derivative.toString();
+            } else {
+              return derivative.evaluate({ [variable]: value });
+            }
+          },
+          paramCount: -1
+        }
       };
     
       let params = [];

@@ -68,6 +68,12 @@ const semanticChecks = [
   ["exponent", "let x = 2 ** 7;"],
   ["calling user func", "func add(x, y) { return 2; } print(add(3, 4));"],
   ["test", "func subtract(hi, dude) {let none = 3;none = 2;return none;}"],
+  ["checks that cos() can call sin(x)", "print(cos(sin(x)));"],
+  ["do not evaluate derivative", "print(derivative(\"x^2\", \"x\"));"],
+  ["evaluate derivative", "print(derivative(\"x^2\", \"x\", 3));"]
+
+  
+
 ]
 
 // Programs that are syntactically correct but have semantic errors
@@ -94,6 +100,7 @@ const semanticErrors = [
   ["equality check on different types", "let does_it_work = (4 == 3.4);", /Type mismatch/],
   ["sin call no arguments", "let x = sin();", /Error: Function sin expects 1 argument\(s\), but received 0\./],
   ["loop over non-digit", "for y in domain(dog) {print(2);}", /Expected a digit/],
+  ["not a valid number for derivative", "print(derivative(\"x^2\", \"x\", \"test\"));", /Error: The third argument \(value\) must be a valid number \(int or float\)./]
 ];
 
 describe("The analyzer", () => {

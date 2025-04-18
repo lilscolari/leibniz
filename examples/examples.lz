@@ -11,6 +11,7 @@ for x in domain(10) {
 
 func add(x, y) {
     print(x + y);
+    return 2;
 }
 
 if x < 2 {
@@ -25,11 +26,11 @@ if (x >= 3) {
     print("do this");
 }
 
-obj new_circle = Circle;
+obj new_circle = Circle();
 
 new_circle_area = Circle.area(3, 4);
 
-obj triangle = Triangle;
+obj triangle = Triangle();
 
 triangle_perimeter = Triangle.perimeter(3, 4); //comment here
 
@@ -37,3 +38,4 @@ triangle_perimeter = Triangle.perimeter(3, 4); //comment here
 // woooo comments
 
 print(sin(arcsin(2)));
+

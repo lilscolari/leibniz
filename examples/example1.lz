@@ -75,3 +75,10 @@ let inc = 5;
 
 ++inc;
 
+let cosine = cos(5);
+
+print(derivative("x^2", "x", 3));
+
+print(derivative("x^2", "x"));
+
+// print(derivative("x^2", "x", "test"));
