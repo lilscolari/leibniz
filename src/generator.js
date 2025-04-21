@@ -17,7 +17,16 @@ export default function generate(program) {
       };
     })(new Map());
   
-    const gen = (node) => generators?.[node?.kind]?.(node) ?? node;
+    const gen = (node) => {
+      if (node == null) return "";
+    
+      // If node is a plain literal-like object (no `kind`), return its value
+      if (typeof node === "object" && "value" in node && "type" in node) {
+        return `${node.value}`;
+      }
+    
+      return generators?.[node?.kind]?.(node) ?? node;
+    };
   
     const generators = {
       // Key idea: when generating an expression, just return the JS string; when
@@ -31,14 +40,20 @@ export default function generate(program) {
         output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`);
       },
       FunctionDeclaration(d) {
-        output.push(
-          `function ${gen(d.fun)}(${d.fun.parameters.map(gen).join(", ")}) {`
-        );
-        output.push(`return ${gen(d.body)};`);
+        const functionName = gen(d.fun);
+        const paramNames = d.fun.parameters.flat().map(param => gen(param));
+        output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
+        output.push(`  return ${gen(d.body)};`);
         output.push("}");
-      },
+      },  
       ForStatement(s) {
         output.push(`for (let ${gen(s.iterator)} of ${gen(s.collection)}) {`)
+        s.body.statements.forEach(gen)
+        output.push("}")
+      },
+      WhileStatement(s) {
+        console.log(s)
+        output.push(`while (${gen(s.test)} {`)
         s.body.statements.forEach(gen)
         output.push("}")
       },
@@ -54,7 +69,7 @@ export default function generate(program) {
       DecrementStatement(s) {
         output.push(`${gen(s.variable)}--;`)
       },
-      Assignment(s) {
+      AssignmentStatement(s) {
         output.push(`${gen(s.target)} = ${gen(s.source)};`);
       },
       BreakStatement(s) {
@@ -97,12 +112,12 @@ export default function generate(program) {
         }
         return `${e.op}(${operand})`;
       },
-      SubscriptExpression(e) {
-        return `${gen(e.array)}[${gen(e.index)}]`;
-      },
-      ArrayExpression(e) {
-        return `[${e.elements.map(gen).join(",")}]`;
-      },
+      // SubscriptExpression(e) {
+      //   return `${gen(e.array)}[${gen(e.index)}]`;
+      // },
+      // ArrayExpression(e) {
+      //   return `[${e.elements.map(gen).join(",")}]`;
+      // },
       // FunctionCall(c) {
       //   const targetCode = standardFunctions.has(c.callee)
       //     ? standardFunctions.get(c.callee)(c.args.map(gen))
@@ -115,7 +130,8 @@ export default function generate(program) {
       // },
       PrintStatement(s) {
         output.push(`console.log(${gen(s.argument)});`)
-      },
+      }
+
     };
     
   
