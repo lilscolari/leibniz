@@ -12,8 +12,7 @@ Leibniz {
   FunDec    = fnc id Params ":" Type "=" Exp ";"
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" Type
-  Type      = Type "[]"                       --array
-            | "number"                        --number 
+  Type      = "number"                        --number 
             | "integer"                       --integer
             | "float"                         --float
             | "boolean"                       --boolean
@@ -37,17 +36,14 @@ Leibniz {
   Factor    = Primary "**" Factor        --exp
             | "-" Primary                --neg
             | "!" Primary                --not
-            | "#" Primary                --len
             | Primary
   Primary   = floatlit                   --float
             | intlit                     --int
             | true                       --true
             | false                      --false
             | stringlit                  --string
-            | Primary "[" Exp "]"        --subscript
             | MathFuncCall               --mathfunc
             | id                         --id
-            | "[" ListOf<Exp, ","> "]"   --array
             | "(" Exp ")"                --parens
   
   MathFuncCall = TrigFunc "(" Exp ")"            --trig

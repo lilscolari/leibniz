@@ -1,3 +1,4 @@
 export default function optimize(program) {
-    throw new Error("Not implemented")
-}
+    // For now, just return the program without changes
+    return program;
+  }
