@@ -105,6 +105,11 @@ export default function analyze(match) {
       checkNumber(variable, id);
       return core.incrementStatement(variable);
     },
+    Stmt_decrement(_op, id, _semi) {
+      const variable = id.analyze();
+      checkNumber(variable, id);
+      return core.decrementStatement(variable);
+    },
     Stmt_break(_break, _semi) {
       return core.breakStatement();
     },
@@ -145,6 +150,7 @@ export default function analyze(match) {
       context.add(id.sourceString, fun);
       return core.functionDeclaration(fun, body);
     },
+
     Params(_open, params, _close) {
 
       return params;
@@ -357,17 +363,93 @@ export default function analyze(match) {
 
       let returnType;
       if (func.sourceString === "min" || func.sourceString === "max") {
-
         returnType = getTypeCoercion(x.type, y.type);
       } else if (func.sourceString === "pow") {
-
         returnType = "float";
-      } else {
-        returnType = "float"; 
       }
+      // } else {
+      //   returnType = "float"; 
+      // }
       
       return core.callExpression(func.sourceString, [x, y], returnType);
     },
+
+    // FunctionCall(id, _openParen, args, _closeParen) {
+    //   const funcName = id.sourceString;
+    //   // console.log(`Calling function: ${funcName}`);
+      
+    //   const mathFunctions = {
+    //     cos: { value: Math.cos, paramCount: 1 },
+    //     sin: { value: Math.sin, paramCount: 1 },
+    //     tan: { value: Math.tan, paramCount: 1 },
+    //     arccos: { value: Math.acos, paramCount: 1 },
+    //     arcsin: { value: Math.asin, paramCount: 1 },
+    //     arctan: { value: Math.atan, paramCount: 1 },
+    //     sqrt: { value: Math.sqrt, paramCount: 1 },
+    //     log: { value: Math.log, paramCount: 1 },
+    //     exp: { value: Math.exp, paramCount: 1 },
+    //     ln: { value: Math.log, paramCount: 1 },
+    //     log10: { value: Math.log10, paramCount: 1 },
+    //     abs: { value: Math.abs, paramCount: 1 },
+    //     floor: { value: Math.floor, paramCount: 1 },
+    //     ceil: { value: Math.ceil, paramCount: 1 },
+    //     round: { value: Math.round, paramCount: 1 },
+    //     min: { value: Math.min, paramCount: -1 },
+    //     max: { value: Math.max, paramCount: -1 },
+    //     pow: { value: Math.pow, paramCount: 2 },
+    //     rand: { value: Math.random, paramCount: 0 },
+    //     distance: { value: (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), paramCount: 4 },
+    //     derivative: {
+    //       value: (...args) => {
+    //         const [expr, variable, value] = args;
+    //         console.log(args)
+        
+    //         let numericValue = value;
+    //         if (value !== undefined) {
+    //           numericValue = Number(value);
+    //           if (isNaN(numericValue)) {
+    //             throw new Error("The third argument (value) must be a valid number (int or float).");
+    //           }
+    //         }
+        
+    //         const derivative = math.derivative(expr, variable);
+    //         if (value === undefined) {
+    //           return derivative.toString();
+    //         } else {
+    //           return derivative.evaluate({ [variable]: value });
+    //         }
+    //       },
+    //       paramCount: -1
+    //     }
+    //   };
+    
+    //   let params = [];
+    
+    //   if (args && args.analyze) {
+    //     params = flatten(args.analyze());
+    //     // console.log(`Arguments for ${funcName}:`, params);
+    //   }
+    
+    //   const funcContext = context.newChildContext();
+    
+    //   const userFunc = funcContext.lookup(funcName);
+    //   if (userFunc) {
+    //     userFunc.params.forEach((param, index) => {
+    //       funcContext.add(param.sourceString, params[index]);
+    //     });
+    //     context = context.parent;
+    //     return core.functionCall(funcName, params);
+    //   } else if (mathFunctions[funcName]) {
+    //     const mathFunc = mathFunctions[funcName];
+    //     const expectedParamCount = mathFunc.paramCount;
+    
+    //     if (expectedParamCount !== -1 && params.length !== expectedParamCount) {
+    //       throw new Error(`Function ${funcName} expects ${expectedParamCount} argument(s), but received ${params.length}.`);
+    //     }    
+    //     const result = mathFunc.value(...params);
+    //     return result;
+    //   }
+    // },
 
 
     MathFuncCall_unary(func, _open, arg, _close) {
@@ -428,6 +510,94 @@ export default function analyze(match) {
       return [];
 
     },
+
+    ObjectMethodCall(id, _dot, methodName, _openParens, _closeParens) {
+      const objName = id.sourceString;
+      const methodNameStr = methodName.sourceString;
+      
+      let object = context.lookup(objName);
+
+      if (!object) {
+        throw new Error(`Object ${objName} not found.`);
+      }
+
+      if (object.type === "Triangle" || object.type === "Rectangle") {
+        const allowedMethods = ['area', 'perimeter'];
+        if (!allowedMethods.includes(methodNameStr)) {
+          throw new Error(`${methodNameStr} is not a valid method for ${object.type}.`);
+        }
+      } else if (object.type === "Circle") {
+        const allowedMethods = ['area', 'circumference'];
+        if (!allowedMethods.includes(methodNameStr)) {
+          throw new Error(`${methodNameStr} is not a valid method for Circle.`);
+        }
+      }
+
+      return {
+        object: objName,
+        method: methodNameStr,
+        result: object[methodNameStr]()
+      };
+    }, 
+    ObjectCreation(_obj, id, _eq, className, _openParens, params, _closeParens, _semi) {
+      const objName = id.sourceString;
+      const classNameStr = className.sourceString;
+      let constructorArgs = [];
+      if (params) {
+        constructorArgs = params.analyze();
+      }
+    
+      // if (constructorArgs.length === 1 && typeof constructorArgs[0] === "string") {
+      //   constructorArgs = constructorArgs[0].split(",").map(arg => arg.trim());
+      // }
+    
+      let object;
+    
+      if (classNameStr === "Triangle" || classNameStr === "Rectangle") {
+        if (constructorArgs.length != 2) {
+          throw new Error(`${classNameStr} requires exactly 2 arguments (base, height), but got ${constructorArgs.length}.`);
+        }
+        object = classNameStr === "Triangle"
+          ? core.Triangle(constructorArgs[0], constructorArgs[1])
+          : core.Rectangle(constructorArgs[0], constructorArgs[1]);
+      } else if (classNameStr === "Circle") {
+        if (constructorArgs.length != 1) {
+          throw new Error(`Circle requires exactly 1 argument (radius), but got ${constructorArgs.length}.`);
+        }
+        object = core.Circle(constructorArgs[0]);
+      }
+      context.add(objName, object);
+      return core.assignmentStatement(object, core.variable(objName, 'object'));
+    },
+
+    mathConstant(constant) {
+      if (constant.sourceString === "pi") {
+        return Math.PI;
+      } else if (constant.sourceString === "e") {
+        return Math.E;
+      } else if (constant.sourceString === "π") {
+        return Math.PI;
+      }
+    },
+
+    ForLoop(_for, id, _in, domain, _openParens, exp, _closeParens, block) {
+      const rangeSizeExpr = exp.analyze();
+      const range = Array.from({ length: rangeSizeExpr }, (_, i) => i);
+
+      const iterator = core.variable(id.sourceString, core.intType)
+
+      context = context.newChildContext();
+      context.add(id.sourceString, iterator)
+
+      const body = block.analyze()
+      context = context.parent
+      return core.forStatement(id.sourceString, range, body);
+    },
+
+    forInteger(digits) {
+      return Number(digits.sourceString);
+    },  
+
   });
 
   return analyzer(match).analyze();

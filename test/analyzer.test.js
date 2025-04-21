@@ -165,6 +165,10 @@ describe("The analyzer", () => {
         let d: boolean = 7 >= 8;
         let e: boolean = 9 == 10;
         let f: boolean = 11 != 12;
+        let x: number = 5;
+        let y: number = 2;
+        let g: boolean = x == y;
+        let h: boolean = "s" == "i";
       `;
       assert.ok(analyze(parse(source)));
     });
@@ -191,6 +195,60 @@ describe("The analyzer", () => {
         let b: boolean = !false;
       `;
       assert.ok(analyze(parse(source)));
+    });
+
+    // Objects
+    it("recognizes objects", () => {
+      const source = `
+        obj new_rectangle = Rectangle(3, 3);
+        obj c = Circle(2);        
+        print(new_rectangle.perimeter());        
+        obj s = Triangle(5, pow(3, 2));
+        print(s.area());      
+        obj r = Rectangle(2, 3);
+        print(r.area());
+        print(s.perimeter());
+        print(c.circumference());
+        print(c.area());
+      `;
+      assert.ok(analyze(parse(source)));
+    })
+
+    it("throws on object not found", () => {
+      const source = `
+        print(new_triangle.area());
+      `;
+      assert.throws(() => analyze(parse(source)), /Error: Object new_triangle not found./);
+    });
+
+    it("throws on invalid method call for non-circle", () => {
+      const source = `
+        obj r = Rectangle(5, 3);
+        print(r.circumference());
+      `;
+      assert.throws(() => analyze(parse(source)), /Error: circumference is not a valid method for Rectangle./);
+    });
+
+    it("throws on invalid method call for circle", () => {
+      const source = `
+        obj c = Circle(5);
+        print(c.perimeter());
+      `;
+      assert.throws(() => analyze(parse(source)), /perimeter is not a valid method for Circle./);
+    });
+
+    it("throws on too many args non-circle", () => {
+      const source = `
+        obj r = Rectangle(5, 3, 2);
+      `;
+      assert.throws(() => analyze(parse(source)), /Error: Rectangle requires exactly 2 arguments \(base, height\), but got 3./);
+    });
+
+    it("throws on too many args for circle", () => {
+      const source = `
+        obj c = Circle(5, 3);
+      `;
+      assert.throws(() => analyze(parse(source)), /Error: Circle requires exactly 1 argument \(radius\), but got 2./);
     });
     
     // Math functions
@@ -219,12 +277,31 @@ describe("The analyzer", () => {
       `;
       assert.ok(analyze(parse(source)));
     });
+
+    it("recognizes math constants", () => {
+      const source = `
+        print(pi);
+        print(e);
+        print(π);
+      `;
+      assert.ok(analyze(parse(source)));
+    })
     
     it("recognizes binary math functions", () => {
       const source = `
         let a: integer = min(5, 3);
         let b: integer = max(5, 3);
         let c: float = pow(2, 3);
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+
+    // For loop
+    it("recognizes for loop", () => {
+      const source = `
+        for x in domain(5) {
+          print(x);
+        }
       `;
       assert.ok(analyze(parse(source)));
     });
@@ -246,7 +323,7 @@ describe("The analyzer", () => {
     });
   });
   
-  // Assignment and increment
+  // Assignment and increment and decrement
   describe("Assignment and increment", () => {
     it("recognizes assignment to mutable variable", () => {
       const source = "let x: integer = 1; x = 2;";
@@ -255,6 +332,11 @@ describe("The analyzer", () => {
     
     it("recognizes increment", () => {
       const source = "let x: integer = 1; ++x;";
+      assert.ok(analyze(parse(source)));
+    });
+
+    it("recognizes decrement", () => {
+      const source = "let x: integer = 1; --x;";
       assert.ok(analyze(parse(source)));
     });
     
