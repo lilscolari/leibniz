@@ -93,17 +93,14 @@ export default function generate(program) {
             output.push("} else {");
             s.alternate.statements.forEach(gen);
             output.push("}");
+          } else {
+            output.push("}")
           }
         }
       },
-      ShortIfStatement(s) {
-        output.push(`if (${gen(s.test)}) {`);
-        s.consequent.forEach(gen);
-        output.push("}");
-      },
       BinaryExpression(e) {
         const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op;
-        return `(${gen(e.left)} ${op} ${gen(e.right)})`;
+        return `${gen(e.left)} ${op} ${gen(e.right)}`;
       },
       UnaryExpression(e) {
         const operand = gen(e.operand);
