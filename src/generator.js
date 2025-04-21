@@ -37,6 +37,11 @@ export default function generate(program) {
         output.push(`return ${gen(d.body)};`);
         output.push("}");
       },
+      ForStatement(s) {
+        output.push(`for (let ${gen(s.iterator)} of ${gen(s.collection)}) {`)
+        s.body.statements.forEach(gen)
+        output.push("}")
+      },
       Variable(v) {
         return targetName(v);
       },
@@ -45,6 +50,9 @@ export default function generate(program) {
       },
       IncrementStatement(s) {
         output.push(`${gen(s.variable)}++;`);
+      },
+      DecrementStatement(s) {
+        output.push(`${gen(s.variable)}--;`)
       },
       Assignment(s) {
         output.push(`${gen(s.target)} = ${gen(s.source)};`);
@@ -58,23 +66,26 @@ export default function generate(program) {
       // ShortReturnStatement(s) {
       //   output.push("return;");
       // },
-      // IfStatement(s) {
-      //   output.push(`if (${gen(s.test)}) {`);
-      //   s.consequent.forEach(gen);
-      //   if (s.alternate?.kind?.endsWith?.("IfStatement")) {
-      //     output.push("} else");
-      //     gen(s.alternate);
-      //   } else {
-      //     output.push("} else {");
-      //     s.alternate.forEach(gen);
-      //     output.push("}");
-      //   }
-      // },
-      // ShortIfStatement(s) {
-      //   output.push(`if (${gen(s.test)}) {`);
-      //   s.consequent.forEach(gen);
-      //   output.push("}");
-      // },
+      IfStatement(s) {
+        output.push(`if (${gen(s.test)}) {`);
+        console.log(s)
+        s.consequent.statements.forEach(gen);
+        if (s.alternate?.kind?.endsWith?.("IfStatement")) {
+          output.push("} else");
+          gen(s.alternate);
+        } else {
+          if (s.alternate != null) {
+            output.push("} else {");
+            s.alternate.statements.forEach(gen);
+            output.push("}");
+          }
+        }
+      },
+      ShortIfStatement(s) {
+        output.push(`if (${gen(s.test)}) {`);
+        s.consequent.forEach(gen);
+        output.push("}");
+      },
       BinaryExpression(e) {
         const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op;
         return `(${gen(e.left)} ${op} ${gen(e.right)})`;
@@ -102,8 +113,8 @@ export default function generate(program) {
       //   }
       //   output.push(`${targetCode};`);
       // },
-      Print(s) {
-        output.push(`console.log(${s.args.map(gen).join(", ")});`)
+      PrintStatement(s) {
+        output.push(`console.log(${gen(s.argument)});`)
       },
     };
     
