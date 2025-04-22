@@ -193,6 +193,7 @@ export default function analyze(match) {
       // Create function and add to context
       const fun = core.función(id.sourceString, parameters, declaredReturnType);
       context.add(id.sourceString, fun);
+
       
       return core.functionDeclaration(fun, analyzedBody);
     },
@@ -432,9 +433,10 @@ export default function analyze(match) {
       } else if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
-      } else {
-        returnType = "float"; // Default for any other binary math functions
-      }
+      } 
+      // else {
+      //   returnType = "float"; // Default for any other binary math functions
+      // }
       
       return core.callExpression(func.sourceString, [x, y], returnType);
     },
@@ -454,6 +456,15 @@ export default function analyze(match) {
         returnType = "float"; 
       }
       return core.callExpression(func.sourceString, [x], returnType);
+    },
+
+    DerivativeFuncCall(_derivative, _openParens, derivative, _comma, variable, _comma2, evaluatedAt, _closeParens) {
+
+      derivative = derivative.analyze()
+      variable = variable.analyze()
+      evaluatedAt = evaluatedAt.analyze()
+
+      return core.derivativeCall(derivative, variable, evaluatedAt)
     },
     
     FunctionCall(id, _open, args, _close) {
@@ -545,6 +556,7 @@ export default function analyze(match) {
       for (const arg of analyzedArgs) {
         checkNumber(arg, args);
       }
+
       
       // Create the object and add to context
       const object = core.objectCreation(id.sourceString, classType, analyzedArgs);
@@ -586,21 +598,33 @@ export default function analyze(match) {
       return core.mathConstant(name);
     },
     
-    id(_first, _rest) {
-      return this.sourceString;
-    },
+    // id(_first, _rest) {
+    //   return this.sourceString;
+    // },
     
-    _iter(...children) {
-      return children.map(child => child.analyze());
-    },
+    // _iter(...children) {
+    //   return children.map(child => child.analyze());
+    // },
     
-    NonemptyListOf(first, _sep, rest) {
-      return [first.analyze(), ...rest.children.map(child => child.analyze())];
-    },
+    // NonemptyListOf(first, _sep, rest) {
+    //   return [first.analyze(), ...rest.children.map(child => child.analyze())];
+    // },
     
-    EmptyListOf() {
-      return [];
+    // EmptyListOf() {
+    //   return [];
+    // },
+
+    stringlit(_open, chars, _close) {
+      return chars.sourceString;
     },
+
+    intlit(_neg, _digits) {
+      return core.integerLiteral(parseInt(this.sourceString, 10));
+    },
+    floatlit(_neg, _whole, _dot, _frac, _exp, _sign, _expDigits) {
+      return core.floatLiteral(parseFloat(this.sourceString));
+    }
+
   });
 
   return analyzer(match).analyze();

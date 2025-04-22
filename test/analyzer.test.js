@@ -86,7 +86,18 @@ describe("The analyzer", () => {
       assert.throws(() => analyze(parse(source)), /Cannot assign integer to boolean/);
     });
   });
-  
+
+  // Derivatives
+  describe("Derivatives", () => {
+    it("recognizes derivatives", () => {
+      const source = `
+        print(derivative("x^2", "x", 231.4));
+        print(derivative("x^2", "x", 231));
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+  });
+
   // Control flow
   describe("Control flow", () => {
     it("recognizes if statements", () => {
@@ -378,7 +389,7 @@ describe("The analyzer", () => {
     
     it("recognizes objects used with math functions", () => {
       const source = `
-        obj r = Rectangle(3, 4);
+        obj r = Rectangle(3, floor(3.45));
         obj c = Circle(sqrt(2));
         obj t = Triangle(5, pow(3, 2));
       `;

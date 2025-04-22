@@ -56,6 +56,7 @@ Leibniz {
             | stringlit                  --string
             | MathFuncCall               --mathfunc
             | FunctionCall
+            | DerivativeFuncCall
             | mathConstant
             | id                         --id
             | "(" Exp ")"                --parens
@@ -63,7 +64,9 @@ Leibniz {
   MathFuncCall = TrigFunc "(" Exp ")"            --trig
                | BinaryMathFunc "(" Exp "," Exp ")"  --binary
                | UnaryMathFunc "(" Exp ")"       --unary
-  
+
+  DerivativeFuncCall = derivativeFunction "(" stringlit ", " stringlit ", " (floatlit | intlit) ")"
+
   TrigFunc   = cosFunc | sinFunc | tanFunc 
              | arccosFunc | arcsinFunc | arctanFunc
   
@@ -139,7 +142,7 @@ Leibniz {
             | expFunc | lnFunc | log10Func | absFunc | floorFunc
             | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
             | triangleObj | rectangleObj | circleObj
-            | domain | for | in
+            | domain | for | in | derivativeFunction
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"

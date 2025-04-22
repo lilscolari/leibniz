@@ -22,6 +22,9 @@ export default function generate(program) {
     
       // If node is a plain literal-like object (no `kind`), return its value
       if (typeof node === "object" && "value" in node && "type" in node) {
+        if (node.type === "string") {
+          return `"${node.value}"`;
+        }
         return `${node.value}`;
       }
     
@@ -41,12 +44,12 @@ export default function generate(program) {
         output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`);
       }, 
       ForStatement(s) {
-        output.push(`for (let ${gen(s.iterator)} of [${gen(s.collection)}]) {`)
+        const range = Array.from({ length: gen(s.range) }, (_, i) => i);
+        output.push(`for (let ${gen(s.iterator)} of [${range}]) {`)
         s.body.statements.forEach(gen)
         output.push("}")
       },
       WhileStatement(s) {
-        console.log(s)
         output.push(`while (${gen(s.test)} {`)
         s.body.statements.forEach(gen)
         output.push("}")
@@ -77,7 +80,6 @@ export default function generate(program) {
       // },
       IfStatement(s) {
         output.push(`if (${gen(s.test)}) {`);
-        console.log(s)
         s.consequent.statements.forEach(gen);
         if (s.alternate?.kind?.endsWith?.("IfStatement")) {
           output.push("} else");
@@ -164,19 +166,33 @@ export default function generate(program) {
       FunctionDeclaration(d) {
         const functionName = gen(d.fun);
         const paramNames = d.fun.parameters.flat().map(param => gen(param));
+      
+        const returnLine = `return ${gen(d.body.returnExpression)};`;
+      
         output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
-        output.push(gen(d.body));
+
+        for (const stmt of d.body.statements) {
+          gen(stmt);
+        }
+        output.push(`  ${returnLine}`);
         output.push("}");
       },
       FunctionBody(e) {
         const returnLine = `return ${gen(e.returnExpression)};`;
         return `${returnLine}`;
+      },
+      IntegerLiteral(number) {
+        return `${gen(number)}`;
+      },
+      FloatLiteral(number) {
+        return `${gen(number)}`;
+      },
+      DerivativeCall(derivative) {
+        return `derivative("${gen(derivative.func)}", "${gen(derivative.variable)}", ${gen(derivative.evaluatedAt)})`
       }
-
 
     };
     
-  
     gen(program);
     return output.join("\n");
   }

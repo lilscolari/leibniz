@@ -155,7 +155,7 @@ export function objectMethodCall(object, method) {
     kind: "ObjectMethodCall",
     object,
     method,
-    type: method === "area" || method === "perimeter" || method === "circumference" ? "float" : "object"
+    type: "float"
   };
 }
 
@@ -175,4 +175,30 @@ export function mathConstant(name) {
     type: "float",
     value: name === "pi" || name === "π" ? Math.PI : Math.E
   };
+}
+
+export function derivativeCall(func, variable, evaluatedAt) {
+  return {
+    kind: "DerivativeCall",
+    type: "float",
+    func,
+    variable,
+    evaluatedAt
+  };
+}
+
+export function integerLiteral(value) {
+  return {
+    kind: "IntegerLiteral",
+    type: "integer",
+    value
+  }
+}
+
+export function floatLiteral(value) {
+  return {
+    kind: "FloatLiteral",
+    type: "float",
+    value
+  }
 }
