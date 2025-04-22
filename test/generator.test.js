@@ -58,15 +58,15 @@ const fixtures = [
       print(r.area());
     `,
     expected: dedent`
-      let new_rectangle = {width: 3, height: 3};
-      let c = {radius: 2};
-      console.log(new_rectangle.perimeter());
-      let s = {width: 5, height: pow(3, 2)};
-      console.log(s.area());
-      let x_1 = -(7);
-      let y_2 = 34;
-      let r = {width: x_1, height: y_2};
-      console.log(r.area());
+      let new_rectangle_1 = {width: 3, height: 3};
+      let c_2 = {radius: 2};
+      console.log(new_rectangle_1.perimeter());
+      let s_3 = {width: 5, height: pow(3, 2)};
+      console.log(s_3.area());
+      let x_4 = -(7);
+      let y_5 = 34;
+      let r_6 = {width: x_4, height: y_5};
+      console.log(r_6.area());
     `,
   },
   {
@@ -155,8 +155,6 @@ const fixtures = [
       }
     `,
   },
-
-
 
 
 

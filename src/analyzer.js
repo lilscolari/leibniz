@@ -581,7 +581,7 @@ export default function analyze(match) {
         );
       }
       
-      return core.objectMethodCall(objName, method);
+      return core.objectMethodCall(object.variable, method);
     },
     
     mathConstant(constant) {
