@@ -1,9 +1,2 @@
-      obj new_rectangle = Rectangle(3, 3);
-      obj c = Circle(2);
-      print(new_rectangle.perimeter());
-      obj s = Triangle(5, pow(3, 2));
-      print(s.area());
-      const x: integer = -7;
-      const y: integer = 34;
-      obj r = Rectangle(x, y);
-      print(r.area());
+
+  for x in domain(5) { print(x); }

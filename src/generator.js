@@ -100,9 +100,9 @@ export default function generate(program) {
       },
       UnaryExpression(e) {
         const operand = gen(e.operand);
-        if (e.op === "#") {
-          return `${operand}.length`;
-        }
+        // if (e.op === "#") {
+        //   return `${operand}.length`;
+        // }
         return `${e.op}(${operand})`;
       },
       // SubscriptExpression(e) {
@@ -140,13 +140,13 @@ export default function generate(program) {
         const method = o.method
         return `${variableName}.${method}()`
       },
-      MathConstant(c) {
-        if (c.name === "pi" || c.name === "π") {
-          return "Math.PI";
-        } else if (c.name === "e") {
-          return "Math.E";
-        }
-      },
+      // MathConstant(c) {
+      //   if (c.name === "pi" || c.name === "π") {
+      //     return "Math.PI";
+      //   } else if (c.name === "e") {
+      //     return "Math.E";
+      //   }
+      // },
       CallExpression(e) {
         const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp", "min", "max"]);
 
@@ -155,7 +155,7 @@ export default function generate(program) {
         if (mathFuncs.has(e.callee)) {
           return `Math.${e.callee}(${argsCode})`;
         } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
-          return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})}`
+          return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
         }
       
         // Fallback for user-defined or unknown functions
@@ -177,16 +177,16 @@ export default function generate(program) {
         output.push(`${returnLine}`);
         output.push("}");
       },
-      FunctionBody(e) {
-        const returnLine = `return ${gen(e.returnExpression)};`;
-        return `${returnLine}`;
-      },
-      IntegerLiteral(number) {
-        return `${gen(number)}`;
-      },
-      FloatLiteral(number) {
-        return `${gen(number)}`;
-      },
+      // FunctionBody(e) {
+      //   const returnLine = `return ${gen(e.returnExpression)};`;
+      //   return `${returnLine}`;
+      // },
+      // IntegerLiteral(number) {
+      //   return `${gen(number)}`;
+      // },
+      // FloatLiteral(number) {
+      //   return `${gen(number)}`;
+      // },
       DerivativeCall(derivative) {
         return `derivative("${gen(derivative.func)}", "${gen(derivative.variable)}", ${gen(derivative.evaluatedAt)})`
       }

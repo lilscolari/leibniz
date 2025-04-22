@@ -31,8 +31,9 @@ const fixtures = [
       print(min(2, 3));
       print(max(3, 4));
       print(ln(e));
-      print(log10(22));
+      print(log10(pi));
       print(floor(10.4342));
+      print(arctan(22));
     `,
     expected: dedent`
       let twenty_five_1 = 25;
@@ -40,8 +41,9 @@ const fixtures = [
       console.log(Math.min(2, 3));
       console.log(Math.max(3, 4));
       console.log(ln(2.718281828459045));
-      console.log(log10(22));
+      console.log(log10(3.141592653589793));
       console.log(Math.floor(10.4342));
+      console.log(atan(22));
     `,
   },
   {
@@ -155,10 +157,39 @@ const fixtures = [
       }
     `,
   },
-
-
-
-
+  {
+    name: "derivative",
+    source: `
+      let d: float = derivative("x^2", "x", 5);
+    `,
+    expected: dedent`
+      let d_1 = derivative("x^2", "x", 5);
+    `,
+  },
+  {
+    name: "increment and decrement",
+    source: `
+      let x: float = 10.3;
+      ++x;
+      --x;
+    `,
+    expected: dedent`
+      let x_1 = 10.3;
+      x_1++;
+      x_1--;
+    `,
+  },
+  {
+    name: "for loop",
+    source: `
+      for x in domain(5) { print(x); }
+    `,
+    expected: dedent`
+      for (let x_1 of [0,1,2,3,4]) {
+      console.log(x_1);
+      }
+    `,
+  },
 
 
 
