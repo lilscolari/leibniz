@@ -543,7 +543,16 @@ export default function analyze(match) {
         checkNumber(arg, args);
       }
 
-      const object = core.objectCreation(id.sourceString, classType, analyzedArgs);
+      checkNotDeclared(id.sourceString, id);
+            
+      const variable = core.variable(
+        id.sourceString,
+        classType,
+        "false"
+      );
+      //context.add(id.sourceString, variable);
+
+      const object = core.objectCreation(variable, classType, analyzedArgs);
       context.add(id.sourceString, object);
       
       return object;
