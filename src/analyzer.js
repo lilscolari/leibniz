@@ -174,35 +174,27 @@ export default function analyze(match) {
       checkNotDeclared(id.sourceString, id);
       const declaredReturnType = returnType.analyze();
       
-      // Create child context for the function
       const savedContext = context;
       context = context.newChildContext();
       
-      // Process parameters
       const parameters = params.analyze();
       
-      // Process function body
       const analyzedBody = body.analyze();
       
       // Check that body's return type is compatible with declared return type
       checkTypesCompatible(analyzedBody.returnType, declaredReturnType, body);
       
-      // Restore context
       context = savedContext;
       
-      // Create function and add to context
       const fun = core.función(id.sourceString, parameters, declaredReturnType);
       context.add(id.sourceString, fun);
-
       
       return core.functionDeclaration(fun, analyzedBody);
     },
     
     FuncBody(_open, statements, _return, returnExp, _semi, _close) {
-      // Process statements in function body
       const analyzedStatements = statements.children.map(stmt => stmt.analyze());
       
-      // Analyze return expression
       const returnExpression = returnExp.analyze();
       
       return core.funcBody(analyzedStatements, returnExpression, returnExpression.type);
@@ -274,14 +266,11 @@ export default function analyze(match) {
     },
     
     Block(_open, statements, _close) {
-      // Create a new context for this block
       const savedContext = context;
       context = context.newChildContext();
       
-      // Process all statements
       const stmts = statements.children.map(s => s.analyze());
       
-      // Restore the previous context when we're done
       context = savedContext;
       
       return core.block(stmts);
@@ -512,10 +501,8 @@ export default function analyze(match) {
       const iterator = core.variable(id.sourceString, "integer", false);
       context.add(id.sourceString, iterator);
       
-      // Process loop body
       const body = block.analyze();
       
-      // Restore context
       context = savedContext;
       
       return core.forStatement(iterator, rangeSize.value, body);
@@ -534,7 +521,6 @@ export default function analyze(match) {
         className
       );
       
-      // Process arguments
       const analyzedArgs = args.analyze();
       
       // Validate argument count based on class type
@@ -557,8 +543,6 @@ export default function analyze(match) {
         checkNumber(arg, args);
       }
 
-      
-      // Create the object and add to context
       const object = core.objectCreation(id.sourceString, classType, analyzedArgs);
       context.add(id.sourceString, object);
       
@@ -569,10 +553,8 @@ export default function analyze(match) {
       const objName = id.sourceString;
       const object = context.lookup(objName);
       
-      // Check object exists
       check(object, `${objName} not declared`, id);
       
-      // Get method name
       const method = methodName.sourceString;
       
       // Validate method for object type
