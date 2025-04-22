@@ -127,7 +127,27 @@ export default function generate(program) {
       // },
       PrintStatement(s) {
         output.push(`console.log(${gen(s.argument)});`)
+      },
+      ObjectCreation(o) {
+        // Create a new object based on the className (e.g., 'Rectangle', 'Circle', etc.)
+        const className = o.className;
+        const args = o.args.map(gen);  // Generate arguments for constructor call
+
+        const variableName = gen(o.variable);  // Ensure variable is passed and generated properly
+
+        if (args.length == 1) {
+          output.push(`let ${variableName} = {radius: ${args[0]}};`);
+        } else {
+          output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}};`);
+        }
+      },
+      ObjectMethodCall(o) {
+        console.log(o)
+        const variableName = gen(o.object);
+        const method = o.method
+        return `${variableName}.${method}()`
       }
+    
 
     };
     

@@ -128,12 +128,32 @@ export function callExpression(callee, args, type) {
 
 // these dont work if functions are passed to them. or variables. I assume it is bad to have these hardcoded as such. Can fix later.
 
+
+export function objectCreation(variable, className, args) {
+  return {
+    kind: "ObjectCreation",
+    variable,
+    className,
+    args,
+  };
+}
+
+export function objectMethodCall(object, method) {
+  return {
+    kind: "ObjectMethodCall",
+    object,
+    method
+  };
+}
+
 export function Triangle(base, height) {
   return {
     type: 'Triangle',
     base: base,
     height: height,
     area: function() {
+      console.log(base)
+      console.log(height)
       return 0.5 * this.base.value * this.height.value;
     },
     perimeter: function() {

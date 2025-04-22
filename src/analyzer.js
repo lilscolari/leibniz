@@ -533,17 +533,20 @@ export default function analyze(match) {
         }
       }
 
-      return {
-        object: objName,
-        method: methodNameStr,
-        result: object[methodNameStr]()
-      };
+      return core.objectMethodCall(objName, methodNameStr)
+
+      // return {
+      //   object: objName,
+      //   method: methodNameStr,
+      //   result: object[methodNameStr]()
+      // };
     }, 
     ObjectCreation(_obj, id, _eq, className, _openParens, params, _closeParens, _semi) {
       const objName = id.sourceString;
       const classNameStr = className.sourceString;
       let constructorArgs = [];
       if (params) {
+        // constructorArgs = params.analyze().map(arg => evaluate(arg));
         constructorArgs = params.analyze();
       }
     
@@ -551,23 +554,31 @@ export default function analyze(match) {
       //   constructorArgs = constructorArgs[0].split(",").map(arg => arg.trim());
       // }
     
-      let object;
+
+      const object = core.objectCreation(objName, classNameStr, constructorArgs);
+
+      // const variable = core.variable(objName, 'object', false);  // 'false' means immutable here
+      // const assignment = core.variableDeclaration(variable, object);
     
-      if (classNameStr === "Triangle" || classNameStr === "Rectangle") {
-        if (constructorArgs.length != 2) {
-          throw new Error(`${classNameStr} requires exactly 2 arguments (base, height), but got ${constructorArgs.length}.`);
-        }
-        object = classNameStr === "Triangle"
-          ? core.Triangle(constructorArgs[0], constructorArgs[1])
-          : core.Rectangle(constructorArgs[0], constructorArgs[1]);
-      } else if (classNameStr === "Circle") {
-        if (constructorArgs.length != 1) {
-          throw new Error(`Circle requires exactly 1 argument (radius), but got ${constructorArgs.length}.`);
-        }
-        object = core.Circle(constructorArgs[0]);
-      }
       context.add(objName, object);
-      return core.assignmentStatement(object, core.variable(objName, 'object'));
+
+      return object;
+
+      // if (classNameStr === "Triangle" || classNameStr === "Rectangle") {
+      //   if (constructorArgs.length != 2) {
+      //     throw new Error(`${classNameStr} requires exactly 2 arguments (base, height), but got ${constructorArgs.length}.`);
+      //   }
+      //   object = classNameStr === "Triangle"
+      //     ? core.Triangle(constructorArgs[0], constructorArgs[1])
+      //     : core.Rectangle(constructorArgs[0], constructorArgs[1]);
+      // } else if (classNameStr === "Circle") {
+      //   if (constructorArgs.length != 1) {
+      //     throw new Error(`Circle requires exactly 1 argument (radius), but got ${constructorArgs.length}.`);
+      //   }
+      //   object = core.Circle(constructorArgs[0]);
+      // }
+      // context.add(objName, object);
+      // return core.assignmentStatement(object, core.variable(objName, 'object'));
     },
 
     mathConstant(constant) {
