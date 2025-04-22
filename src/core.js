@@ -84,6 +84,11 @@ export function assignmentStatement(source, target) {
 }
 
 export function binaryExpression(op, left, right, type) {
+  // Fix for the uncovered branch
+  if (!op || !left || !right || !type) {
+    throw new Error("Invalid arguments for binary expression");
+  }
+  
   return {
     kind: "BinaryExpression",
     op,
@@ -135,15 +140,13 @@ export function callExpression(callee, args, type) {
   };
 }
 
-// these dont work if functions are passed to them. or variables. I assume it is bad to have these hardcoded as such. Can fix later.
-
-
 export function objectCreation(variable, className, args) {
   return {
     kind: "ObjectCreation",
     variable,
     className,
     args,
+    type: className
   };
 }
 
@@ -151,62 +154,25 @@ export function objectMethodCall(object, method) {
   return {
     kind: "ObjectMethodCall",
     object,
-    method
+    method,
+    type: method === "area" || method === "perimeter" || method === "circumference" ? "float" : "object"
   };
 }
 
-// export function Triangle(base, height) {
-//   return {
-//     type: 'Triangle',
-//     base: base,
-//     height: height,
-//     area: function() {
-//       console.log(base)
-//       console.log(height)
-//       return 0.5 * this.base.value * this.height.value;
-//     },
-//     perimeter: function() {
-//       const side = Math.sqrt(Math.pow(this.base.value, 2) + Math.pow(this.height.value, 2));
-//       return this.base.value + this.height.value + side;
-//     }
-//   };
-// }
-
-// export function Circle(radius) {
-//   return {
-//     type: 'Circle',
-//     radius: radius,
-//     area: function() {
-//       return Math.PI * Math.pow(this.radius.value, 2);
-//     },
-//     circumference: function() {
-//       return 2 * Math.PI * this.radius.value;
-//     }
-//   };
-// }
-
-// export function Rectangle(width, height) {
-//   return {
-//     type: 'Rectangle',
-//     width: width,
-//     height: height,
-//     area: function() {
-//       return this.width.value * this.height.value;
-//     },
-//     perimeter: function() {
-//       return 2 * (this.width.value + this.height.value);
-//     }
-//   };
-// }
-
-export function forStatement(iterator, collection, body) {
-  return { kind: "ForStatement", iterator, collection, body }
+export function forStatement(iterator, range, body) {
+  return { 
+    kind: "ForStatement", 
+    iterator, 
+    range, 
+    body 
+  };
 }
 
 export function mathConstant(name) {
   return {
     kind: "MathConstant",
     name,
-    type: "number",
+    type: "float",
+    value: name === "pi" || name === "π" ? Math.PI : Math.E
   };
 }

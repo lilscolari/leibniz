@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import parse from "../src/parser.js";
 import analyze from "../src/analyzer.js";
+import * as core from "../src/core.js";
 
 describe("The analyzer", () => {
   // Variable declarations
@@ -49,19 +50,39 @@ describe("The analyzer", () => {
   // Function declarations
   describe("Function declarations", () => {
     it("recognizes function with parameters", () => {
-      const source = "fnc add(x: integer, y: integer): integer = x + y;";
+      const source = `
+        fnc add(x: integer, y: integer): integer = {
+          return x + y;
+        }
+      `;
       assert.ok(analyze(parse(source)));
     });
     
     it("recognizes function with no parameters", () => {
-      const source = "fnc zero(): integer = 42;";
+      const source = `
+        fnc zero(): integer = {
+          return 42;
+        }
+      `;
       assert.ok(analyze(parse(source)));
     });
     
-    
+    it("recognizes function with local variables", () => {
+      const source = `
+        fnc double(x: integer): integer = {
+          let y: integer = x * 2;
+          return y;
+        }
+      `;
+      assert.ok(analyze(parse(source)));
+    });
     
     it("throws on type mismatch in return", () => {
-      const source = "fnc f(): boolean = 5;";
+      const source = `
+        fnc f(): boolean = {
+          return 5;
+        }
+      `;
       assert.throws(() => analyze(parse(source)), /Cannot assign integer to boolean/);
     });
   });
@@ -112,6 +133,11 @@ describe("The analyzer", () => {
         }
       `;
       assert.ok(analyze(parse(source)));
+    });
+    
+    it("throws on break outside of loop", () => {
+      const source = "break;";
+      assert.throws(() => analyze(parse(source)), /Break statement must be inside a loop/);
     });
     
     it("handles complex nested conditions", () => {
@@ -196,60 +222,6 @@ describe("The analyzer", () => {
       `;
       assert.ok(analyze(parse(source)));
     });
-
-    // Objects
-    it("recognizes objects", () => {
-      const source = `
-        obj new_rectangle = Rectangle(3, 3);
-        obj c = Circle(2);        
-        print(new_rectangle.perimeter());        
-        obj s = Triangle(5, pow(3, 2));
-        print(s.area());      
-        obj r = Rectangle(2, 3);
-        print(r.area());
-        print(s.perimeter());
-        print(c.circumference());
-        print(c.area());
-      `;
-      assert.ok(analyze(parse(source)));
-    })
-
-    it("throws on object not found", () => {
-      const source = `
-        print(new_triangle.area());
-      `;
-      assert.throws(() => analyze(parse(source)), /Error: Object new_triangle not found./);
-    });
-
-    it("throws on invalid method call for non-circle", () => {
-      const source = `
-        obj r = Rectangle(5, 3);
-        print(r.circumference());
-      `;
-      assert.throws(() => analyze(parse(source)), /Error: circumference is not a valid method for Rectangle./);
-    });
-
-    it("throws on invalid method call for circle", () => {
-      const source = `
-        obj c = Circle(5);
-        print(c.perimeter());
-      `;
-      assert.throws(() => analyze(parse(source)), /perimeter is not a valid method for Circle./);
-    });
-
-    it("throws on too many args non-circle", () => {
-      const source = `
-        obj r = Rectangle(5, 3, 2);
-      `;
-      assert.throws(() => analyze(parse(source)), /Error: Rectangle requires exactly 2 arguments \(base, height\), but got 3./);
-    });
-
-    it("throws on too many args for circle", () => {
-      const source = `
-        obj c = Circle(5, 3);
-      `;
-      assert.throws(() => analyze(parse(source)), /Error: Circle requires exactly 1 argument \(radius\), but got 2./);
-    });
     
     // Math functions
     it("recognizes trigonometric functions", () => {
@@ -277,15 +249,6 @@ describe("The analyzer", () => {
       `;
       assert.ok(analyze(parse(source)));
     });
-
-    it("recognizes math constants", () => {
-      const source = `
-        print(pi);
-        print(e);
-        print(π);
-      `;
-      assert.ok(analyze(parse(source)));
-    })
     
     it("recognizes binary math functions", () => {
       const source = `
@@ -295,13 +258,13 @@ describe("The analyzer", () => {
       `;
       assert.ok(analyze(parse(source)));
     });
-
-    // For loop
-    it("recognizes for loop", () => {
+    
+    // Math constants
+    it("recognizes math constants", () => {
       const source = `
-        for x in domain(5) {
-          print(x);
-        }
+        print(pi);
+        print(e);
+        print(π);
       `;
       assert.ok(analyze(parse(source)));
     });
@@ -323,8 +286,8 @@ describe("The analyzer", () => {
     });
   });
   
-  // Assignment and increment and decrement
-  describe("Assignment and increment", () => {
+  // Assignment, increment and decrement
+  describe("Assignment, increment and decrement", () => {
     it("recognizes assignment to mutable variable", () => {
       const source = "let x: integer = 1; x = 2;";
       assert.ok(analyze(parse(source)));
@@ -334,7 +297,7 @@ describe("The analyzer", () => {
       const source = "let x: integer = 1; ++x;";
       assert.ok(analyze(parse(source)));
     });
-
+    
     it("recognizes decrement", () => {
       const source = "let x: integer = 1; --x;";
       assert.ok(analyze(parse(source)));
@@ -354,6 +317,110 @@ describe("The analyzer", () => {
       const source = "let x: boolean = false; ++x;";
       assert.throws(() => analyze(parse(source)), /Expected number/);
     });
+    
+    it("throws on decrement of non-numeric variable", () => {
+      const source = "let x: boolean = false; --x;";
+      assert.throws(() => analyze(parse(source)), /Expected number/);
+    });
+  });
+  
+  // For loops
+  describe("For loops", () => {
+    it("recognizes basic for loop", () => {
+      const source = `
+        for x in domain(5) {
+          print(x);
+        }
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("recognizes break in for loop", () => {
+      const source = `
+        for i in domain(10) {
+          if i > 5 { 
+            break; 
+          }
+          print(i);
+        }
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("recognizes for loop with complex body", () => {
+      const source = `
+        for i in domain(3) {
+          let x: integer = i * 2;
+          print(x);
+        }
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+  });
+  
+  // Objects
+  describe("Objects", () => {
+    it("recognizes object creation and method calls", () => {
+      const source = `
+        obj r = Rectangle(5, 3);
+        obj c = Circle(2);
+        obj t = Triangle(4, 6);
+        
+        print(r.area());
+        print(r.perimeter());
+        print(c.area());
+        print(c.circumference());
+        print(t.area());
+        print(t.perimeter());
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("recognizes objects used with math functions", () => {
+      const source = `
+        obj r = Rectangle(3, 4);
+        obj c = Circle(sqrt(2));
+        obj t = Triangle(5, pow(3, 2));
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("throws on invalid method for Circle", () => {
+      const source = `
+        obj c = Circle(5);
+        print(c.perimeter());
+      `;
+      assert.throws(() => analyze(parse(source)), /perimeter is not a valid method for Circle/);
+    });
+    
+    it("throws on invalid method for Rectangle", () => {
+      const source = `
+        obj r = Rectangle(5, 3);
+        print(r.circumference());
+      `;
+      assert.throws(() => analyze(parse(source)), /circumference is not a valid method for Rectangle/);
+    });
+    
+    it("throws on wrong argument count for Circle", () => {
+      const source = `
+        obj c = Circle(5, 3);
+      `;
+      assert.throws(() => analyze(parse(source)), /Circle requires exactly 1 argument/);
+    });
+    
+    it("throws on wrong argument count for Rectangle", () => {
+      const source = `
+        obj r = Rectangle(5);
+      `;
+      assert.throws(() => analyze(parse(source)), /Rectangle requires exactly 2 arguments/);
+    });
+    
+    it("throws on undeclared object", () => {
+      const source = `
+        print(r.area());
+      `;
+      assert.throws(() => analyze(parse(source)), /r not declared/);
+    });
   });
   
   // Print statements
@@ -366,6 +433,73 @@ describe("The analyzer", () => {
         print("hello");
       `;
       assert.ok(analyze(parse(source)));
+    });
+    
+    it("recognizes print with complex expressions", () => {
+      const source = `
+        print(2 + 3 * 4);
+        print(sin(0.5) + cos(0.5));
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+  });
+  
+  // Function calls
+  describe("Function calls", () => {
+    it("recognizes function calls in expressions", () => {
+      const source = `
+        fnc add(x: integer, y: integer): integer = {
+          return x + y;
+        }
+        
+        let z: integer = add(5, 3) * 2;
+        print(z);
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("recognizes nested function calls", () => {
+      const source = `
+        fnc square(x: integer): integer = {
+          return x * x;
+        }
+        
+        fnc sum(a: integer, b: integer): integer = {
+          return a + b;
+        }
+        
+        print(sum(square(3), square(4)));
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("throws on wrong argument count", () => {
+      const source = `
+        fnc add(x: integer, y: integer): integer = {
+          return x + y;
+        }
+        
+        print(add(1));
+      `;
+      assert.throws(() => analyze(parse(source)), /Expected 2 arguments but got 1/);
+    });
+    
+    it("throws on wrong argument type", () => {
+      const source = `
+        fnc add(x: integer, y: integer): integer = {
+          return x + y;
+        }
+        
+        print(add(1, true));
+      `;
+      assert.throws(() => analyze(parse(source)), /Cannot assign boolean to integer/);
+    });
+    
+    it("throws on call to non-existent function", () => {
+      const source = `
+        print(foo(1, 2));
+      `;
+      assert.throws(() => analyze(parse(source)), /foo not declared/);
     });
   });
   
@@ -410,9 +544,173 @@ describe("The analyzer", () => {
       assert.ok(analyze(parse(source)));
     });
     
+    it("handles function parameter shadowing", () => {
+      const source = `
+        let x: integer = 10;
+        fnc f(x: integer): integer = {
+          return x * 2;  // Uses parameter x, not outer x
+        }
+        print(x);        // Uses outer x
+        print(f(5));     // Passes 5 as x to f
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
     it("throws on undefined variable", () => {
       const source = "print(x);";
       assert.throws(() => analyze(parse(source)), /x not declared/);
+    });
+  });
+
+  // Additional tests for coverage
+  describe("Edge cases for context handling", () => {
+    it("handles context inheritance in nested loops", () => {
+      const source = `
+        while true {
+          for i in domain(3) {
+            if i > 1 { break; }
+            print(i);
+          }
+          break;
+        }
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("handles complex nested contexts with shadowing", () => {
+      const source = `
+        let x: integer = 1;
+        if true {
+          let x: string = "hello";
+          print(x);
+        }
+        print(x);
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("tests parent context lookup", () => {
+      const source = `
+        let outer: integer = 10;
+        if true {
+          let inner: integer = 5;
+          print(outer + inner);
+        }
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+  });
+
+  describe("Type coercion edge cases", () => {
+    it("handles all numeric type combinations", () => {
+      const source = `
+        let i: integer = 1;
+        let f: float = 2.5;
+        let n: number = 3;
+        
+        let r1: float = i + f;    // integer + float → float
+        let r2: number = i + n;   // integer + number → number
+        let r3: number = f + n;   // float + number → number
+        let r4: float = i / i;    // integer / integer → float
+        let r5: integer = i % i;  // integer % integer → integer
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("tests all comparison cases", () => {
+      const source = `
+        let a: integer = 1;
+        let b: float = 2.5;
+        let s1: string = "hello";
+        let s2: string = "world";
+        
+        let r1: boolean = a == a;
+        let r2: boolean = a != a;
+        let r3: boolean = a < b;
+        let r4: boolean = a <= b;
+        let r5: boolean = a > b;
+        let r6: boolean = a >= b;
+        let r7: boolean = s1 == s2;
+        let r8: boolean = s1 != s2;
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("tests incompatible type error scenarios", () => {
+      const source = `
+        let i: integer = 1;
+        let b: boolean = true;
+      `;
+      assert.ok(analyze(parse(source)));
+      
+      // Test incompatible numeric assignments
+      assert.throws(() => {
+        analyze(parse("let f: float = true;"));
+      }, /Cannot assign boolean to float/);
+      
+      // Test incompatible string operations
+      assert.throws(() => {
+        analyze(parse('let s: string = "hello" + 5;'));
+      }, /Cannot add string and integer/);
+    });
+  });
+
+  describe("String handling", () => {
+    it("tests string operations and methods", () => {
+      const source = `
+        let s1: string = "hello";
+        let s2: string = "world";
+        let s3: string = s1 + " " + s2;
+        print(s3);
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+  });
+
+  describe("Array and object edge cases", () => {
+    it("tests object creation with complex expressions", () => {
+      const source = `
+        let radius: float = sqrt(2);
+        obj circle = Circle(radius);
+        
+        let base: integer = 3;
+        let height: float = 4.5;
+        obj triangle = Triangle(base, height);
+        
+        print(circle.area());
+        print(triangle.area());
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+    
+    it("tests null check for alternate in if statement", () => {
+      const source = `
+        if true {
+          print(1);
+        }  // No else clause to test null alternate
+      `;
+      assert.ok(analyze(parse(source)));
+    });
+  });
+  
+  // Core.js specific tests
+  describe("Core module tests", () => {
+    it("throws on invalid binary expression arguments", () => {
+      assert.throws(() => {
+        core.binaryExpression(null, { type: "integer" }, { type: "integer" }, "integer");
+      }, /Invalid arguments for binary expression/);
+      
+      assert.throws(() => {
+        core.binaryExpression("+", null, { type: "integer" }, "integer");
+      }, /Invalid arguments for binary expression/);
+      
+      assert.throws(() => {
+        core.binaryExpression("+", { type: "integer" }, null, "integer");
+      }, /Invalid arguments for binary expression/);
+      
+      assert.throws(() => {
+        core.binaryExpression("+", { type: "integer" }, { type: "integer" }, null);
+      }, /Invalid arguments for binary expression/);
     });
   });
 });

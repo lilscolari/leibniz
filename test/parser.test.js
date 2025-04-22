@@ -1,58 +1,200 @@
-import { describe, it } from "node:test"
-import assert from "node:assert/strict"
-import parse from "../src/parser.js"
-
-// Programs expected to be syntactically correct according to Leibniz grammar
-const syntaxChecks = [  
-  ["test if else", "if x { print(2); }"],
-  ["if statement no else", "if true {print(true);}"],
-  ["if else", "if true {print(\"in if\");} else {print(\"in else\");}"],
-  ["else if", "if true {print(\"ss\");} else if false {print(\"tw\");}"],
-  ["if, else if, else", "if x {x=2;} else if x {x=2;} else {x=1;}"],
-  ["assignment", "x = 2;"],
-  ["variable declaration with type", "let x: integer = 4;"],
-  ["const declaration", "const y: boolean = true;"],
-  ["function declaration", "fnc add(x: integer, y: integer): integer = x + y;"],
-  ["comment", "print(x); // this is a comment"],
-  ["arithmetic operations", "print(3 + 3 - 2 * 6 / 2);"],
-  ["exponentiation", "print(2 ** 3);"],
-  ["negation", "x = -2;"],
-  ["numeral with decimal", "x = 2.332132;"],
-  ["while loop", "while true { print(1); }"],
-  ["break statement", "while true { break; }"],
-  ["multiple statements", "let x: integer = 1; print(x); x = 2; print(x);"]
-]
-
-// Programs with syntax errors that the parser will detect
-const syntaxErrors = [
-  ["no semicolon", "let x: integer = 2"],
-  ["extra semicolon", "let x: integer = 2;;"],
-  ["missing type in var decl", "let x = 4;"],
-  ["missing value in var decl", "let x: integer;"],
-  ["missing colon in var decl", "let x integer = 4;"],
-  ["missing equals in var decl", "let x: integer 4;"],
-  ["missing function return type", "fnc add(x: integer, y: integer) = x + y;"],
-  ["missing equals in function", "fnc add(x: integer, y: integer): integer x + y;"],
-  ["missing parentheses in function params", "fnc add x: integer, y: integer: integer = x + y;"],
-  ["no program", ""],
-  ["improper comment", "print(x); # this is a comment"],
-  ["unclosed string", "print(\"hello;"],
-  ["invalid identifier", "let 1x: integer = 4;"],
-  ["malformed number", "let x: integer = 2.;"],
-  ["printing nothing", "print();"],
-  ["assigning nothing", "x = ;"]
-]
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import parse from "../src/parser.js";
 
 describe("The parser", () => {
-  for (const [scenario, source] of syntaxChecks) {
-    it(`matches ${scenario}`, () => {
-      const result = parse(source);
-      assert(result.succeeded())
-    })
-  }
-  for (const [scenario, source] of syntaxErrors) {
-    it(`throws on ${scenario}`, () => {
-      assert.throws(() => parse(source))
-    })
-  }
-})
+  it("matches test if else", () => {
+    assert.ok(parse("if true { print(1); } else { print(2); }"));
+  });
+
+  it("matches if statement no else", () => {
+    assert.ok(parse("if true { print(1); }"));
+  });
+
+  it("matches if else", () => {
+    assert.ok(parse("if true { print(1); } else { print(2); }"));
+  });
+
+  it("matches else if", () => {
+    assert.ok(parse("if true { print(1); } else if false { print(2); }"));
+  });
+
+  it("matches if, else if, else", () => {
+    assert.ok(
+      parse(`if true { 
+        print(1); 
+      } else if false { 
+        print(2); 
+      } else { 
+        print(3); 
+      }`)
+    );
+  });
+
+  it("matches assignment", () => {
+    assert.ok(parse("x = 1;"));
+  });
+
+  it("matches variable declaration with type", () => {
+    assert.ok(parse("let x: integer = 1;"));
+  });
+
+  it("matches const declaration", () => {
+    assert.ok(parse("const x: integer = 1;"));
+  });
+
+  it("matches function declaration", () => {
+    assert.ok(parse("fnc add(x: integer, y: integer): integer = { return x + y; }"));
+  });
+
+  it("matches comment", () => {
+    assert.ok(parse("let x: integer = 1; // hello world"));
+  });
+
+  it("matches arithmetic operations", () => {
+    assert.ok(parse("x = 1 + 2 * 3 / 4 - 5;"));
+  });
+
+  it("matches exponentiation", () => {
+    assert.ok(parse("x = 2 ** 3;"));
+  });
+
+  it("matches negation", () => {
+    assert.ok(parse("x = -y;"));
+  });
+
+  it("matches numeral with decimal", () => {
+    assert.ok(parse("pi = 3.14159;"));
+  });
+
+  it("matches while loop", () => {
+    assert.ok(parse("while x < 10 { x = x + 1; }"));
+  });
+
+  it("matches break statement", () => {
+    assert.ok(parse("break;"));
+  });
+
+  it("matches multiple statements", () => {
+    assert.ok(
+      parse(`
+        let x: integer = 1;
+        let y: integer = 2;
+        let z: integer = x + y;
+        print(z);
+      `)
+    );
+  });
+
+  it("matches for loop", () => {
+    assert.ok(
+      parse(`
+        for i in domain(5) {
+          print(i);
+        }
+      `)
+    );
+  });
+
+  it("matches object creation", () => {
+    assert.ok(
+      parse(`
+        obj r = Rectangle(5, 3);
+        obj c = Circle(2);
+        obj t = Triangle(4, 6);
+      `)
+    );
+  });
+
+  it("matches object method calls", () => {
+    assert.ok(
+      parse(`
+        obj r = Rectangle(5, 3);
+        print(r.area());
+        print(r.perimeter());
+      `)
+    );
+  });
+
+  it("matches math constants", () => {
+    assert.ok(
+      parse(`
+        print(pi);
+        print(e);
+        print(π);
+      `)
+    );
+  });
+
+  it("throws on no semicolon", () => {
+    assert.throws(() => parse("x = 1"));
+  });
+
+  it("throws on extra semicolon", () => {
+    assert.throws(() => parse("x = 1;;"));
+  });
+
+  it("throws on missing type in var decl", () => {
+    assert.throws(() => parse("let x = 1;"));
+  });
+
+  it("throws on missing value in var decl", () => {
+    assert.throws(() => parse("let x: integer;"));
+  });
+
+  it("throws on missing colon in var decl", () => {
+    assert.throws(() => parse("let x integer = 1;"));
+  });
+
+  it("throws on missing equals in var decl", () => {
+    assert.throws(() => parse("let x: integer 1;"));
+  });
+
+  it("throws on missing function return type", () => {
+    assert.throws(() => parse("fnc add(x: integer, y: integer) = { return x + y; }"));
+  });
+
+  it("throws on missing equals in function", () => {
+    assert.throws(() => parse("fnc add(x: integer, y: integer): integer { return x + y; }"));
+  });
+
+  it("throws on missing parentheses in function params", () => {
+    assert.throws(() => parse("fnc add: integer = { return 42; }"));
+  });
+
+  it("throws on missing return statement in function", () => {
+    assert.throws(() => parse("fnc add(x: integer, y: integer): integer = { x + y; }"));
+  });
+
+  it("throws on missing curly braces in function body", () => {
+    assert.throws(() => parse("fnc add(x: integer, y: integer): integer = return x + y;"));
+  });
+
+  it("throws on no program", () => {
+    assert.throws(() => parse(""));
+  });
+
+  it("throws on improper comment", () => {
+    assert.throws(() => parse("/ hello"));
+  });
+
+  it("throws on unclosed string", () => {
+    assert.throws(() => parse('let s: string = "hello;'));
+  });
+
+  it("throws on invalid identifier", () => {
+    assert.throws(() => parse("let if: integer = 1;"));
+  });
+
+  it("throws on malformed number", () => {
+    assert.throws(() => parse("x = 1.;"));
+  });
+
+  it("throws on printing nothing", () => {
+    assert.throws(() => parse("print();"));
+  });
+
+  it("throws on assigning nothing", () => {
+    assert.throws(() => parse("x = ;"));
+  });
+});
