@@ -146,50 +146,58 @@ export function objectMethodCall(object, method) {
   };
 }
 
-export function Triangle(base, height) {
-  return {
-    type: 'Triangle',
-    base: base,
-    height: height,
-    area: function() {
-      console.log(base)
-      console.log(height)
-      return 0.5 * this.base.value * this.height.value;
-    },
-    perimeter: function() {
-      const side = Math.sqrt(Math.pow(this.base.value, 2) + Math.pow(this.height.value, 2));
-      return this.base.value + this.height.value + side;
-    }
-  };
-}
+// export function Triangle(base, height) {
+//   return {
+//     type: 'Triangle',
+//     base: base,
+//     height: height,
+//     area: function() {
+//       console.log(base)
+//       console.log(height)
+//       return 0.5 * this.base.value * this.height.value;
+//     },
+//     perimeter: function() {
+//       const side = Math.sqrt(Math.pow(this.base.value, 2) + Math.pow(this.height.value, 2));
+//       return this.base.value + this.height.value + side;
+//     }
+//   };
+// }
 
-export function Circle(radius) {
-  return {
-    type: 'Circle',
-    radius: radius,
-    area: function() {
-      return Math.PI * Math.pow(this.radius.value, 2);
-    },
-    circumference: function() {
-      return 2 * Math.PI * this.radius.value;
-    }
-  };
-}
+// export function Circle(radius) {
+//   return {
+//     type: 'Circle',
+//     radius: radius,
+//     area: function() {
+//       return Math.PI * Math.pow(this.radius.value, 2);
+//     },
+//     circumference: function() {
+//       return 2 * Math.PI * this.radius.value;
+//     }
+//   };
+// }
 
-export function Rectangle(width, height) {
-  return {
-    type: 'Rectangle',
-    width: width,
-    height: height,
-    area: function() {
-      return this.width.value * this.height.value;
-    },
-    perimeter: function() {
-      return 2 * (this.width.value + this.height.value);
-    }
-  };
-}
+// export function Rectangle(width, height) {
+//   return {
+//     type: 'Rectangle',
+//     width: width,
+//     height: height,
+//     area: function() {
+//       return this.width.value * this.height.value;
+//     },
+//     perimeter: function() {
+//       return 2 * (this.width.value + this.height.value);
+//     }
+//   };
+// }
 
 export function forStatement(iterator, collection, body) {
   return { kind: "ForStatement", iterator, collection, body }
+}
+
+export function mathConstant(name) {
+  return {
+    kind: "MathConstant",
+    name,
+    type: "number",
+  };
 }

@@ -35,6 +35,7 @@ export default function generate(program) {
         p.statements.forEach(gen);
       },
       VariableDeclaration(d) {
+
         // We don't care about const vs. let in the generated code! The analyzer has
         // already checked that we never updated a const, so let is always fine.
         output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`);
@@ -47,7 +48,7 @@ export default function generate(program) {
         output.push("}");
       },  
       ForStatement(s) {
-        output.push(`for (let ${gen(s.iterator)} of ${gen(s.collection)}) {`)
+        output.push(`for (let ${gen(s.iterator)} of [${gen(s.collection)}]) {`)
         s.body.statements.forEach(gen)
         output.push("}")
       },
@@ -129,11 +130,9 @@ export default function generate(program) {
         output.push(`console.log(${gen(s.argument)});`)
       },
       ObjectCreation(o) {
-        // Create a new object based on the className (e.g., 'Rectangle', 'Circle', etc.)
-        const className = o.className;
-        const args = o.args.map(gen);  // Generate arguments for constructor call
+        const args = o.args.map(gen); 
 
-        const variableName = gen(o.variable);  // Ensure variable is passed and generated properly
+        const variableName = gen(o.variable);
 
         if (args.length == 1) {
           output.push(`let ${variableName} = {radius: ${args[0]}};`);
@@ -142,12 +141,32 @@ export default function generate(program) {
         }
       },
       ObjectMethodCall(o) {
-        console.log(o)
         const variableName = gen(o.object);
         const method = o.method
         return `${variableName}.${method}()`
+      },
+      MathConstant(c) {
+        if (c.name === "pi" || c.name === "π") {
+          return "Math.PI";
+        } else if (c.name === "e") {
+          return "Math.E";
+        }
+      },
+      CallExpression(e) {
+        const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp", "min", "max"]);
+
+        const argsCode = e.args.map(gen).join(", ");
+      
+        if (mathFuncs.has(e.callee)) {
+          return `Math.${e.callee}(${argsCode})`;
+        } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
+          return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})}`
+        }
+      
+        // Fallback for user-defined or unknown functions
+        return `${e.callee}(${argsCode})`;
       }
-    
+
 
     };
     

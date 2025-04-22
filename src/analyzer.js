@@ -582,12 +582,9 @@ export default function analyze(match) {
     },
 
     mathConstant(constant) {
-      if (constant.sourceString === "pi") {
-        return Math.PI;
-      } else if (constant.sourceString === "e") {
-        return Math.E;
-      } else if (constant.sourceString === "π") {
-        return Math.PI;
+      const name = constant.sourceString;
+      if (["pi", "π", "e"].includes(name)) {
+        return core.mathConstant(name);
       }
     },
 
