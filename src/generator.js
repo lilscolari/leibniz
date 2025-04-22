@@ -174,7 +174,7 @@ export default function generate(program) {
         for (const stmt of d.body.statements) {
           gen(stmt);
         }
-        output.push(`  ${returnLine}`);
+        output.push(`${returnLine}`);
         output.push("}");
       },
       FunctionBody(e) {
