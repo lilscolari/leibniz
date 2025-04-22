@@ -50,6 +50,15 @@ export function functionDeclaration(fun, body) {
   };
 }
 
+export function funcBody(statements, returnExpression, returnType) {
+  return {
+    kind: "FunctionBody",
+    statements,
+    returnExpression,
+    returnType,
+  };
+}
+
 export function función(name, parameters, returnType) {
   return {
     kind: "Function",

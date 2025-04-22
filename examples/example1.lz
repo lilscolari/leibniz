@@ -8,13 +8,13 @@ print(x);
 print(total);
 
 
-fnc addition(a: integer, b: integer): integer = a + b;
+fnc addition(a: integer, b: integer): integer = {print(2); return a + b;}
 
-fnc circleArea(radius: float): float = 3.14159 * (radius ** 2);
+fnc circleArea(radius: float): float = {return 3.14159 * (radius ** 2);}
 
-fnc maximum(a: integer, b: integer): integer = max(a, b);
+fnc maximum(a: integer, b: integer): integer = {return max(a, b);}
 
-fnc greeting(name: string): string = "Hello, " + name;
+fnc greeting(name: string): string = {return "Hello, " + name;}
 
 // print(addition(2.0, "ss"));
 
@@ -71,3 +71,9 @@ print(r.area());
 print(true);
 
 const bool: boolean = true;
+
+print(5.3);
+
+print(ceil(3.7));
+
+print(addition(3, 4));

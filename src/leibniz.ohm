@@ -17,10 +17,10 @@ Leibniz {
   in = "in" ~idchar
   domain = "domain" ~idchar
   VarDec    = (let | const) id ":" Type "=" Exp ";"
-  FunDec    = fnc id Params ":" Type "=" Exp ";"
-  // FuncBody  = "{" Stmt* "return" Exp ";" "}"
-  // FunctionCall = id "(" ExpList ")"
-  // ExpList = ListOf<Exp, ",">
+  //FunDec    = fnc id Params ":" Type "=" Exp ";"
+  FunDec    = fnc id Params ":" Type "=" FuncBody
+  FuncBody  = "{" Stmt* "return" Exp ";" "}"
+  FunctionCall = id "(" ExpList ")"
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" Type
   Type      = "number"                        --number 
@@ -55,6 +55,7 @@ Leibniz {
             | ObjectMethodCall
             | stringlit                  --string
             | MathFuncCall               --mathfunc
+            | FunctionCall
             | mathConstant
             | id                         --id
             | "(" Exp ")"                --parens

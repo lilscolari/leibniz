@@ -130,26 +130,6 @@ export default function analyze(match) {
       context.add(id.sourceString, variable);
       return core.variableDeclaration(variable, initializer);
     },
-    FunDec(_fun, id, params, _colon, returnType, _eq, exp, _semi) {
-      checkNotDeclared(id.sourceString, id);
-      const declaredReturnType = returnType.analyze();
-      
-      context = context.newChildContext();
-
-      const parameters = [];
-      for (const child of params.children[1].children) {
-        parameters.push(child.analyze());
-      }
-      const body = exp.analyze();
-      
-
-      checkTypesCompatible(body.type, declaredReturnType, exp);
-      
-      context = context.parent;
-      const fun = core.función(id.sourceString, parameters, declaredReturnType);
-      context.add(id.sourceString, fun);
-      return core.functionDeclaration(fun, body);
-    },
 
     Params(_open, params, _close) {
 
@@ -451,6 +431,46 @@ export default function analyze(match) {
     //   }
     // },
 
+    FunDec(_fun, id, params, _colon, returnType, _eq, exp) {
+      checkNotDeclared(id.sourceString, id);
+      const declaredReturnType = returnType.analyze();
+      
+      context = context.newChildContext();
+
+      const parameters = [];
+      for (const child of params.children[1].children) {
+        parameters.push(child.analyze());
+      }
+
+
+      const body = exp.analyze();
+
+      console.log(body)
+      
+
+      checkTypesCompatible(body.returnType, declaredReturnType, exp);
+      
+      context = context.parent;
+      const fun = core.función(id.sourceString, parameters, declaredReturnType);
+      context.add(id.sourceString, fun);
+      return core.functionDeclaration(fun, body);
+    },
+
+    FunctionCall(id, _open, args, _close) {
+      const analyzedArgs = args.asIteration().children.map(child => child.analyze());
+      return core.callExpression(id.sourceString, analyzedArgs, "object");
+    },
+
+    FuncBody(_openCurly, stmts, _return, returnStmt, _semi, _closeCurly) {
+      context = context.newChildContext();
+
+      const statements = stmts.children.map(stmt => stmt.analyze());
+      const returnExpression = returnStmt.analyze();
+      const returnType = returnExpression.type;
+      
+      context = context.parent;
+      return core.funcBody(statements, returnExpression, returnType);
+    },
 
     MathFuncCall_unary(func, _open, arg, _close) {
       const x = arg.analyze();

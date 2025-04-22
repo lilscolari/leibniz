@@ -39,14 +39,7 @@ export default function generate(program) {
         // We don't care about const vs. let in the generated code! The analyzer has
         // already checked that we never updated a const, so let is always fine.
         output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`);
-      },
-      FunctionDeclaration(d) {
-        const functionName = gen(d.fun);
-        const paramNames = d.fun.parameters.flat().map(param => gen(param));
-        output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
-        output.push(`  return ${gen(d.body)};`);
-        output.push("}");
-      },  
+      }, 
       ForStatement(s) {
         output.push(`for (let ${gen(s.iterator)} of [${gen(s.collection)}]) {`)
         s.body.statements.forEach(gen)
@@ -165,6 +158,19 @@ export default function generate(program) {
       
         // Fallback for user-defined or unknown functions
         return `${e.callee}(${argsCode})`;
+      },
+
+      // Returns extra [Object] line when additional statements
+      FunctionDeclaration(d) {
+        const functionName = gen(d.fun);
+        const paramNames = d.fun.parameters.flat().map(param => gen(param));
+        output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
+        output.push(gen(d.body));
+        output.push("}");
+      },
+      FunctionBody(e) {
+        const returnLine = `return ${gen(e.returnExpression)};`;
+        return `${returnLine}`;
       }
 
 
