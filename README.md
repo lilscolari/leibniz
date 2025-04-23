@@ -113,7 +113,6 @@ if cos(0) == 1 {
 }
 ```
 
-
 ---
 
 <h2 align="center">👥 Contributors</h2>
@@ -134,6 +133,6 @@ if cos(0) == 1 {
 </p>
 
 <p align="center">
-  <i>Logo generated with the help of DALL-E</i>
+  <i>Logo generated with the help of Dall-E 3.0</i>
 </p>
 
