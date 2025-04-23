@@ -88,11 +88,31 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 
 ## 💻 Potential Example Programs
 
-| Leibniz Code |
-|--------------|
-| `let f_prime = derivative("x^2", "x", 3);`
-| `obj t = Triangle(3, 5); print(t.area());` |
-| `if cos(0) == 1 { print(true); } else if cos(0) == 0 { print(false); } else { print(cos(0)); }` |
+### 🔹 Derivative Example
+
+```leibniz
+let f_prime = derivative("x^2", "x", 3);
+```
+
+### 🔹 Object and Method Call
+
+```leibniz
+obj t = Triangle(3, 5);
+print(t.area());
+```
+
+### 🔹 Conditional Statement
+
+```leibniz
+if cos(0) == 1 {
+  print(true);
+} else if cos(0) == 0 {
+  print(false);
+} else {
+  print(cos(0));
+}
+```
+
 
 ---
 
