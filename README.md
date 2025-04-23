@@ -69,17 +69,20 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 | 🧩 Feature         | 💡 Explanation                                                   |
 |-------------------|------------------------------------------------------------------|
 | Reserved Words     | For easy integration of mathematical terminology                |
-| Optionals          | Safer handling of missing values                                |
-| Dynamically Typed  | Great for algebraic manipulation                                |
+| Statically Typed  | To ensure mathematical correctness and detect errors early       |
 | Semicolons         | To mark the end of a statement                                  |
 | Trig Functions     | To allow more mathematical versatility                          |
 | Shapes             | To expand into geometry                                          |
-| Vectors            | Serves as both lists and mathematical vectors                   |
-| Equations          | Allows users to define math equations like functions            |
 | Error Handling     | Handles math errors (like division by zero)                     |
 | Immutability       | Ensures values don't change accidentally                        |
 | Pattern Matching   | Especially useful with variables and symbolic computation       |
-| Auto-Simplification| Makes complex math expressions easier to read and manage        |
+| Function Creation | So users can model their own math functions or equations         |
+| Loops              | So users can perform complex artihmetic like summation or products |
+| Math Constants     | Leverage constants to help compute values                       |
+| Arithmetic         | The foundation of math                                               |
+| Print Statements   | To visualize mathematical output                                |
+| Conditionals and Inequalities | A lot of math formulas or concepts depend on this    |
+| Derivatives        | So users can experiment with differentiation                    |
 
 ---
 
@@ -87,15 +90,9 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 
 | Leibniz Code |
 |--------------|
-| `deriv(y: x^2+6x, Optional[val:2]) = 10` |
-| `integrate(y: 3x^2+5x, Optional[a,b]) = x^3+(5/2)x^2+c` |
-| `eval(2cos(x)-1);` |
-| `arctan(1, output: degrees) = 45` |
-| `Triangle.area(b:5,h:8) = 20` |
-| `f(x, y) = {x * y;}` |
-| `for (_ in domain(0, 100, Optional[step])) {}` |
-| `distance(5m, 3s, output: mph)` |
-| `eq = x^2 + 6x; deriv(eq, x=2);` |
+| `let f_prime = derivative("x^2", "x", 3);`
+| `obj t = Triangle(3, 5); print(t.area());` |
+| `if cos(0) == 1 { print(true); } else if cos(0) == 0 { print(false); } else { print(cos(0)); }` |
 
 ---
 
