@@ -7,7 +7,6 @@ export default function analyze(match) {
     constructor(parent = null) {
       this.locals = new Map();
       this.parent = parent;
-      this.inLoop = false;  // Track if we're in a loop for break statements
     }
     add(name, entity) {
       this.locals.set(name, entity);
@@ -19,18 +18,7 @@ export default function analyze(match) {
       return this.locals.get(name) ?? (this.parent && this.parent.lookup(name));
     }
     newChildContext() {
-      const child = new Context(this);
-      child.inLoop = this.inLoop;  // Inherit loop status
-      return child;
-    }
-    enterLoop() {
-      this.inLoop = true;
-    }
-    exitLoop() {
-      this.inLoop = false;
-    }
-    isInLoop() {
-      return this.inLoop;
+      return new Context(this);
     }
   }
 
@@ -45,36 +33,64 @@ export default function analyze(match) {
     }
   }
 
+  function checkType(e, type, parseTreeNode) {
+    check(e.type === type, `Expected ${type}, got ${e.type}`, parseTreeNode);
+  }
+
   function checkNumber(e, parseTreeNode) {
     check(
       e.type === "number" || e.type === "integer" || e.type === "float",
-      `Expected number, integer, or float`,
+      `Expected number, integer, or float, got ${e.type}`,
       parseTreeNode
     );
   }
 
+  function checkInteger(e, parseTreeNode) {
+    check(e.type === "integer", `Expected integer, got ${e.type}`, parseTreeNode);
+  }
+
+  function checkFloat(e, parseTreeNode) {
+    check(e.type === "float", `Expected float, got ${e.type}`, parseTreeNode);
+  }
+
   function checkBoolean(e, parseTreeNode) {
-    check(e.type === "boolean", `Expected boolean`, parseTreeNode);
+    check(e.type === "boolean", `Expected boolean, got ${e.type}`, parseTreeNode);
+  }
+
+  function checkNumberOrString(e, parseTreeNode) {
+    check(
+      e.type === "number" || e.type === "integer" || e.type === "float" || e.type === "string",
+      `Expected number, integer, float, or string, got ${e.type}`,
+      parseTreeNode
+    );
   }
 
   function checkArrayOrString(e, parseTreeNode) {
     check(
       e.type === "string" || e.type.endsWith("[]"),
-      `Expected string or array`,
+      `Expected string or array, got ${e.type}`,
       parseTreeNode
     );
   }
 
-  function checkBreakInLoop(parseTreeNode) {
-    check(
-      context.isInLoop(),
-      `Break statement must be inside a loop`,
-      parseTreeNode
-    );
+  function checkSameTypes(x, y, parseTreeNode) {
+    // Special case for numeric types: allow integer, float, and number to be compatible
+    if (isNumericType(x.type) && isNumericType(y.type)) {
+      return;
+    }
+    check(x.type === y.type, `Operands must have the same type: ${x.type} and ${y.type}`, parseTreeNode);
   }
 
   function isNumericType(type) {
     return type === "number" || type === "integer" || type === "float";
+  }
+
+  function isArrayType(type) {
+    return type && type.endsWith("[]");
+  }
+
+  function getArrayElementType(arrayType) {
+    return arrayType.slice(0, -2); // Remove the '[]' suffix
   }
 
   function getTypeCoercion(type1, type2) {
@@ -94,9 +110,53 @@ export default function analyze(match) {
     return null;
   }
 
+  function checkAllElementsHaveSameType(elements, parseTreeNode) {
+    if (elements.length > 0) {
+      const type = elements[0].type;
+      for (const e of elements) {
+        // For numeric types, allow mixing integers, floats, and numbers
+        if (isNumericType(type) && isNumericType(e.type)) {
+          continue;
+        }
+        check(
+          e.type === type,
+          `All elements must have the same type, found ${e.type} when expected ${type}`,
+          parseTreeNode
+        );
+      }
+    }
+  }
+
+  function checkArrayTypeMatches(arrayElements, declaredType, parseTreeNode) {
+    if (arrayElements.length === 0) {
+      // Empty arrays can match any array type
+      return;
+    }
+    
+    // Extract the element type from the array type (remove the '[]')
+    const expectedElementType = getArrayElementType(declaredType);
+    
+    // Check that all elements match the expected type
+    for (const element of arrayElements) {
+      if (isNumericType(expectedElementType) && isNumericType(element.type)) {
+        // For numeric types, allow implicit conversion if it's safe
+        if (expectedElementType === "number" || 
+            (expectedElementType === "float" && element.type === "integer")) {
+          continue;
+        }
+      }
+      
+      check(
+        element.type === expectedElementType,
+        `Expected array element of type ${expectedElementType}, got ${element.type}`,
+        parseTreeNode
+      );
+    }
+  }
+
   function checkNotDeclared(name, parseTreeNode) {
     check(
-      !context.has(name),
+      !context.locals.has(name),
       `Variable already declared: ${name}`,
       parseTreeNode
     );
@@ -112,7 +172,16 @@ export default function analyze(match) {
       return true;
     }
     
-    // Check if both are numeric types
+    // Check if both are array types
+    if (sourceType.endsWith("[]") && targetType.endsWith("[]")) {
+      const sourceElementType = sourceType.slice(0, -2);
+      const targetElementType = targetType.slice(0, -2);
+      
+      // Check if element types are compatible
+      return checkTypesCompatible(sourceElementType, targetElementType, parseTreeNode);
+    }
+    
+    // Check if both are numeric types (integer, float, number)
     if (isNumericType(sourceType) && isNumericType(targetType)) {
       // Allow assignment from more specific to more general type
       if (sourceType === "integer" && (targetType === "number" || targetType === "float")) {
@@ -127,38 +196,54 @@ export default function analyze(match) {
     
     // If we got here, types are not compatible
     check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
-    return false;
   }
 
   const analyzer = grammar.createSemantics().addOperation("analyze", {
     Program(statements) {
       return core.program(statements.children.map((s) => s.analyze()));
     },
-    
     Stmt_increment(_op, id, _semi) {
       const variable = id.analyze();
       checkNumber(variable, id);
       return core.incrementStatement(variable);
     },
-    
     Stmt_decrement(_op, id, _semi) {
       const variable = id.analyze();
       checkNumber(variable, id);
       return core.decrementStatement(variable);
     },
-    
     Stmt_break(_break, _semi) {
-      checkBreakInLoop(_break);
       return core.breakStatement();
     },
-    
+    ForLoop(_for, id, _in, _domain, _open, forInt, _close, block) {
+      // Create new context for the loop variable
+      const savedContext = context;
+      context = context.newChildContext();
+      
+      // Analyze loop variable and body
+      const loopVar = core.variable(id.sourceString, "integer", false);
+      context.add(id.sourceString, loopVar);
+      
+      const upperBound = parseInt(forInt.sourceString, 10);
+      const body = block.analyze();
+      
+      // Restore the previous context
+      context = savedContext;
+      
+      return core.forLoopStatement(loopVar, upperBound, body);
+    },
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
       checkNotDeclared(id.sourceString, id);
       const declaredType = type.analyze();
       const initializer = exp.analyze();
       
-      // Check that initializer type is compatible with declared type
-      checkTypesCompatible(initializer.type, declaredType, exp);
+      // Special handling for array types
+      if (declaredType.endsWith("[]") && initializer.kind === "ArrayExpression") {
+        checkArrayTypeMatches(initializer.elements, declaredType, exp);
+      } else {
+        // Check that initializer type is compatible with declared type
+        checkTypesCompatible(initializer.type, declaredType, exp);
+      }
       
       const mutable = qualifier.sourceString === "let";
       const variable = core.variable(
@@ -169,41 +254,67 @@ export default function analyze(match) {
       context.add(id.sourceString, variable);
       return core.variableDeclaration(variable, initializer);
     },
-    
+    // Updated to match grammar rule arity - 7 parameters
     FunDec(_fun, id, params, _colon, returnType, _eq, body) {
       checkNotDeclared(id.sourceString, id);
       const declaredReturnType = returnType.analyze();
       
-      const savedContext = context;
       context = context.newChildContext();
-      
       const parameters = params.analyze();
       
-      const analyzedBody = body.analyze();
+      // Handle the new FuncBody structure
+      let analyzedBody;
+      if (body.ctorName === "FuncBody") {
+        // This is the new style function body with explicit return
+        const stmts = body.children[1].children.map(s => s.analyze());
+        const returnExp = body.children[3].analyze();
+        
+        // Check that return expression type is compatible with declared return type
+        checkTypesCompatible(returnExp.type, declaredReturnType, body.children[3]);
+        
+        analyzedBody = core.functionBody(stmts, returnExp);
+      } else {
+        // This is the old style function body (expression)
+        analyzedBody = body.analyze();
+        
+        // Check that body's type is compatible with declared return type
+        checkTypesCompatible(analyzedBody.type, declaredReturnType, body);
+      }
       
-      // Check that body's return type is compatible with declared return type
-      checkTypesCompatible(analyzedBody.returnType, declaredReturnType, body);
-      
-      context = savedContext;
-      
+      context = context.parent;
       const fun = core.función(id.sourceString, parameters, declaredReturnType);
       context.add(id.sourceString, fun);
-      
       return core.functionDeclaration(fun, analyzedBody);
     },
-    
-    FuncBody(_open, statements, _return, returnExp, _semi, _close) {
-      const analyzedStatements = statements.children.map(stmt => stmt.analyze());
-      
-      const returnExpression = returnExp.analyze();
-      
-      return core.funcBody(analyzedStatements, returnExpression, returnExpression.type);
+    FuncBody(_open, statements, _return, exp, _semi, _close) {
+      // This will be handled in FunDec
+      return this.sourceString;
     },
-    
+    FunctionCall(id, _open, args, _close) {
+      const fun = context.lookup(id.sourceString);
+      check(fun, `Function ${id.sourceString} not declared`, id);
+      check(fun.kind === "Function", `${id.sourceString} is not a function`, id);
+      
+      const actualArgs = args.analyze();
+      
+      // Check that the number of arguments matches
+      check(
+        actualArgs.length === fun.parameters.length,
+        `Expected ${fun.parameters.length} arguments, got ${actualArgs.length}`,
+        id
+      );
+      
+      // Check that argument types match parameter types
+      for (let i = 0; i < actualArgs.length; i++) {
+        checkTypesCompatible(actualArgs[i].type, fun.parameters[i].type, args.children[i]);
+      }
+      
+      return core.callExpression(id.sourceString, actualArgs, fun.returnType);
+    },
     Params(_open, params, _close) {
-      return params.asIteration().children.map(p => p.analyze());
+      // Handle params that may or may not be iterated
+      return params.children.map(p => p.analyze());
     },
-    
     Param(id, _colon, type) {
       checkNotDeclared(id.sourceString, id);
       const paramType = type.analyze();
@@ -211,18 +322,19 @@ export default function analyze(match) {
       context.add(id.sourceString, param);
       return param;
     },
-    
+    Type_array(baseType, _brackets) {
+      const base = baseType.analyze();
+      return `${base}[]`;
+    },
     Type_number(_) { return "number"; },
     Type_integer(_) { return "integer"; },
     Type_float(_) { return "float"; },
     Type_boolean(_) { return "boolean"; },
     Type_string(_) { return "string"; },
-    
     PrintStmt(_print, _open, exp, _close, _semi) {
       const argument = exp.analyze();
       return core.printStatement(argument);
     },
-    
     AssignmentStmt(id, _eq, exp, _semi) {
       const source = exp.analyze();
       const target = id.analyze();
@@ -233,24 +345,12 @@ export default function analyze(match) {
       checkIsMutable(target, id);
       return core.assignmentStatement(source, target);
     },
-    
     WhileStmt(_while, exp, block) {
       const test = exp.analyze();
       checkBoolean(test, exp);
-      
-      // Set context to be in a loop
-      const savedContext = context;
-      context = context.newChildContext();
-      context.enterLoop();
-      
       const body = block.analyze();
-      
-      // Restore context
-      context = savedContext;
-      
       return core.whileStatement(test, body);
     },
-    
     IfStmt(_if, exp, consequent, _else, alternate) {
       const test = exp.analyze();
       checkBoolean(test, exp);
@@ -258,31 +358,29 @@ export default function analyze(match) {
       
       // Handle the optional alternate branch
       let alternateBlock = null;
-      if (alternate.children && alternate.children.length > 0) {
+      if (alternate && alternate.children && alternate.children.length > 0) {
         alternateBlock = alternate.children[0].analyze();
       }
       
       return core.ifStatement(test, consequentBlock, alternateBlock);
     },
-    
     Block(_open, statements, _close) {
+      // Create a new context for this block
       const savedContext = context;
       context = context.newChildContext();
-      
+      // Direct access to children instead of using asIteration
       const stmts = statements.children.map(s => s.analyze());
-      
+      // Restore the previous context when we're done
       context = savedContext;
-      
       return core.block(stmts);
     },
-    
     Exp_test(left, op, right) {
       const x = left.analyze();
       const y = right.analyze();
       if (op.sourceString === "==" || op.sourceString === "!=") {
         // For equality operators, types must be compatible
         const compatibleType = getTypeCoercion(x.type, y.type);
-        check(compatibleType !== null, `Type mismatch`, op);
+        check(compatibleType !== null, `Type mismatch: ${x.type} and ${y.type}`, op);
       } else {
         // For other relational operators, operands must be numeric
         checkNumber(x, left);
@@ -290,7 +388,6 @@ export default function analyze(match) {
       }
       return core.binaryExpression(op.sourceString, x, y, "boolean");
     },
-    
     Condition_add(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
@@ -308,7 +405,6 @@ export default function analyze(match) {
         check(false, `Cannot add ${x.type} and ${y.type}`, left);
       }
     },
-    
     Condition_sub(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
@@ -318,7 +414,6 @@ export default function analyze(match) {
       const resultType = getTypeCoercion(x.type, y.type);
       return core.binaryExpression("-", x, y, resultType);
     },
-    
     Term_mul(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
@@ -328,7 +423,6 @@ export default function analyze(match) {
       const resultType = getTypeCoercion(x.type, y.type);
       return core.binaryExpression("*", x, y, resultType);
     },
-    
     Term_div(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
@@ -337,7 +431,6 @@ export default function analyze(match) {
       // Division always returns float (except when explicitly handling integer division)
       return core.binaryExpression("/", x, y, "float");
     },
-    
     Term_mod(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
@@ -348,11 +441,9 @@ export default function analyze(match) {
       const resultType = (x.type === "integer" && y.type === "integer") ? "integer" : "float";
       return core.binaryExpression("%", x, y, resultType);
     },
-    
     Primary_parens(_open, exp, _close) {
       return exp.analyze();
     },
-    
     Factor_exp(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
@@ -361,53 +452,68 @@ export default function analyze(match) {
       // Exponentiation typically returns float unless both are integers and the exponent is positive
       return core.binaryExpression("**", x, y, "float");
     },
-    
     Factor_neg(_op, operand) {
       const x = operand.analyze();
       checkNumber(x, operand);
       return core.unaryExpression("-", x, x.type);
     },
-    
     Factor_not(_op, operand) {
       const x = operand.analyze();
       checkBoolean(x, operand);
       return core.unaryExpression("!", x, "boolean");
     },
-    
+    Factor_len(_op, operand) {
+      const e = operand.analyze();
+      checkArrayOrString(e, operand);
+      return core.unaryExpression("#", e, "integer");
+    },
     Primary_int(_) {
+      // Handle the optional negative sign in the grammar
       const value = parseInt(this.sourceString, 10);
-      return { kind: "Literal", type: "integer", value: value };
+      return { type: "integer", value: value };
     },
-    
     Primary_float(_) {
+      // Handle the optional negative sign in the grammar
       const value = parseFloat(this.sourceString);
-      return { kind: "Literal", type: "float", value: value };
+      return { type: "float", value: value };
     },
-    
-    Primary_true(_) {
-      return { kind: "Literal", type: "boolean", value: true };
+    Primary_array(_open, elements, _close) {
+      // Handle elements without using asIteration
+      const contents = elements.children.map(e => e.analyze());
+      checkAllElementsHaveSameType(contents, _open);
+      
+      let elementType;
+      if (contents.length > 0) {
+        // If elements are numeric, use the most general numeric type
+        if (isNumericType(contents[0].type)) {
+          elementType = contents.reduce((type, elem) => getTypeCoercion(type, elem.type), contents[0].type);
+        } else {
+          elementType = contents[0].type;
+        }
+      } else {
+        elementType = "any";
+      }
+      
+      return core.arrayExpression(contents, `${elementType}[]`);
     },
-    
-    Primary_false(_) {
-      return { kind: "Literal", type: "boolean", value: false };
+    Primary_subscript(array, _open, index, _close) {
+      const e = array.analyze();
+      const i = index.analyze();
+      checkArrayOrString(e, array);
+      checkNumber(i, index);
+      const baseType = e.type.endsWith("[]") 
+        ? e.type.slice(0, -2) 
+        : "string";
+      return core.subscriptExpression(e, i, baseType);
     },
-    
-    Primary_string(_) {
-      return { kind: "Literal", type: "string", value: this.sourceString.slice(1, -1) };
+    Primary_mathfunc(call) {
+      return call.analyze();
     },
-    
-    Primary_id(_) {
-      const entity = context.lookup(this.sourceString);
-      check(entity, `${this.sourceString} not declared`, this);
-      return entity;
-    },
-    
     MathFuncCall_trig(func, _open, arg, _close) {
       const x = arg.analyze();
       checkNumber(x, arg);
       return core.callExpression(func.sourceString, [x], "float");
     },
-    
     MathFuncCall_binary(func, _open, arg1, _comma, arg2, _close) {
       const x = arg1.analyze();
       const y = arg2.analyze();
@@ -422,14 +528,12 @@ export default function analyze(match) {
       } else if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
-      } 
-      // else {
-      //   returnType = "float"; // Default for any other binary math functions
-      // }
+      } else {
+        returnType = "float"; // Default for any other binary math functions
+      }
       
       return core.callExpression(func.sourceString, [x, y], returnType);
     },
-    
     MathFuncCall_unary(func, _open, arg, _close) {
       const x = arg.analyze();
       checkNumber(x, arg);
@@ -446,187 +550,181 @@ export default function analyze(match) {
       }
       return core.callExpression(func.sourceString, [x], returnType);
     },
-
-    DerivativeFuncCall(_derivative, _openParens, derivative, _comma, variable, _comma2, evaluatedAt, _closeParens) {
-
-      derivative = derivative.analyze()
-      variable = variable.analyze()
-      evaluatedAt = evaluatedAt.analyze()
-
-      return core.derivativeCall(derivative, variable, evaluatedAt)
+    DerivativeFuncCall(_derivative, _open, fnStr, _comma1, varStr, _comma2, point, _close) {
+      const functionString = fnStr.analyze();
+      const variableString = varStr.analyze();
+      const evaluationPoint = point.analyze();
+      
+      checkType(functionString, "string", fnStr);
+      checkType(variableString, "string", varStr);
+      checkNumber(evaluationPoint, point);
+      
+      return core.callExpression("derivative", [functionString, variableString, evaluationPoint], "float");
     },
-    
-    FunctionCall(id, _open, args, _close) {
-      const funcName = id.sourceString;
-      const func = context.lookup(funcName);
-      check(func, `Function ${funcName} not declared`, id);
-      check(func.kind === "Function", `${funcName} is not a function`, id);
-      
-      const analyzedArgs = args.analyze();
-      
-      // Check argument count
-      check(
-        analyzedArgs.length === func.parameters.length,
-        `Expected ${func.parameters.length} arguments but got ${analyzedArgs.length}`,
-        id
-      );
-      
-      // Check argument types match parameter types
-      for (let i = 0; i < analyzedArgs.length; i++) {
-        checkTypesCompatible(
-          analyzedArgs[i].type, 
-          func.parameters[i].type, 
-          args
-        );
-      }
-      
-      return core.callExpression(funcName, analyzedArgs, func.returnType);
+    stringlit(_openQuote, chars, _closeQuote) {
+      return { type: "string", value: this.sourceString.slice(1, -1) };
     },
-    
-    // THIS IS THE KEY FIX - ExpList needs to have only one parameter
-    ExpList(exps) {
-      return exps.asIteration().children.map(e => e.analyze());
-    },
-
-    ForLoop(_for, id, _in, _domain, _open, exp, _close, block) {
-      const rangeSize = exp.analyze();
-      check(rangeSize.type === "integer", `Expected integer`, exp);
-      
-      // Create a new context with iterator variable
-      const savedContext = context;
-      context = context.newChildContext();
-      context.enterLoop();
-      
-      // Add iterator variable to context
-      const iterator = core.variable(id.sourceString, "integer", false);
-      context.add(id.sourceString, iterator);
-      
-      const body = block.analyze();
-      
-      context = savedContext;
-      
-      return core.forStatement(iterator, rangeSize.value, body);
-    },
-    
-    forInteger(_digits) {
-      return { kind: "Literal", type: "integer", value: parseInt(this.sourceString, 10) };
-    },
-    
-    ObjectCreation(_obj, id, _eq, className, _open, args, _close, _semi) {
-      // Check the class type
-      const classType = className.sourceString;
-      check(
-        ["Triangle", "Rectangle", "Circle"].includes(classType),
-        `Unknown class type: ${classType}`,
-        className
-      );
-      
-      const analyzedArgs = args.analyze();
-      
-      // Validate argument count based on class type
-      if (classType === "Circle") {
-        check(
-          analyzedArgs.length === 1,
-          `Circle requires exactly 1 argument (radius), but got ${analyzedArgs.length}`,
-          args
-        );
-      } else {
-        check(
-          analyzedArgs.length === 2,
-          `${classType} requires exactly 2 arguments (base, height), but got ${analyzedArgs.length}`,
-          args
-        );
-      }
-      
-      // Validate argument types (all should be numeric)
-      for (const arg of analyzedArgs) {
-        checkNumber(arg, args);
-      }
-
-      checkNotDeclared(id.sourceString, id);
-            
-      const variable = core.variable(
-        id.sourceString,
-        classType,
-        "false"
-      );
-      //context.add(id.sourceString, variable);
-
-      const object = core.objectCreation(variable, classType, analyzedArgs);
-      context.add(id.sourceString, object);
-      
-      return object;
-    },
-    
-    ObjectMethodCall(id, _dot, methodName, _open, _close) {
-      const objName = id.sourceString;
-      const object = context.lookup(objName);
-      
-      check(object, `${objName} not declared`, id);
-      
-      const method = methodName.sourceString;
-      
-      // Validate method for object type
-      if (object.className === "Circle") {
-        check(
-          ["area", "circumference"].includes(method),
-          `${method} is not a valid method for Circle`,
-          methodName
-        );
-      } else {
-        check(
-          ["area", "perimeter"].includes(method),
-          `${method} is not a valid method for ${object.className}`,
-          methodName
-        );
-      }
-      
-      return core.objectMethodCall(object.variable, method);
-    },
-    
     mathConstant(constant) {
-      const name = constant.sourceString;
-      return core.mathConstant(name);
+      return constant.analyze();
     },
-    
-    // id(_first, _rest) {
-    //   return this.sourceString;
-    // },
-    
-    // _iter(...children) {
-    //   return children.map(child => child.analyze());
-    // },
-    
-    // NonemptyListOf(first, _sep, rest) {
-    //   return [first.analyze(), ...rest.children.map(child => child.analyze())];
-    // },
-    
-    // EmptyListOf() {
-    //   return [];
-    // },
-
-    stringlit(_open, chars, _close) {
-      return chars.sourceString;
+    piConst(_) {
+      return { type: "float", value: Math.PI };
     },
-
-    intlit(_neg, _digits) {
-      return core.integerLiteral(parseInt(this.sourceString, 10));
+    eConst(_) {
+      return { type: "float", value: Math.E };
     },
-    floatlit(_neg, _whole, _dot, _frac, _exp, _sign, _expDigits) {
-      return core.floatLiteral(parseFloat(this.sourceString));
-    }
-
+    piSymbol(_) {
+      return { type: "float", value: Math.PI };
+    },
+    ObjectCreation(_obj, id, _eq, objType, _open, args, _close, _semi) {
+      const objectType = objType.sourceString;
+      const argValues = args.analyze();
+      
+      // Check argument count and types based on object type
+      if (objectType === "Triangle") {
+        check(argValues.length === 3, `Triangle requires 3 arguments (sides), got ${argValues.length}`, objType);
+        argValues.forEach(arg => checkNumber(arg, objType));
+        
+        // Create a new object with the Triangle type
+        const variable = core.variable(id.sourceString, "Triangle", true);
+        context.add(id.sourceString, variable);
+        return core.objectCreation(variable, "Triangle", argValues);
+      } else if (objectType === "Rectangle") {
+        check(argValues.length === 2, `Rectangle requires 2 arguments (width, height), got ${argValues.length}`, objType);
+        argValues.forEach(arg => checkNumber(arg, objType));
+        
+        // Create a new object with the Rectangle type
+        const variable = core.variable(id.sourceString, "Rectangle", true);
+        context.add(id.sourceString, variable);
+        return core.objectCreation(variable, "Rectangle", argValues);
+      } else if (objectType === "Circle") {
+        check(argValues.length === 1, `Circle requires 1 argument (radius), got ${argValues.length}`, objType);
+        argValues.forEach(arg => checkNumber(arg, objType));
+        
+        // Create a new object with the Circle type
+        const variable = core.variable(id.sourceString, "Circle", true);
+        context.add(id.sourceString, variable);
+        return core.objectCreation(variable, "Circle", argValues);
+      }
+    },
+    ObjectMethodCall(id, _dot, method, _open, _close) {
+      const obj = id.analyze();
+      const methodName = method.sourceString;
+      
+      // Check that the object exists and has the correct type
+      check(obj, `Object ${id.sourceString} not declared`, id);
+      
+      // Check that the method is valid for the object type
+      if (obj.type === "Triangle") {
+        check(
+          methodName === "area" || methodName === "perimeter",
+          `Method ${methodName} not defined for Triangle objects`,
+          method
+        );
+      } else if (obj.type === "Rectangle") {
+        check(
+          methodName === "area" || methodName === "perimeter",
+          `Method ${methodName} not defined for Rectangle objects`,
+          method
+        );
+      } else if (obj.type === "Circle") {
+        check(
+          methodName === "area" || methodName === "circumference" || methodName === "radius",
+          `Method ${methodName} not defined for Circle objects`,
+          method
+        );
+      } else {
+        check(false, `Object ${id.sourceString} does not support methods`, id);
+      }
+      
+      // All geometric methods return float
+      return core.methodCall(obj, methodName, [], "float");
+    },
+    StaticMethodCall(objType, _dot, method, _open, args, _close) {
+      const objectType = objType.sourceString;
+      const methodName = method.sourceString;
+      const argValues = args ? args.analyze() : [];
+      
+      // Check that the static method call is valid
+      if (objectType === "Triangle") {
+        if (methodName === "area") {
+          check(argValues.length === 3, `Triangle.area requires 3 arguments (sides), got ${argValues.length}`, objType);
+        } else if (methodName === "perimeter") {
+          check(argValues.length === 3, `Triangle.perimeter requires 3 arguments (sides), got ${argValues.length}`, objType);
+        } else {
+          check(false, `Method ${methodName} not defined for Triangle class`, method);
+        }
+      } else if (objectType === "Rectangle") {
+        if (methodName === "area") {
+          check(argValues.length === 2, `Rectangle.area requires 2 arguments (width, height), got ${argValues.length}`, objType);
+        } else if (methodName === "perimeter") {
+          check(argValues.length === 2, `Rectangle.perimeter requires 2 arguments (width, height), got ${argValues.length}`, objType);
+        } else {
+          check(false, `Method ${methodName} not defined for Rectangle class`, method);
+        }
+      } else if (objectType === "Circle") {
+        if (methodName === "area") {
+          check(argValues.length === 1, `Circle.area requires 1 argument (radius), got ${argValues.length}`, objType);
+        } else if (methodName === "circumference") {
+          check(argValues.length === 1, `Circle.circumference requires 1 argument (radius), got ${argValues.length}`, objType);
+        } else if (methodName === "radius") {
+          check(argValues.length === 1, `Circle.radius requires 1 argument (circumference), got ${argValues.length}`, objType);
+        } else {
+          check(false, `Method ${methodName} not defined for Circle class`, method);
+        }
+      }
+      
+      // Check that all arguments are numeric
+      argValues.forEach(arg => checkNumber(arg, objType));
+      
+      // All geometric methods return float
+      return core.staticMethodCall(objectType, methodName, argValues, "float");
+    },
+    Primary_true(_) {
+      return { type: "boolean", value: true };
+    },
+    Primary_false(_) {
+      return { type: "boolean", value: false };
+    },
+    Primary_string(_) {
+      return { type: "string", value: this.sourceString.slice(1, -1) };
+    },
+    Primary_id(_) {
+      const entity = context.lookup(this.sourceString);
+      check(entity, `${this.sourceString} not declared`, this);
+      return entity;
+    },
+    id(_first, _rest) {
+      // When id is used outside of variable reference context
+      return this.sourceString;
+    },
+    ExpList(_) {
+      // Handle expressions list for function calls
+      return this.children.map(e => e.analyze());
+    },
+    VarArgsList(first, _comma, rest) {
+      // Handle variable argument lists
+      return [first.analyze(), ...rest.children.map(e => e.analyze())];
+    },
+    _iter(...children) {
+      return children.map(child => child.analyze());
+    },
+    NonemptyListOf(first, _sep, rest) {
+      return [first.analyze(), ...rest.children.map(child => child.analyze())];
+    },
+    EmptyListOf() {
+      return [];
+    },
   });
 
   return analyzer(match).analyze();
 }
 
-// Set up prototype properties
 Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
 
-// Try to make integer and float literals work properly
+// try to make integer and float literals work properly
 Object.defineProperty(Number.prototype, "value", {
   get() { return this; }
 });

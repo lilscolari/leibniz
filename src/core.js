@@ -50,12 +50,11 @@ export function functionDeclaration(fun, body) {
   };
 }
 
-export function funcBody(statements, returnExpression, returnType) {
+export function functionBody(statements, returnExp) {
   return {
     kind: "FunctionBody",
     statements,
-    returnExpression,
-    returnType,
+    returnExp,
   };
 }
 
@@ -83,12 +82,45 @@ export function assignmentStatement(source, target) {
   };
 }
 
+export function forLoopStatement(loopVar, upperBound, body) {
+  return {
+    kind: "ForLoopStatement",
+    loopVar,
+    upperBound,
+    body,
+  };
+}
+
+export function objectCreation(variable, objectType, args) {
+  return {
+    kind: "ObjectCreation",
+    variable,
+    objectType,
+    args,
+  };
+}
+
+export function methodCall(object, methodName, args, type) {
+  return {
+    kind: "MethodCall",
+    object,
+    methodName,
+    args,
+    type,
+  };
+}
+
+export function staticMethodCall(className, methodName, args, type) {
+  return {
+    kind: "StaticMethodCall",
+    className,
+    methodName,
+    args,
+    type,
+  };
+}
+
 export function binaryExpression(op, left, right, type) {
-  // Fix for the uncovered branch
-  if (!op || !left || !right || !type) {
-    throw new Error("Invalid arguments for binary expression");
-  }
-  
   return {
     kind: "BinaryExpression",
     op,
@@ -103,6 +135,32 @@ export function unaryExpression(op, operand, type) {
     kind: "UnaryExpression",
     op,
     operand,
+    type,
+  };
+}
+
+export function arrayExpression(elements, type) {
+  return {
+    kind: "ArrayExpression",
+    elements,
+    type,
+  };
+}
+
+export function subscriptExpression(array, index, type) {
+  return {
+    kind: "SubscriptExpression",
+    array,
+    index,
+    type,
+  };
+}
+
+export function callExpression(callee, args, type) {
+  return {
+    kind: "CallExpression",
+    callee,
+    args,
     type,
   };
 }
@@ -129,76 +187,4 @@ export function block(statements) {
     kind: "Block",
     statements,
   };
-}
-
-export function callExpression(callee, args, type) {
-  return {
-    kind: "CallExpression",
-    callee,
-    args,
-    type,
-  };
-}
-
-export function objectCreation(variable, className, args) {
-  return {
-    kind: "ObjectCreation",
-    variable,
-    className,
-    args,
-    type: className
-  };
-}
-
-export function objectMethodCall(object, method) {
-  return {
-    kind: "ObjectMethodCall",
-    object,
-    method,
-    type: "float"
-  };
-}
-
-export function forStatement(iterator, range, body) {
-  return { 
-    kind: "ForStatement", 
-    iterator, 
-    range, 
-    body 
-  };
-}
-
-export function mathConstant(name) {
-  return {
-    kind: "MathConstant",
-    name,
-    type: "float",
-    value: name === "pi" || name === "π" ? Math.PI : Math.E
-  };
-}
-
-export function derivativeCall(func, variable, evaluatedAt) {
-  return {
-    kind: "DerivativeCall",
-    type: "float",
-    func,
-    variable,
-    evaluatedAt
-  };
-}
-
-export function integerLiteral(value) {
-  return {
-    kind: "IntegerLiteral",
-    type: "integer",
-    value
-  }
-}
-
-export function floatLiteral(value) {
-  return {
-    kind: "FloatLiteral",
-    type: "float",
-    value
-  }
 }

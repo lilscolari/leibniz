@@ -17,13 +17,13 @@ Leibniz {
   in = "in" ~idchar
   domain = "domain" ~idchar
   VarDec    = (let | const) id ":" Type "=" Exp ";"
-  //FunDec    = fnc id Params ":" Type "=" Exp ";"
   FunDec    = fnc id Params ":" Type "=" FuncBody
   FuncBody  = "{" Stmt* "return" Exp ";" "}"
   FunctionCall = id "(" ExpList ")"
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" Type
-  Type      = "number"                        --number 
+  Type      = Type "[]"                       --array
+            | "number"                        --number 
             | "integer"                       --integer
             | "float"                         --float
             | "boolean"                       --boolean
@@ -47,6 +47,7 @@ Leibniz {
   Factor    = Primary "**" Factor        --exp
             | "-" Primary                --neg
             | "!" Primary                --not
+            | "#" Primary                --len
             | Primary
   Primary   = floatlit                   --float
             | intlit                     --int
@@ -54,11 +55,13 @@ Leibniz {
             | false                      --false
             | ObjectMethodCall
             | stringlit                  --string
+            | Primary "[" Exp "]"        --subscript
             | MathFuncCall               --mathfunc
             | FunctionCall
             | DerivativeFuncCall
             | mathConstant
             | id                         --id
+            | "[" ListOf<Exp, ","> "]"   --array
             | "(" Exp ")"                --parens
   
   MathFuncCall = TrigFunc "(" Exp ")"            --trig
@@ -114,11 +117,11 @@ Leibniz {
 
   ExpList = ListOf<Exp, ",">
 
-  ObjectCreation = obj id "=" objectType "(" ExpList ")" ";"  // Added parentheses with ExpList
+  ObjectCreation = obj id "=" objectType "(" ExpList ")" ";"
 
   objectType = triangleObj | rectangleObj | circleObj
   
-  ObjectMethodCall = id "." methodName "(" ")"  // First version allowed arguments in the parentheses
+  ObjectMethodCall = id "." methodName "(" ")"
   
   // Calls directly to objects
   StaticMethodCall = (triangleObj | rectangleObj | circleObj) "." methodName "(" VarArgsList? ")"
@@ -142,7 +145,8 @@ Leibniz {
             | expFunc | lnFunc | log10Func | absFunc | floorFunc
             | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
             | triangleObj | rectangleObj | circleObj
-            | domain | for | in | derivativeFunction
+            | domain | for | in | obj | derivativeFunction
+            | piConst | eConst
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"
