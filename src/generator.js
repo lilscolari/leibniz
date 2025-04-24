@@ -43,12 +43,12 @@ export default function generate(program) {
         // already checked that we never updated a const, so let is always fine.
         output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`);
       }, 
-      ForStatement(s) {
-        const range = Array.from({ length: gen(s.range) }, (_, i) => i);
-        output.push(`for (let ${gen(s.iterator)} of [${range}]) {`)
-        s.body.statements.forEach(gen)
-        output.push("}")
-      },
+      // ForStatement(s) {
+      //   const range = Array.from({ length: gen(s.range) }, (_, i) => i);
+      //   output.push(`for (let ${gen(s.iterator)} of [${range}]) {`)
+      //   s.body.statements.forEach(gen)
+      //   output.push("}")
+      // },
       WhileStatement(s) {
         output.push(`while (${gen(s.test)} {`)
         s.body.statements.forEach(gen)
@@ -129,17 +129,19 @@ export default function generate(program) {
 
         const variableName = gen(o.variable);
 
-        if (args.length == 1) {
+        if (o.objectType == "Circle") {
           output.push(`let ${variableName} = {radius: ${args[0]}};`);
-        } else {
+        } else if (o.objectType == "Rectangle") {
           output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}};`);
+        } else {
+          output.push(`let ${variableName} = {side1: ${args[0]}, side2: ${args[1]}, side3: ${args[2]}};`);
         }
       },
-      ObjectMethodCall(o) {
-        const variableName = gen(o.object);
-        const method = o.method
-        return `${variableName}.${method}()`
-      },
+      // ObjectMethodCall(o) {
+      //   const variableName = gen(o.object);
+      //   const method = o.method
+      //   return `${variableName}.${method}()`
+      // },
       // MathConstant(c) {
       //   if (c.name === "pi" || c.name === "π") {
       //     return "Math.PI";
@@ -149,7 +151,7 @@ export default function generate(program) {
       // },
       CallExpression(e) {
         const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp", "min", "max"]);
-
+        //console.log(e)
         const argsCode = e.args.map(gen).join(", ");
       
         if (mathFuncs.has(e.callee)) {
@@ -159,18 +161,18 @@ export default function generate(program) {
         }
       
         // Fallback for user-defined or unknown functions
-        return `${e.callee}(${argsCode})`;
+        return `${gen(e.callee)}(${argsCode})`;
       },
 
       // Returns extra [Object] line when additional statements
       FunctionDeclaration(d) {
         const functionName = gen(d.fun);
         const paramNames = d.fun.parameters.flat().map(param => gen(param));
-      
-        const returnLine = `return ${gen(d.body.returnExpression)};`;
+
+        const returnLine = `return ${gen(d.body.returnExp)};`;
       
         output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
-
+        
         for (const stmt of d.body.statements) {
           gen(stmt);
         }
@@ -187,8 +189,32 @@ export default function generate(program) {
       // FloatLiteral(number) {
       //   return `${gen(number)}`;
       // },
-      DerivativeCall(derivative) {
-        return `derivative("${gen(derivative.func)}", "${gen(derivative.variable)}", ${gen(derivative.evaluatedAt)})`
+      // DerivativeCall(derivative) {
+      //   return `derivative("${gen(derivative.func)}", "${gen(derivative.variable)}", ${gen(derivative.evaluatedAt)})`
+      // },
+      ForLoopStatement(s) {
+        const range = Array.from({ length: gen(s.upperBound) }, (_, i) => i);
+        output.push(`for (let ${gen(s.loopVar)} of [${range}]) {`)
+        s.body.statements.forEach(gen)
+        output.push("}")
+      },
+      MethodCall(o) {
+        const variableName = gen(o.object);
+        const method = o.methodName;
+        const argsCode = o.args.map(gen).join(", ");
+        if (argsCode.length === 0) {
+          return `${variableName}.${method}()`;
+        } 
+        // else {
+        //   return `${variableName}.${method}(${argsCode})`;
+        // }
+      }, ArrayExpression(e) {
+        const elements = e.elements.map(gen).join(", ");
+        return `[${elements}]`
+      }, SubscriptExpression(e) {
+        const variableName = gen(e.array);
+        const index = gen(e.index);
+        return `${variableName}[${index}]`
       }
 
     };

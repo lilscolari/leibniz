@@ -167,6 +167,10 @@ export default function analyze(match) {
   }
 
   function checkTypesCompatible(sourceType, targetType, parseTreeNode) {
+    if (!sourceType || !targetType) {
+      throw new Error(`Type mismatch: sourceType = ${sourceType}, targetType = ${targetType}`);
+    }
+
     // Check if types are exactly the same
     if (sourceType === targetType) {
       return true;
@@ -229,7 +233,7 @@ export default function analyze(match) {
       
       // Restore the previous context
       context = savedContext;
-      
+
       return core.forLoopStatement(loopVar, upperBound, body);
     },
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
@@ -260,7 +264,7 @@ export default function analyze(match) {
       const declaredReturnType = returnType.analyze();
       
       context = context.newChildContext();
-      const parameters = params.analyze();
+      const parameters = params.analyze().flat();
       
       // Handle the new FuncBody structure
       let analyzedBody;
@@ -273,34 +277,36 @@ export default function analyze(match) {
         checkTypesCompatible(returnExp.type, declaredReturnType, body.children[3]);
         
         analyzedBody = core.functionBody(stmts, returnExp);
-      } else {
-        // This is the old style function body (expression)
-        analyzedBody = body.analyze();
+      } 
+      // else {
+      //   // This is the old style function body (expression)
+      //   analyzedBody = body.analyze();
         
-        // Check that body's type is compatible with declared return type
-        checkTypesCompatible(analyzedBody.type, declaredReturnType, body);
-      }
+      //   // Check that body's type is compatible with declared return type
+      //   checkTypesCompatible(analyzedBody.type, declaredReturnType, body);
+      // }
       
       context = context.parent;
       const fun = core.función(id.sourceString, parameters, declaredReturnType);
+      
       context.add(id.sourceString, fun);
       return core.functionDeclaration(fun, analyzedBody);
     },
-    FuncBody(_open, statements, _return, exp, _semi, _close) {
-      // This will be handled in FunDec
-      return this.sourceString;
-    },
+    // FuncBody(_open, statements, _return, exp, _semi, _close) {
+    //   // This will be handled in FunDec
+    //   return this.sourceString;
+    // },
     FunctionCall(id, _open, args, _close) {
       const fun = context.lookup(id.sourceString);
       check(fun, `Function ${id.sourceString} not declared`, id);
       check(fun.kind === "Function", `${id.sourceString} is not a function`, id);
       
-      const actualArgs = args.analyze();
+      const actualArgs = args.analyze().flat();
       
       // Check that the number of arguments matches
       check(
         actualArgs.length === fun.parameters.length,
-        `Expected ${fun.parameters.length} arguments, got ${actualArgs.length}`,
+        `Expected ${fun.parameters.length} argument(s), got ${actualArgs.length}`,
         id
       );
       
@@ -309,7 +315,7 @@ export default function analyze(match) {
         checkTypesCompatible(actualArgs[i].type, fun.parameters[i].type, args.children[i]);
       }
       
-      return core.callExpression(id.sourceString, actualArgs, fun.returnType);
+      return core.callExpression(fun, actualArgs, fun.returnType);
     },
     Params(_open, params, _close) {
       // Handle params that may or may not be iterated
@@ -479,7 +485,7 @@ export default function analyze(match) {
     },
     Primary_array(_open, elements, _close) {
       // Handle elements without using asIteration
-      const contents = elements.children.map(e => e.analyze());
+      const contents = elements.children.map(e => e.analyze())[0];
       checkAllElementsHaveSameType(contents, _open);
       
       let elementType;
@@ -490,9 +496,10 @@ export default function analyze(match) {
         } else {
           elementType = contents[0].type;
         }
-      } else {
-        elementType = "any";
-      }
+      } 
+      // else {
+      //   elementType = "any";
+      // }
       
       return core.arrayExpression(contents, `${elementType}[]`);
     },
@@ -528,9 +535,10 @@ export default function analyze(match) {
       } else if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
-      } else {
-        returnType = "float"; // Default for any other binary math functions
-      }
+      } 
+      // else {
+      //   returnType = "float"; // Default for any other binary math functions
+      // }
       
       return core.callExpression(func.sourceString, [x, y], returnType);
     },
@@ -578,7 +586,7 @@ export default function analyze(match) {
     },
     ObjectCreation(_obj, id, _eq, objType, _open, args, _close, _semi) {
       const objectType = objType.sourceString;
-      const argValues = args.analyze();
+      const argValues = args.analyze()[0];
       
       // Check argument count and types based on object type
       if (objectType === "Triangle") {
@@ -595,6 +603,7 @@ export default function analyze(match) {
         
         // Create a new object with the Rectangle type
         const variable = core.variable(id.sourceString, "Rectangle", true);
+
         context.add(id.sourceString, variable);
         return core.objectCreation(variable, "Rectangle", argValues);
       } else if (objectType === "Circle") {
@@ -608,78 +617,80 @@ export default function analyze(match) {
       }
     },
     ObjectMethodCall(id, _dot, method, _open, _close) {
-      const obj = id.analyze();
+      const objName = id.sourceString;
+      const object = context.lookup(objName);
       const methodName = method.sourceString;
       
       // Check that the object exists and has the correct type
-      check(obj, `Object ${id.sourceString} not declared`, id);
+      check(object, `Object ${objName} not declared`, id);
       
       // Check that the method is valid for the object type
-      if (obj.type === "Triangle") {
+      if (object.type === "Triangle") {
         check(
           methodName === "area" || methodName === "perimeter",
           `Method ${methodName} not defined for Triangle objects`,
           method
         );
-      } else if (obj.type === "Rectangle") {
+      } else if (object.type === "Rectangle") {
         check(
           methodName === "area" || methodName === "perimeter",
           `Method ${methodName} not defined for Rectangle objects`,
           method
         );
-      } else if (obj.type === "Circle") {
+      } else if (object.type === "Circle") {
         check(
           methodName === "area" || methodName === "circumference" || methodName === "radius",
           `Method ${methodName} not defined for Circle objects`,
           method
         );
-      } else {
-        check(false, `Object ${id.sourceString} does not support methods`, id);
-      }
+      } 
+      // else {
+      //   check(false, `Object ${objName} does not support methods`, id);
+      // }
       
       // All geometric methods return float
-      return core.methodCall(obj, methodName, [], "float");
+      return core.methodCall(object, methodName, [], "float");
     },
-    StaticMethodCall(objType, _dot, method, _open, args, _close) {
-      const objectType = objType.sourceString;
-      const methodName = method.sourceString;
-      const argValues = args ? args.analyze() : [];
+    // StaticMethodCall(objType, _dot, method, _open, args, _close) {
+    //   const objectType = objType.sourceString;
+    //   const methodName = method.sourceString;
+    //   const argValues = args ? args.analyze() : [];
       
-      // Check that the static method call is valid
-      if (objectType === "Triangle") {
-        if (methodName === "area") {
-          check(argValues.length === 3, `Triangle.area requires 3 arguments (sides), got ${argValues.length}`, objType);
-        } else if (methodName === "perimeter") {
-          check(argValues.length === 3, `Triangle.perimeter requires 3 arguments (sides), got ${argValues.length}`, objType);
-        } else {
-          check(false, `Method ${methodName} not defined for Triangle class`, method);
-        }
-      } else if (objectType === "Rectangle") {
-        if (methodName === "area") {
-          check(argValues.length === 2, `Rectangle.area requires 2 arguments (width, height), got ${argValues.length}`, objType);
-        } else if (methodName === "perimeter") {
-          check(argValues.length === 2, `Rectangle.perimeter requires 2 arguments (width, height), got ${argValues.length}`, objType);
-        } else {
-          check(false, `Method ${methodName} not defined for Rectangle class`, method);
-        }
-      } else if (objectType === "Circle") {
-        if (methodName === "area") {
-          check(argValues.length === 1, `Circle.area requires 1 argument (radius), got ${argValues.length}`, objType);
-        } else if (methodName === "circumference") {
-          check(argValues.length === 1, `Circle.circumference requires 1 argument (radius), got ${argValues.length}`, objType);
-        } else if (methodName === "radius") {
-          check(argValues.length === 1, `Circle.radius requires 1 argument (circumference), got ${argValues.length}`, objType);
-        } else {
-          check(false, `Method ${methodName} not defined for Circle class`, method);
-        }
-      }
+    //   // Check that the static method call is valid
+    //   if (objectType === "Triangle") {
+    //     if (methodName === "area") {
+    //       check(argValues.length === 3, `Triangle.area requires 3 arguments (sides), got ${argValues.length}`, objType);
+    //     } else if (methodName === "perimeter") {
+    //       check(argValues.length === 3, `Triangle.perimeter requires 3 arguments (sides), got ${argValues.length}`, objType);
+    //     } else {
+    //       check(false, `Method ${methodName} not defined for Triangle class`, method);
+    //     }
+    //   } else if (objectType === "Rectangle") {
+    //     if (methodName === "area") {
+    //       check(argValues.length === 2, `Rectangle.area requires 2 arguments (width, height), got ${argValues.length}`, objType);
+    //     } else if (methodName === "perimeter") {
+    //       check(argValues.length === 2, `Rectangle.perimeter requires 2 arguments (width, height), got ${argValues.length}`, objType);
+    //     } else {
+    //       check(false, `Method ${methodName} not defined for Rectangle class`, method);
+    //     }
+    //   } else if (objectType === "Circle") {
+    //     if (methodName === "area") {
+    //       check(argValues.length === 1, `Circle.area requires 1 argument (radius), got ${argValues.length}`, objType);
+    //     } else if (methodName === "circumference") {
+    //       check(argValues.length === 1, `Circle.circumference requires 1 argument (radius), got ${argValues.length}`, objType);
+    //     } else if (methodName === "radius") {
+    //       check(argValues.length === 1, `Circle.radius requires 1 argument (circumference), got ${argValues.length}`, objType);
+    //     } else {
+    //       check(false, `Method ${methodName} not defined for Circle class`, method);
+    //     }
+    //   }
       
-      // Check that all arguments are numeric
-      argValues.forEach(arg => checkNumber(arg, objType));
+    //   // Check that all arguments are numeric
+    //   argValues.forEach(arg => checkNumber(arg, objType));
       
-      // All geometric methods return float
-      return core.staticMethodCall(objectType, methodName, argValues, "float");
-    },
+    //   // All geometric methods return float
+    //   return core.staticMethodCall(objectType, methodName, argValues, "float");
+    // },
     Primary_true(_) {
       return { type: "boolean", value: true };
     },
@@ -715,6 +726,13 @@ export default function analyze(match) {
     EmptyListOf() {
       return [];
     },
+
+    intlit(_neg, _digits) {
+      return core.integerLiteral(parseInt(this.sourceString, 10));
+    },
+    floatlit(_neg, _whole, _dot, _frac, _exp, _sign, _expDigits) {
+      return core.floatLiteral(parseFloat(this.sourceString));
+    }
   });
 
   return analyzer(match).analyze();

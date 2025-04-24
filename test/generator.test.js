@@ -52,7 +52,7 @@ const fixtures = [
       obj new_rectangle = Rectangle(3, 3);
       obj c = Circle(2);
       print(new_rectangle.perimeter());
-      obj s = Triangle(5, pow(3, 2));
+      obj s = Triangle(5, pow(3, 2), 2);
       print(s.area());
       const x: integer = -7;
       const y: integer = 34;
@@ -63,7 +63,7 @@ const fixtures = [
       let new_rectangle_1 = {width: 3, height: 3};
       let c_2 = {radius: 2};
       console.log(new_rectangle_1.perimeter());
-      let s_3 = {width: 5, height: pow(3, 2)};
+      let s_3 = {side1: 5, side2: pow(3, 2), side3: 2};
       console.log(s_3.area());
       let x_4 = -(7);
       let y_5 = 34;
@@ -82,27 +82,33 @@ const fixtures = [
       fnc test(): integer = {return x;}
       print(addition(4, 5));
       print(circleArea(pow(3, 2)));
+      fnc return_1(): integer = {return 1;}
+      print(return_1());
     `,
     expected: dedent`
       function addition_1(a_2, b_3) {
       console.log(2);
-        return a_2 + b_3;
+      return a_2 + b_3;
       }
       function circleArea_4(radius_5) {
-        return 3.14159 * radius_5 ** 2;
+      return 3.14159 * radius_5 ** 2;
       }
       function maximum_6(a_7, b_8) {
-        return Math.max(a_7, b_8);
+      return Math.max(a_7, b_8);
       }
       function greeting_9(name_10) {
-        return "Hello, " + name_10;
+      return "Hello, " + name_10;
       }
       let x_11 = 7;
       function test_12() {
-        return x_11;
+      return x_11;
       }
-      console.log(addition(4, 5));
-      console.log(circleArea(pow(3, 2)));
+      console.log(addition_1(4, 5));
+      console.log(circleArea_4(pow(3, 2)));
+      function return_1_13() {
+      return 1;
+      }
+      console.log(return_1_13());
     `,
   },
   {
@@ -190,7 +196,20 @@ const fixtures = [
       }
     `,
   },
-
+  {
+    name: "arrays",
+    source: `
+      let x: integer[] = [1, 2, 3];
+      print(#x);
+      print(x[0]);
+    `,
+    expected: dedent`
+      let x_1 = [1, 2, 3];
+      console.log(#(x_1));
+      console.log(x_1[0]);
+    `,
+  },
+  
 
 
 ]

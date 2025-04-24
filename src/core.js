@@ -110,15 +110,15 @@ export function methodCall(object, methodName, args, type) {
   };
 }
 
-export function staticMethodCall(className, methodName, args, type) {
-  return {
-    kind: "StaticMethodCall",
-    className,
-    methodName,
-    args,
-    type,
-  };
-}
+// export function staticMethodCall(className, methodName, args, type) {
+//   return {
+//     kind: "StaticMethodCall",
+//     className,
+//     methodName,
+//     args,
+//     type,
+//   };
+// }
 
 export function binaryExpression(op, left, right, type) {
   return {
@@ -187,4 +187,20 @@ export function block(statements) {
     kind: "Block",
     statements,
   };
+}
+
+export function integerLiteral(value) {
+  return {
+    kind: "IntegerLiteral",
+    type: "integer",
+    value
+  }
+}
+
+export function floatLiteral(value) {
+  return {
+    kind: "FloatLiteral",
+    type: "float",
+    value
+  }
 }

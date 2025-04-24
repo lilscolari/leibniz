@@ -64,7 +64,7 @@ describe("The parser", () => {
   });
 
   it("matches numeral with decimal", () => {
-    assert.ok(parse("pi = 3.14159;"));
+    assert.ok(parse("pi_approximation = 3.14159;"));
   });
 
   it("matches while loop", () => {

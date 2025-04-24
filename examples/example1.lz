@@ -61,7 +61,7 @@ obj c = Circle(2);
 
 print(new_rectangle.perimeter());
 
-obj s = Triangle(5, pow(3, 2));
+obj s = Triangle(5, pow(3, 2), 3);
 
 print(s.area());
 
@@ -106,3 +106,10 @@ print(abs(3 * -5));
 
 print(derivative("x^2", "x", 231.4));
 
+print(addition(2, 3));
+
+let int_array: integer[] = [1, 2, 3];
+print(#int_array);
+print(int_array[0]);
+
+let str_len: integer = #"hello";
