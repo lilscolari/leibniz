@@ -91,7 +91,11 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 ### 🔹 Derivative Example
 
 ```leibniz
-let f_prime = derivative("x^2", "x", 3);
+let f_prime: float = derivative("x^2", "x", 3);
+```
+<sub><b>Generated Output:</b></sub>  
+```js
+let f_prime_1 = derivative("x^2", "x", 3);
 ```
 
 ### 🔹 Object and Method Call
@@ -101,6 +105,13 @@ obj t = Triangle(3, 5, 6);
 print(t.area());
 obj c = Circle(5);
 print(c.circumference());
+```
+<sub><b>Generated Output:</b></sub>  
+```js
+let t_1 = {side1: 3, side2: 5, side3: 6};
+console.log(t_1.area());
+let c_2 = {radius: 5};
+console.log(c_2.circumference());
 ```
 
 ### 🔹 Conditional Statement
@@ -114,6 +125,16 @@ if cos(0) == 1 {
   print(cos(0));
 }
 ```
+<sub><b>Generated Output:</b></sub>  
+```js
+if (Math.cos(0) === 1) {
+  console.log(true);
+} else if (Math.cos(0) === 0) {
+  console.log(false);
+} else {
+  console.log(Math.cos(0));
+}
+```
 
 ### 🔹 Math Functions
 
@@ -124,6 +145,14 @@ print(pow(e, 2));
 print(max(1, 2));
 print(round(3.14159265));
 ```
+<sub><b>Generated Output:</b></sub>  
+```js
+console.log(Math.sin(3.141592653589793));
+console.log(Math.cos(3.141592653589793 / 2));
+console.log(pow(2.718281828459045, 2));
+console.log(Math.max(1, 2));
+console.log(Math.round(3.14159265));
+```
 
 ### 🔹 For Loop
 
@@ -132,12 +161,24 @@ for i in domain(5) {
   print(i);
 }
 ```
+<sub><b>Generated Output:</b></sub>  
+```js
+for (let i_1 of [0,1,2,3,4]) {
+  console.log(i_1);
+}
+```
 
 ### 🔹 While Loop
 
 ```leibniz
 while (true) {
   print(1);
+}
+```
+<sub><b>Generated Output:</b></sub>  
+```js
+while (true) {
+  console.log(1);
 }
 ```
 
@@ -149,6 +190,13 @@ fnc f(x: integer): integer = {
 }
 let y: integer = f(1);
 ```
+<sub><b>Generated Output:</b></sub>  
+```js
+function f_1(x_2) {
+  return x_2;
+}
+let y_3 = f_1(1);
+```
 
 ### 🔹 Arrays
 
@@ -157,6 +205,13 @@ let a: integer[] = [1, 2, 3];
 let x: integer = a[0];
 let length: integer = #a;
 ```
+<sub><b>Generated Output:</b></sub>  
+```js
+let a_1 = [1, 2, 3];
+let x_2 = a_1[0];
+let length_3 = #(a_1);
+```
+
 
 ---
 
