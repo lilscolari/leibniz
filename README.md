@@ -97,8 +97,10 @@ let f_prime = derivative("x^2", "x", 3);
 ### 🔹 Object and Method Call
 
 ```leibniz
-obj t = Triangle(3, 5);
+obj t = Triangle(3, 5, 6);
 print(t.area());
+obj c = Circle(5);
+print(c.circumference());
 ```
 
 ### 🔹 Conditional Statement
@@ -111,6 +113,49 @@ if cos(0) == 1 {
 } else {
   print(cos(0));
 }
+```
+
+### 🔹 Math Functions
+
+```leibniz
+print(sin(pi));
+print(cos(pi/2));
+print(pow(e, 2));
+print(max(1, 2));
+print(round(3.14159265));
+```
+
+### 🔹 For Loop
+
+```leibniz
+for i in domain(5) {
+  print(i);
+}
+```
+
+### 🔹 While Loop
+
+```leibniz
+while (true) {
+  print(1);
+}
+```
+
+### 🔹 Functions
+
+```leibniz
+fnc f(x: integer): integer = {
+  return x;
+}
+let y: integer = f(1);
+```
+
+### 🔹 Arrays
+
+```leibniz
+let a: integer[] = [1, 2, 3];
+let x: integer = a[0];
+let length: integer = #a;
 ```
 
 ---
