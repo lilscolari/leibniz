@@ -8,6 +8,10 @@
 A math-focused programming language built for clarity, precision, and exploration.
 </p>
 
+<p align="center">
+  🔗 <a href="https://lilscolari.github.io/leibniz/">View the Pages site here</a>
+</p>
+
 ---
 
 ## 🧠 About the Project
