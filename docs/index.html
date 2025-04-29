@@ -7,188 +7,178 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body { padding: 2rem; background-color: #f8f9fa; }
-    .container { max-width: 1000px; }
+    .container { max-width: 900px; }
     .code-box { background-color: #272822; color: #f8f8f2; padding: 10px; border-radius: 5px; font-family: monospace; }
     .bio-img { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; }
-    .table { background-color: white; }
+    hr { margin: 2rem 0; }
   </style>
 </head>
 <body>
 
-<div class="container">
+  <div class="container">
+    <header class="text-center mb-5">
+      <h1 class="fw-bold">Leibniz Programming Language</h1>
+      <img src="docs/leibniz_logo.png" alt="Leibniz Logo" width="200" class="my-3">
+      <p class="lead">A math-focused programming language built for clarity, precision, and exploration.</p>
+      <p>
+        Created by 
+        <a href="https://github.com/lilscolari" target="_blank">Cameron</a>,
+        <a href="https://github.com/avenky72" target="_blank">Atul</a>,
+        <a href="https://github.com/dougspaeth" target="_blank">Doug</a>,
+        and 
+        <a href="https://github.com/hellobro31" target="_blank">Artur</a>.
+      </p>
+      <p>
+        🔗 <a href="https://lilscolari.github.io/leibniz/" target="_blank">View the Pages site here</a>
+      </p>
+    </header>
 
-  <!-- Header -->
-  <header class="text-center mb-5">
-    <h1 class="fw-bold">Leibniz</h1>
-    <img src="docs/leibniz_logo.png" alt="Leibniz Logo" width="200" class="my-3">
-    <p class="lead">A math-focused programming language built for clarity, precision, and exploration.</p>
-    <p>🔗 <a href="https://lilscolari.github.io/leibniz/" target="_blank">View the Pages site here</a></p>
-  </header>
+    <section class="mb-5">
+      <h2>🧠 About the Project</h2>
+      <p>
+        Leibniz is a math-focused programming language created by Cameron, Atul, Doug, and Artur.
+        Inspired by our shared passion for mathematics, we set out to build a language that makes mathematical computation more intuitive, expressive, and accessible.
+      </p>
+      <p>
+        The language is named after <strong>Gottfried Wilhelm Leibniz</strong>, one of the inventors of calculus and the creator of the <em>Leibniz calculator</em>—one of the first machines capable of performing all four basic arithmetic operations.
+        His influence on symbolic logic and mathematics makes him the perfect namesake.
+      </p>
+    </section>
 
-  <!-- About the Project -->
-  <section class="mb-5">
-    <h2>🧠 About the Project</h2>
-    <p>Leibniz is a math-focused programming language created by <strong>Cameron, Atul, Doug, and Artur</strong>. Inspired by our shared passion for mathematics, we set out to build a language that makes mathematical computation more intuitive, expressive, and accessible.</p>
-    <p>Named after <strong>Gottfried Wilhelm Leibniz</strong> — inventor of calculus and the Leibniz calculator — our language strives to integrate mathematical thinking into programming in a natural, powerful way.</p>
-  </section>
+    <section class="mb-5">
+      <h2>🚀 Features</h2>
+      <ul>
+        <li>✅ Function creation and calling</li>
+        <li>🔁 <code>for</code> and <code>while</code> loops</li>
+        <li>🧮 Basic arithmetic: negation, addition, subtraction, multiplication, division, exponentiation, and modulus</li>
+        <li>🔣 Mathematical constants like <code>pi</code></li>
+        <li>📐 Built-in math functions: <code>cos</code>, <code>sin</code>, <code>domain</code>, etc.</li>
+        <li>✍️ Variable declaration and assignment</li>
+        <li>📤 Print statements</li>
+        <li>🧾 Conditional statements with inequalities (<code>if-else</code>)</li>
+        <li>🧱 Object (shape) declarations</li>
+        <li>🧬 Symbolic differentiation (<code>derivative</code> function)</li>
+      </ul>
+    </section>
 
-  <!-- Features -->
-  <section class="mb-5">
-    <h2>🚀 Features</h2>
-    <ul>
-      <li>✅ Function creation and calling</li>
-      <li>🔁 <code>for</code> and <code>while</code> loops</li>
-      <li>🧮 Basic arithmetic: negation, addition, subtraction, multiplication, division, exponentiation, modulus</li>
-      <li>🔣 Math constants like <code>pi</code></li>
-      <li>📐 Built-in math functions: <code>cos</code>, <code>sin</code>, <code>domain</code>, etc.</li>
-      <li>✍️ Variable declaration and assignment</li>
-      <li>📤 Print statements</li>
-      <li>🧾 Conditional statements with inequalities (<code>if-else</code>)</li>
-      <li>🧱 Object (shape) declarations</li>
-      <li>🧬 Symbolic differentiation (<code>derivative</code> function)</li>
-    </ul>
-  </section>
+    <section class="mb-5">
+      <h2>🛑 Examples of Static Errors</h2>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr><th>Error Message</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Expected number</td></tr>
+            <tr><td>Expected a digit</td></tr>
+            <tr><td>Type mismatch</td></tr>
+            <tr><td>Expected number or string</td></tr>
+            <tr><td>Operands must have the same type</td></tr>
+            <tr><td><code>x</code> not declared</td></tr>
+            <tr><td>Object <code>new_triangle</code> not found</td></tr>
+            <tr><td>Expected "Circle", "Rectangle", or "Triangle"</td></tr>
+            <tr><td>Rectangle requires 2 args (base, height), got 1</td></tr>
+            <tr><td>Triangle requires 2 args (base, height), got 1</td></tr>
+            <tr><td>Rectangle requires 2 args (base, height), got 0</td></tr>
+            <tr><td>Triangle requires 2 args (base, height), got 0</td></tr>
+            <tr><td>Circle requires 1 arg (radius), got 2</td></tr>
+            <tr><td><code>diameter</code> is not a valid method for <code>Circle</code></td></tr>
+            <tr><td><code>circumference</code> is not a valid method for <code>Rectangle</code></td></tr>
+            <tr><td>Cannot read properties of undefined (<code>type</code>)</td></tr>
+            <tr><td><code>volume</code> is not a valid method for <code>Triangle</code></td></tr>
+            <tr><td>Function <code>sin</code> expects 1 arg, received 0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-  <!-- Static Errors -->
-  <section class="mb-5">
-    <h2>🛑 Examples of Static Errors</h2>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>❌ Error Message</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Expected number</td></tr>
-          <tr><td>Expected a digit</td></tr>
-          <tr><td>Type mismatch</td></tr>
-          <tr><td>Expected number or string</td></tr>
-          <tr><td>Operands must have the same type</td></tr>
-          <tr><td><code>x</code> not declared</td></tr>
-          <tr><td>Object <code>new_triangle</code> not found</td></tr>
-          <tr><td>Expected "Circle", "Rectangle", or "Triangle"</td></tr>
-          <tr><td>Rectangle requires 2 args, got 1</td></tr>
-          <tr><td>Triangle requires 2 args, got 1</td></tr>
-          <tr><td>Rectangle requires 2 args, got 0</td></tr>
-          <tr><td>Triangle requires 2 args, got 0</td></tr>
-          <tr><td>Circle requires 1 arg, got 2</td></tr>
-          <tr><td><code>diameter</code> is not a valid method for Circle</td></tr>
-          <tr><td><code>circumference</code> is not a valid method for Rectangle</td></tr>
-          <tr><td>Cannot read properties of undefined (<code>type</code>)</td></tr>
-          <tr><td><code>volume</code> is not a valid method for Triangle</td></tr>
-          <tr><td>Function <code>sin</code> expects 1 arg, received 0</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+    <section class="mb-5">
+      <h2>🚀 Features of the Language</h2>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr><th>Feature</th><th>Explanation</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Reserved Words</td><td>For easy integration of mathematical terminology</td></tr>
+            <tr><td>Statically Typed</td><td>To ensure mathematical correctness and detect errors early</td></tr>
+            <tr><td>Semicolons</td><td>To mark the end of a statement</td></tr>
+            <tr><td>Trig Functions</td><td>To allow more mathematical versatility</td></tr>
+            <tr><td>Shapes</td><td>To expand into geometry</td></tr>
+            <tr><td>Error Handling</td><td>Handles math errors (like division by zero)</td></tr>
+            <tr><td>Immutability</td><td>Ensures values don't change accidentally</td></tr>
+            <tr><td>Pattern Matching</td><td>Useful with variables and symbolic computation</td></tr>
+            <tr><td>Function Creation</td><td>Model your own math functions or equations</td></tr>
+            <tr><td>Loops</td><td>Perform complex arithmetic like summations or products</td></tr>
+            <tr><td>Math Constants</td><td>Leverage constants to help compute values</td></tr>
+            <tr><td>Arithmetic</td><td>The foundation of math</td></tr>
+            <tr><td>Print Statements</td><td>Visualize mathematical output</td></tr>
+            <tr><td>Conditionals and Inequalities</td><td>Many formulas or concepts depend on them</td></tr>
+            <tr><td>Derivatives</td><td>Experiment with symbolic differentiation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-  <!-- Features of the Language -->
-  <section class="mb-5">
-    <h2>🚀 Features of the Language</h2>
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>🧩 Feature</th>
-            <th>💡 Explanation</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Reserved Words</td><td>Easy integration of mathematical terminology</td></tr>
-          <tr><td>Statically Typed</td><td>Ensures mathematical correctness and early error detection</td></tr>
-          <tr><td>Semicolons</td><td>Marks the end of statements</td></tr>
-          <tr><td>Trig Functions</td><td>Provides more mathematical versatility</td></tr>
-          <tr><td>Shapes</td><td>Expands into geometry concepts</td></tr>
-          <tr><td>Error Handling</td><td>Handles math-specific errors like division by zero</td></tr>
-          <tr><td>Immutability</td><td>Values don't accidentally change</td></tr>
-          <tr><td>Pattern Matching</td><td>Useful with symbolic computation</td></tr>
-          <tr><td>Function Creation</td><td>Users can model custom math functions</td></tr>
-          <tr><td>Loops</td><td>Allows summations, products, and more</td></tr>
-          <tr><td>Math Constants</td><td>Leverages important values like π</td></tr>
-          <tr><td>Arithmetic</td><td>Basic mathematical operations</td></tr>
-          <tr><td>Print Statements</td><td>Visualize mathematical output</td></tr>
-          <tr><td>Conditionals and Inequalities</td><td>Critical for many formulas</td></tr>
-          <tr><td>Derivatives</td><td>Experiment with symbolic differentiation</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+    <section class="mb-5">
+      <h2>💻 Example Programs</h2>
 
-  <!-- Example Programs -->
-  <section class="mb-5">
-    <h2>💻 Potential Example Programs</h2>
+      <h5>Derivative Example</h5>
+      <pre class="code-box">let f_prime: float = derivative("x^2", "x", 3);</pre>
 
-    <h4>🔹 Derivative Example</h4>
-    <pre class="code-box">let f_prime: float = derivative("x^2", "x", 3);</pre>
-    <small><b>Generated Output:</b></small>
-    <pre class="code-box">let f_prime_1 = derivative("x^2", "x", 3);</pre>
-
-    <h4>🔹 Object and Method Call</h4>
-    <pre class="code-box">obj t = Triangle(3, 5, 6);
+      <h5>Object and Method Call</h5>
+      <pre class="code-box">
+obj t = Triangle(3, 5, 6);
 print(t.area());
 obj c = Circle(5);
-print(c.circumference());</pre>
-    <small><b>Generated Output:</b></small>
-    <pre class="code-box">let t_1 = {side1: 3, side2: 5, side3: 6};
-console.log(t_1.area());
-let c_2 = {radius: 5};
-console.log(c_2.circumference());</pre>
+print(c.circumference());
+      </pre>
 
-    <h4>🔹 Conditional Statement</h4>
-    <pre class="code-box">if cos(0) == 1 {
+      <h5>Conditional Statement</h5>
+      <pre class="code-box">
+if cos(0) == 1 {
   print(true);
 } else if cos(0) == 0 {
   print(false);
 } else {
   print(cos(0));
-}</pre>
-    <small><b>Generated Output:</b></small>
-    <pre class="code-box">if (Math.cos(0) === 1) {
-  console.log(true);
-} else if (Math.cos(0) === 0) {
-  console.log(false);
-} else {
-  console.log(Math.cos(0));
-}</pre>
+}
+      </pre>
+    </section>
 
-  </section>
-
-  <!-- Meet the Developers -->
-  <section class="mb-5">
-    <h2>Meet the Developers</h2>
-    <div class="row">
-      <div class="col-md-3 text-center">
-        <img src="images/cameron.jpg" alt="Cameron" class="bio-img mb-2">
-        <h5>Cameron</h5>
-        <p>Cameron is a junior from Los Angeles who is double majoring in computer science and data science. He is passionate about analytics and dreams of working for a sports team.</p>
+    <section class="mb-5">
+      <h2>Meet the Developers</h2>
+      <div class="row">
+        <div class="col-md-3 text-center">
+          <img src="images/cameron.jpg" alt="Cameron" class="bio-img">
+          <h5>Cameron</h5>
+          <p>Cameron is a junior from Los Angeles double majoring in computer science and data science. His dream job is working in sports analytics.</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <img src="images/atul.jpg" alt="Atul" class="bio-img">
+          <h5>Atul</h5>
+          <p>Atul is a junior computer science major from Santa Clara, California. He's passionate about machine learning, data science, and automation.</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <img src="images/doug.jpg" alt="Doug" class="bio-img">
+          <h5>Doug</h5>
+          <p>bio</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <img src="images/artur.jpg" alt="Artur" class="bio-img">
+          <h5>Artur</h5>
+          <p>bio</p>
+        </div>
       </div>
-      <div class="col-md-3 text-center">
-        <img src="images/atul.jpg" alt="Atul" class="bio-img mb-2">
-        <h5>Atul</h5>
-        <p>Atul is a junior computer science major from Santa Clara, California. His interests include machine learning, data science, and automation.</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <img src="images/doug.jpg" alt="Doug" class="bio-img mb-2">
-        <h5>Doug</h5>
-        <p>bio</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <img src="images/artur.jpg" alt="Artur" class="bio-img mb-2">
-        <h5>Artur</h5>
-        <p>bio</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Project Links -->
-  <section class="mb-5">
-    <h2>Project Links</h2>
-    <p>View the compiler source code on GitHub: <a href="https://github.com/lilscolari/leibniz" target="_blank">Leibniz Compiler Repository</a></p>
-  </section>
+    <section class="mb-5">
+      <h2>Project Links</h2>
+      <p>Check out the compiler source code on GitHub: <a href="https://github.com/lilscolari/leibniz" target="_blank">Leibniz Compiler Repository</a></p>
+    </section>
 
-</div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
