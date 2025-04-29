@@ -12,6 +12,10 @@ A math-focused programming language built for clarity, precision, and exploratio
   🔗 <a href="https://lilscolari.github.io/leibniz/">View the Pages site here</a>
 </p>
 
+<p align="center">
+  🔗 <a href="[https://lilscolari.github.io/leibniz/](https://github.com/lilscolari/leibniz/blob/main/src/leibniz.ohm)">View the Pages site here</a>
+</p>
+
 ---
 
 ## 🧠 About the Project
