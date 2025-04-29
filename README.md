@@ -13,7 +13,7 @@ A math-focused programming language built for clarity, precision, and exploratio
 </p>
 
 <p align="center">
-  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/src/leibniz.ohm">View the language Grammar site here</a>
+  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/src/leibniz.ohm">View the language Grammar here</a>
 </p>
 
 ---
