@@ -202,6 +202,36 @@ export default function analyze(match) {
     check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
   }
 
+
+  function everyPathReturns(statements) {
+    for (let i = 0; i < statements.length; i++) {
+      const stmt = statements[i];
+      if (stmt.kind === "ReturnStatement") {
+        return true;
+      }
+      if (stmt.kind === "IfStatement") {
+        if (
+          stmt.consequent &&
+          stmt.alternate &&
+          everyPathReturns(stmt.consequent) &&
+          everyPathReturns(stmt.alternate)
+        ) {
+          return true;
+        }
+      }
+      if (stmt.kind === "WhileStatement" || stmt.kind === "ForLoopStatement") {
+        // Check if the loop *body* unconditionally returns
+        if (everyPathReturns(stmt.body)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  
+  
+
   const analyzer = grammar.createSemantics().addOperation("analyze", {
     Program(statements) {
       return core.program(statements.children.map((s) => s.analyze()));
@@ -227,8 +257,11 @@ export default function analyze(match) {
       // Analyze loop variable and body
       const loopVar = core.variable(id.sourceString, "integer", false);
       context.add(id.sourceString, loopVar);
+
+      const upperBound = forInt.analyze();
+      checkInteger(upperBound, forInt);
       
-      const upperBound = parseInt(forInt.sourceString, 10);
+      // const upperBound = parseInt(forInt.sourceString, 10);
       const body = block.analyze();
       
       // Restore the previous context
@@ -262,40 +295,55 @@ export default function analyze(match) {
     FunDec(_fun, id, params, _colon, returnType, _eq, body) {
       checkNotDeclared(id.sourceString, id);
       const declaredReturnType = returnType.analyze();
-      
+    
       context = context.newChildContext();
       const parameters = params.analyze().flat();
-      
-      // Handle the new FuncBody structure
-      let analyzedBody;
-      if (body.ctorName === "FuncBody") {
-        // This is the new style function body with explicit return
-        const stmts = body.children[1].children.map(s => s.analyze());
-        const returnExp = body.children[3].analyze();
-        
-        // Check that return expression type is compatible with declared return type
-        checkTypesCompatible(returnExp.type, declaredReturnType, body.children[3]);
-        
-        analyzedBody = core.functionBody(stmts, returnExp);
-      } 
-      // else {
-      //   // This is the old style function body (expression)
-      //   analyzedBody = body.analyze();
-        
-      //   // Check that body's type is compatible with declared return type
-      //   checkTypesCompatible(analyzedBody.type, declaredReturnType, body);
-      // }
-      
+    
+      const analyzedBody = body.analyze();
+      const { statements, returnExp } = analyzedBody;
+    
+      // Add returnExp as the final return if not all paths return
+      const allPathsReturn = everyPathReturns(statements);
+      const finalStatements = [...statements];
+    
+      if (!allPathsReturn && returnExp) {
+        finalStatements.push(returnExp);
+      } else if (!allPathsReturn && !returnExp) {
+        throw new Error(`Function "${id.sourceString}" may not return a value on all paths.`);
+      }
+    
+      // Check return type
+      if (returnExp) {
+        checkTypesCompatible(returnExp.type, declaredReturnType, returnExp);
+      }
+    
       context = context.parent;
+    
       const fun = core.función(id.sourceString, parameters, declaredReturnType);
-      
       context.add(id.sourceString, fun);
-      return core.functionDeclaration(fun, analyzedBody);
+      return core.functionDeclaration(fun, core.functionBody(finalStatements));
     },
-    // FuncBody(_open, statements, _return, exp, _semi, _close) {
-    //   // This will be handled in FunDec
-    //   return this.sourceString;
-    // },
+    
+
+    ReturnStatement(_return, exp, _semi) {
+      const expression = exp.analyze();
+      return core.returnStatement(expression);
+    },
+        
+  
+    FuncBody(_open, stmts, maybeReturn, _close) {
+      const statements = stmts.children.map(s => s.analyze());
+      const returnExp = maybeReturn.numChildren === 0 ? null : maybeReturn.children[0].analyze();
+      return {
+        kind: "FuncBody",
+        statements,
+        returnExp,
+      };
+    },
+    
+    
+    
+    
     FunctionCall(id, _open, args, _close) {
       const fun = context.lookup(id.sourceString);
       check(fun, `Function ${id.sourceString} not declared`, id);
@@ -544,6 +592,12 @@ export default function analyze(match) {
     },
     MathFuncCall_unary(func, _open, arg, _close) {
       const x = arg.analyze();
+
+      if (func.sourceString === "str") {
+        checkNumber(x, arg); // Optional: if you only allow numbers -> string
+        return core.callExpression("str", [x], "string");
+      }
+      
       checkNumber(x, arg);
       
       // Determine return type based on function

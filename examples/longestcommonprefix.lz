@@ -1,0 +1,41 @@
+// 14. Longest Common prefix
+
+// Write a function to find the longest common prefix string amongst an array of strings.
+
+// If there is no common prefix, return an empty string "".
+
+fnc longest_common_prefix(strs: string[]): string = {
+    if (#strs == 0) {
+        return "";
+    }
+    let prefix: string = strs[0];
+
+    for i in domain(#strs - 1) {
+        let s: string = strs[i + 1];
+        let j: integer = 0;
+        let new_prefix: string = "";
+        
+        while true {  
+            if j >= #prefix {
+                break;
+            }
+            if j >= #s {
+                break;
+            }
+            if prefix[j] != s[j] {
+                break;
+            }     
+            new_prefix = new_prefix + prefix[j];
+            j = j + 1;
+        } 
+        prefix = new_prefix;
+        
+        if (#prefix == 0) {
+            break;
+        }
+    }
+    return prefix;
+}
+
+print(longest_common_prefix(["flower", "flow", "flight"]));
+print(longest_common_prefix(["dog","racecar","car"]));

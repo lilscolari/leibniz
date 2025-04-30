@@ -6,19 +6,21 @@ Leibniz {
             | PrintStmt
             | WhileStmt
             | IfStmt
+            | ReturnStatement
             | break ";"                       --break
             | ObjectCreation
             | AssignmentStmt
             | "++" Primary_id ";"             --increment
             | "--" Primary_id ";"             --decrement
-  ForLoop = for id in domain "(" forInteger ")" Block
+  ForLoop = for id in domain "(" Exp ")" Block
   forInteger = digit+          
   for = "for" ~idchar
   in = "in" ~idchar
   domain = "domain" ~idchar
   VarDec    = (let | const) id ":" Type "=" Exp ";"
   FunDec    = fnc id Params ":" Type "=" FuncBody
-  FuncBody  = "{" Stmt* "return" Exp ";" "}"
+  FuncBody = "{" Stmt* (ReturnStatement)? "}"
+  ReturnStatement = "return" Exp ";"
   FunctionCall = id "(" ExpList ")"
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" Type
@@ -74,7 +76,9 @@ Leibniz {
              | arccosFunc | arcsinFunc | arctanFunc
   
   UnaryMathFunc = sqrtFunc | expFunc | lnFunc | log10Func 
-                | absFunc | floorFunc | ceilFunc | roundFunc
+                | absFunc | floorFunc | ceilFunc | roundFunc | toStringFunc
+
+  toStringFunc = "str" ~idchar
                 
   BinaryMathFunc = minFunc | maxFunc | powFunc
   

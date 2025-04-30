@@ -204,3 +204,11 @@ export function floatLiteral(value) {
     value
   }
 }
+
+export function returnStatement(expression) {
+  return {
+    kind: "ReturnStatement",
+    expression,
+    type: expression.type, // So you can check return type compatibility
+  };
+}

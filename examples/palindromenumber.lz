@@ -1,0 +1,19 @@
+// 9. Palindrome Number
+
+// Given an integer x, return true if x is a palindrome, and false otherwise.
+
+fnc is_palindrome(x: integer): boolean = {
+    const s: string = str(x);
+    const n: integer = #s;
+
+    for i in domain(floor(n / 2)) {
+        if (s[i] != s[n-i-1]) {
+            re  turn false;
+        }
+    }
+    return true;
+}
+
+print(is_palindrome(4235324));
+print(is_palindrome(5));
+print(is_palindrome(24));

@@ -50,7 +50,7 @@ export default function generate(program) {
       //   output.push("}")
       // },
       WhileStatement(s) {
-        output.push(`while (${gen(s.test)} {`)
+        output.push(`while (${gen(s.test)}) {`)
         s.body.statements.forEach(gen)
         output.push("}")
       },
@@ -72,9 +72,9 @@ export default function generate(program) {
       BreakStatement(s) {
         output.push("break;");
       },
-      // ReturnStatement(s) {
-      //   output.push(`return ${gen(s.expression)};`);
-      // },
+      ReturnStatement(s) {
+        output.push(`return ${gen(s.expression)};`);
+      },
       // ShortReturnStatement(s) {
       //   output.push("return;");
       // },
@@ -100,9 +100,9 @@ export default function generate(program) {
       },
       UnaryExpression(e) {
         const operand = gen(e.operand);
-        // if (e.op === "#") {
-        //   return `${operand}.length`;
-        // }
+        if (e.op === "#") {
+          return `${operand}.length`;
+        }
         return `${e.op}(${operand})`;
       },
       // SubscriptExpression(e) {
@@ -158,6 +158,8 @@ export default function generate(program) {
           return `Math.${e.callee}(${argsCode})`;
         } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
           return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
+        } else if (e.callee == "str") {
+          return `${argsCode}.toString()`
         }
       
         // Fallback for user-defined or unknown functions
@@ -168,15 +170,12 @@ export default function generate(program) {
       FunctionDeclaration(d) {
         const functionName = gen(d.fun);
         const paramNames = d.fun.parameters.flat().map(param => gen(param));
-
-        const returnLine = `return ${gen(d.body.returnExp)};`;
       
         output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
         
         for (const stmt of d.body.statements) {
           gen(stmt);
         }
-        output.push(`${returnLine}`);
         output.push("}");
       },
       // FunctionBody(e) {
@@ -193,8 +192,8 @@ export default function generate(program) {
       //   return `derivative("${gen(derivative.func)}", "${gen(derivative.variable)}", ${gen(derivative.evaluatedAt)})`
       // },
       ForLoopStatement(s) {
-        const range = Array.from({ length: gen(s.upperBound) }, (_, i) => i);
-        output.push(`for (let ${gen(s.loopVar)} of [${range}]) {`)
+        const upperBound = gen(gen(s.upperBound))
+        output.push(`for (let ${gen(s.loopVar)} = 0; ${gen(s.loopVar)} < ${upperBound}; ${gen(s.loopVar)}++) {`)
         s.body.statements.forEach(gen)
         output.push("}")
       },
