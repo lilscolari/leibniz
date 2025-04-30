@@ -86,10 +86,26 @@ describe("The parser", () => {
     );
   });
 
-  it("matches for loop", () => {
+  it("matches for loop with different domain argument counts", () => {
     assert.ok(
       parse(`
         for i in domain(5) {
+          print(i);
+        }
+      `)
+    );
+    
+    assert.ok(
+      parse(`
+        for i in domain(1, 5) {
+          print(i);
+        }
+      `)
+    );
+    
+    assert.ok(
+      parse(`
+        for i in domain(1, 10, 2) {
           print(i);
         }
       `)
@@ -101,7 +117,7 @@ describe("The parser", () => {
       parse(`
         obj r = Rectangle(5, 3);
         obj c = Circle(2);
-        obj t = Triangle(4, 6);
+        obj t = Triangle(4, 6, 8);
       `)
     );
   });

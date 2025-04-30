@@ -105,7 +105,6 @@ describe("The analyzer", () => {
   it("type checks function calls", () => {
     checkSuccess("fnc f(x: integer): integer = { return x; } let y: integer = f(1);");
     checkFailure("fnc f(x: integer): integer = { return x; } let y: integer = f(true);", "Cannot assign boolean to integer");
-    // checkFailure("fnc f(x: integer): integer = { return x; } let y: integer = f(1, 2);", "Expected 1 argument\(s\), got 2");
     checkFailure("fnc f(x: integer): integer = { return x; } let y: string = f(1);", "Cannot assign integer to string");
   });
 
@@ -128,8 +127,16 @@ describe("The analyzer", () => {
     checkFailure("while (1) { print(1); }", "Expected boolean");
   });
 
-  it("validates for loops", () => {
+  it("validates for loops with different domain arguments", () => {
     checkSuccess("for i in domain(5) { print(i); }");
+    checkSuccess("for i in domain(1, 5) { print(i); }");
+    checkSuccess("for i in domain(1, 10, 2) { print(i); }");
+    
+    checkFailure("for i in domain() { print(i); }", "domain\\(\\) requires 1 to 3 arguments, got 0");
+    checkFailure("for i in domain(1, 2, 3, 4) { print(i); }", "domain\\(\\) requires 1 to 3 arguments, got 4");
+    checkFailure("for i in domain(true) { print(i); }", "Expected integer");
+    checkFailure("for i in domain(1, true) { print(i); }", "Expected integer");
+    checkFailure("for i in domain(1, 5, false) { print(i); }", "Expected integer");
   });
 
   it("type checks object creation", () => {
@@ -146,7 +153,7 @@ describe("The analyzer", () => {
     checkSuccess("obj r = Rectangle(10, 20); let p: float = r.perimeter();");
     checkSuccess("obj c = Circle(5); let a: float = c.area();");
     checkSuccess("obj c = Circle(5); let r: float = c.radius();");
-    checkFailure("obj t = Triangle(3, 4, 5); let a: float = t.volume();", "Expected \"radius\", \"circumference\", \"perimeter\", or \"area\"");
+    checkFailure("obj t = Triangle(3, 4, 5); let a: float = t.volume();", "Method volume not defined for Triangle objects");
   });
 
   it("validates array subscripting", () => {
@@ -165,9 +172,9 @@ describe("The analyzer", () => {
 
   it("validates derivative functions", () => {
     checkSuccess("let d: float = derivative(\"x^2\", \"x\", 2.0);");
-    checkFailure("let d: float = derivative(5, \"x\", 2.0);", "Expected \"");
-    // checkFailure("let d: float = derivative(\"x^2\", 5, 2.0);", "Expected \"\\\"\"");
-    checkFailure("let d: float = derivative(\"x^2\", \"x\", true);", "Expected a digit");
+    checkFailure("let d: float = derivative(5, \"x\", 2.0);", "Expected string");
+    checkFailure("let d: float = derivative(\"x^2\", 5, 2.0);", "Expected string");
+    checkFailure("let d: float = derivative(\"x^2\", \"x\", true);", "Expected number");
   });
 
   it("validates math constants", () => {

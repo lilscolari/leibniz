@@ -12,7 +12,8 @@ Leibniz {
             | AssignmentStmt
             | "++" Primary_id ";"             --increment
             | "--" Primary_id ";"             --decrement
-  ForLoop = for id in domain "(" Exp ")" Block
+  ForLoop = for id in domain DomainArgs Block
+  DomainArgs = "(" ExpList ")"
   forInteger = digit+          
   for = "for" ~idchar
   in = "in" ~idchar

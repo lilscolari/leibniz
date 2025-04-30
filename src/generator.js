@@ -1,262 +1,230 @@
-import * as math from "mathjs";
+import { describe, it } from "node:test"
+import assert from "node:assert/strict"
+import parse from "../src/parser.js"
+import analyze from "../src/analyzer.js"
+import optimize from "../src/optimizer.js"
+import generate from "../src/generator.js"
 
-export default function generate(program) {
-    // When generating code for statements, we'll accumulate the lines of
-    // the target code here. When we finish generating, we'll join the lines
-    // with newlines and return the result.
-    const output = ['const math = require(\'mathjs\');'];
-  
-    // Variable and function names in JS will be suffixed with _1, _2, _3,
-    // etc. This is because "switch", for example, is a legal name in Carlos,
-    // but not in JS. So, the Carlos variable "switch" must become something
-    // like "switch_1". We handle this by mapping each name to its suffix.
-    const targetName = ((mapping) => {
-      return (entity) => {
-        if (!mapping.has(entity)) {
-          mapping.set(entity, mapping.size + 1);
-        }
-        return `${entity.name}_${mapping.get(entity)}`;
-      };
-    })(new Map());
-  
-    const gen = (node) => {
-      if (node == null) return "";
-    
-      // If node is a plain literal-like object (no `kind`), return its value
-      if (typeof node === "object" && "value" in node && "type" in node) {
-        if (node.type === "string") {
-          return `"${node.value}"`;
-        }
-        return `${node.value}`;
+function dedent(s) {
+  return `${s}`.replace(/(?<=\n)\s+/g, "").trim()
+}
+
+const fixtures = [
+  {
+    name: "variable declaration and assignment",
+    source: `
+      const x: integer = 7;
+      let change: float = 5.56;
+      change = 234.56;
+    `,
+    expected: dedent`
+      let x_1 = 7;
+      let change_2 = 5.56;
+      change_2 = 234.56;
+    `,
+  },
+  {
+    name: "printing math functions",
+    source: `
+      const twenty_five: integer = 25;
+      print(sqrt(twenty_five));
+      print(min(2, 3));
+      print(max(3, 4));
+      print(ln(e));
+      print(log10(pi));
+      print(floor(10.4342));
+      print(arctan(22));
+    `,
+    expected: dedent`
+      let twenty_five_1 = 25;
+      console.log(Math.sqrt(twenty_five_1));
+      console.log(Math.min(2, 3));
+      console.log(Math.max(3, 4));
+      console.log(ln(2.718281828459045));
+      console.log(log10(3.141592653589793));
+      console.log(Math.floor(10.4342));
+      console.log(atan(22));
+    `,
+  },
+  {
+    name: "objects",
+    source: `
+      obj new_rectangle = Rectangle(3, 3);
+      obj c = Circle(2);
+      print(new_rectangle.perimeter());
+      obj s = Triangle(5, pow(3, 2), 2);
+      print(s.area());
+      const x: integer = -7;
+      const y: integer = 34;
+      obj r = Rectangle(x, y);
+      print(r.area());
+    `,
+    expected: dedent`
+      let new_rectangle_1 = {width: 3, height: 3, area: function() {return 9}, perimeter: function() {return 12}};
+      let c_2 = {radius: 2, area: function() {return 12.566370614359172}, circumference: function() {return 12.566370614359172}};
+      console.log(new_rectangle_1.perimeter());
+      let s_3 = {side1: 5, side2: pow(3, 2), side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 16}, 
+            type: function() {return Scalene}};
+      console.log(s_3.area());
+      let x_4 = -7;
+      let y_5 = 34;
+      let r_6 = {width: x_4, height: y_5, area: function() {return -238}, perimeter: function() {return 54}};
+      console.log(r_6.area());
+    `,
+  },
+  {
+    name: "functions",
+    source: `
+      fnc addition(a: integer, b: integer): integer = {print(2); return a + b;}
+      fnc circleArea(radius: float): float = {return 3.14159 * (radius ** 2);}
+      fnc maximum(a: integer, b: integer): integer = {return max(a, b);}
+      fnc greeting(name: string): string = {return "Hello, " + name;}
+      const x: integer = 7;
+      fnc test(): integer = {return x;}
+      print(addition(4, 5));
+      print(circleArea(pow(3, 2)));
+      fnc return_1(): integer = {return 1;}
+      print(return_1());
+    `,
+    expected: dedent`
+      function addition_1(a_2, b_3) {
+      console.log(2);
+      return a_2 + b_3;
       }
-    
-      return generators?.[node?.kind]?.(node) ?? node;
-    };
-  
-    const generators = {
-      // Key idea: when generating an expression, just return the JS string; when
-      // generating a statement, write lines of translated JS to the output array.
-      Program(p) {
-        p.statements.forEach(gen);
-      },
-      VariableDeclaration(d) {
-
-        // We don't care about const vs. let in the generated code! The analyzer has
-        // already checked that we never updated a const, so let is always fine.
-        output.push(`let ${gen(d.variable)} = ${gen(d.initializer)};`);
-      }, 
-      // ForStatement(s) {
-      //   const range = Array.from({ length: gen(s.range) }, (_, i) => i);
-      //   output.push(`for (let ${gen(s.iterator)} of [${range}]) {`)
-      //   s.body.statements.forEach(gen)
-      //   output.push("}")
-      // },
-      WhileStatement(s) {
-        output.push(`while (${gen(s.test)}) {`)
-        s.body.statements.forEach(gen)
-        output.push("}")
-      },
-      Variable(v) {
-        return targetName(v);
-      },
-      Function(f) {
-        return targetName(f);
-      },
-      IncrementStatement(s) {
-        output.push(`${gen(s.variable)}++;`);
-      },
-      DecrementStatement(s) {
-        output.push(`${gen(s.variable)}--;`)
-      },
-      AssignmentStatement(s) {
-        output.push(`${gen(s.target)} = ${gen(s.source)};`);
-      },
-      BreakStatement(s) {
-        output.push("break;");
-      },
-      ReturnStatement(s) {
-        output.push(`return ${gen(s.expression)};`);
-      },
-      // ShortReturnStatement(s) {
-      //   output.push("return;");
-      // },
-      IfStatement(s) {
-        output.push(`if (${gen(s.test)}) {`);
-        s.consequent.statements.forEach(gen);
-        if (s.alternate?.kind?.endsWith?.("IfStatement")) {
-          output.push("} else");
-          gen(s.alternate);
-        } else {
-          if (s.alternate != null) {
-            output.push("} else {");
-            s.alternate.statements.forEach(gen);
-            output.push("}");
-          } else {
-            output.push("}")
-          }
-        }
-      },
-      BinaryExpression(e) {
-        const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op;
-        return `${gen(e.left)} ${op} ${gen(e.right)}`;
-      },
-      UnaryExpression(e) {
-        const operand = gen(e.operand);
-        if (e.op === "#") {
-          return `${operand}.length`;
-        }
-        return `${e.op}(${operand})`;
-      },
-      // SubscriptExpression(e) {
-      //   return `${gen(e.array)}[${gen(e.index)}]`;
-      // },
-      // ArrayExpression(e) {
-      //   return `[${e.elements.map(gen).join(",")}]`;
-      // },
-      // FunctionCall(c) {
-      //   const targetCode = standardFunctions.has(c.callee)
-      //     ? standardFunctions.get(c.callee)(c.args.map(gen))
-      //     : `${gen(c.callee)}(${c.args.map(gen).join(", ")})`;
-      //   // Calls in expressions vs in statements are handled differently
-      //   if (c.callee.type.returnType !== voidType) {
-      //     return targetCode;
-      //   }
-      //   output.push(`${targetCode};`);
-      // },
-      PrintStatement(s) {
-        output.push(`console.log(${gen(s.argument)});`)
-      },
-      ObjectCreation(o) {
-        const args = o.args.map(gen); 
-
-        const variableName = gen(o.variable);
-
-        let semip, type, s1, s2, s3;
-
-        if (o.objectType == "Triangle") {
-          semip = (args[0] + args[1] + args[2]) / 2
-          if (args[0] == args[1] && args[0] == args[2]) {
-            type = "Equilateral"
-          } else if (args[0] !== args[1] && args[0] !== args[2] && args[1] !== args[2]) {
-            type = "Scalene"
-          } else {
-            type = "Isosceles"
-          }
-          s1 = parseInt(args[0], 10);
-          s2 = parseInt(args[1], 10);
-          s3 = parseInt(args[2], 10);
-        }
-
-        if (o.objectType == "Circle") {
-          output.push(`let ${variableName} = {radius: ${args[0]}, area: function() {return ${Math.PI * args[0] ** 2}}, circumference: function() {return ${2 * Math.PI * args[0]}}};`);
-        } else if (o.objectType == "Rectangle") {
-          output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}, area: function() {return ${args[0] * args[1]}}, perimeter: function() {return ${2 * args[0] + 2 * args[1]}}};`);
-        } else {
-          output.push(`let ${variableName} = {side1: ${s1}, side2: ${s2}, side3: ${s3}, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return ${s1 + s2 + s3}}, 
-            type: function() {return ${type}}};`);
-        }
-      },
-      // ObjectMethodCall(o) {
-      //   const variableName = gen(o.object);
-      //   const method = o.method
-      //   return `${variableName}.${method}()`
-      // },
-      // MathConstant(c) {
-      //   if (c.name === "pi" || c.name === "π") {
-      //     return "Math.PI";
-      //   } else if (c.name === "e") {
-      //     return "Math.E";
-      //   }
-      // },
-      CallExpression(e) {
-        const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp"]);
-        //console.log(e)
-        const argsCode = e.args.map(gen).join(", ");
-      
-        if (mathFuncs.has(e.callee)) {
-          return `Math.${e.callee}(${argsCode})`;
-        } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
-          return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
-        } else if (e.callee == "str") {
-          return `${argsCode}.toString()`
-        } else if (e.callee == "sort") {
-          return `math.sort(${argsCode})`
-        } else if (e.callee === "mean") {
-          return `math.mean(${argsCode})`;
-        } else if (e.callee === "median") {
-          return `math.median(${argsCode})`;
-        } else if (e.callee === "mode") {
-          return `math.mode(${argsCode})[0]`;
-        } else if (e.callee === "min") {
-          return `math.min(${argsCode})`;
-        } else if (e.callee === "max") {
-          return `math.max(${argsCode})`;
-        } else if (e.callee === "prod") {
-          return `math.prod(${argsCode})`;
-        } else if (e.callee === "sum") {
-          return `math.sum(${argsCode})`;
-        } else if (e.callee === "std") {
-          return `math.std(${argsCode})`;
-        } else if (e.callee === "variance") {
-          return `math.variance(${argsCode})`;
-        }
-      
-        // Fallback for user-defined or unknown functions
-        return `${gen(e.callee)}(${argsCode})`;
-      },
-
-      // Returns extra [Object] line when additional statements
-      FunctionDeclaration(d) {
-        const functionName = gen(d.fun);
-        const paramNames = d.fun.parameters.flat().map(param => gen(param));
-      
-        output.push(`function ${functionName}(${paramNames.join(", ")}) {`);
-        
-        for (const stmt of d.body.statements) {
-          gen(stmt);
-        }
-        output.push("}");
-      },
-      // FunctionBody(e) {
-      //   const returnLine = `return ${gen(e.returnExpression)};`;
-      //   return `${returnLine}`;
-      // },
-      // IntegerLiteral(number) {
-      //   return `${gen(number)}`;
-      // },
-      // FloatLiteral(number) {
-      //   return `${gen(number)}`;
-      // },
-      // DerivativeCall(derivative) {
-      //   return `derivative("${gen(derivative.func)}", "${gen(derivative.variable)}", ${gen(derivative.evaluatedAt)})`
-      // },
-      ForLoopStatement(s) {
-        const upperBound = gen(gen(s.upperBound))
-        output.push(`for (let ${gen(s.loopVar)} = 0; ${gen(s.loopVar)} < ${upperBound}; ${gen(s.loopVar)}++) {`)
-        s.body.statements.forEach(gen)
-        output.push("}")
-      },
-      MethodCall(o) {
-        const variableName = gen(o.object);
-        const method = o.methodName;
-        const argsCode = o.args.map(gen).join(", ");
-        if (argsCode.length === 0) {
-          return `${variableName}.${method}()`;
-        } 
-        // else {
-        //   return `${variableName}.${method}(${argsCode})`;
-        // }
-      }, ArrayExpression(e) {
-        const elements = e.elements.map(gen).join(", ");
-        return `[${elements}]`
-      }, SubscriptExpression(e) {
-        const variableName = gen(e.array);
-        const index = gen(e.index);
-        return `${variableName}[${index}]`
+      function circleArea_4(radius_5) {
+      return 3.14159 * radius_5 ** 2;
       }
+      function maximum_6(a_7, b_8) {
+      return Math.max(a_7, b_8);
+      }
+      function greeting_9(name_10) {
+      return "Hello, " + name_10;
+      }
+      let x_11 = 7;
+      function test_12() {
+      return x_11;
+      }
+      console.log(addition_1(4, 5));
+      console.log(circleArea_4(pow(3, 2)));
+      function return_1_13() {
+      return 1;
+      }
+      console.log(return_1_13());
+    `,
+  },
+  {
+    name: "while loop",
+    source: `
+      let sum: integer = 0;
+      let counter: integer = 1;
 
-    };
-    
-    gen(program);
-    return output.join("\n");
+      while counter <= 10 {
+          sum = sum + counter;
+          if sum > 100 {
+              break;
+          }
+          counter = counter + 1;
+      }
+    `,
+    expected: dedent`
+      let sum_1 = 0;
+      let counter_2 = 1;
+      while (counter_2 <= 10) {
+      sum_1 = sum_1 + counter_2;
+      if (sum_1 > 100) {
+      break;
+      }
+      counter_2 = counter_2 + 1;
+      }
+    `,
+  },
+  {
+    name: "if statement",
+    source: `
+      const x: float = 5.4;
+      if x > 3 {print(true);} else if x == 3 {print(2);}
+      if x >= 2 {print(x);} else {print(2);}
+      if true {print("true");}
+    `,
+    expected: dedent`
+      let x_1 = 5.4;
+      if (x_1 > 3) {
+      console.log(true);
+      } else
+      if (x_1 === 3) {
+      console.log(2);
+      }
+      if (x_1 >= 2) {
+      console.log(x_1);
+      } else {
+      console.log(2);
+      }
+      if (true) {
+      console.log("true");
+      }
+    `,
+  },
+  {
+    name: "derivative",
+    source: `
+      let d: float = derivative("x^2", "x", 5);
+    `,
+    expected: dedent`
+      let d_1 = derivative("x^2", "x", 5);
+    `,
+  },
+  {
+    name: "increment and decrement",
+    source: `
+      let x: float = 10.3;
+      ++x;
+      --x;
+    `,
+    expected: dedent`
+      let x_1 = 10.3;
+      x_1++;
+      x_1--;
+    `,
+  },
+  {
+    name: "for loop with different domain arguments",
+    source: `
+      for x in domain(5) { print(x); }
+      for y in domain(1, 6) { print(y); }
+      for z in domain(0, 10, 2) { print(z); }
+    `,
+    expected: dedent`
+      for (let x_1 = 0; x_1 < 5; x_1 += 1) {
+      console.log(x_1);
+      }
+      for (let y_2 = 1; y_2 < 6; y_2 += 1) {
+      console.log(y_2);
+      }
+      for (let z_3 = 0; z_3 < 10; z_3 += 2) {
+      console.log(z_3);
+      }
+    `,
+  },
+  {
+    name: "arrays",
+    source: `
+      let x: integer[] = [1, 2, 3];
+      print(#x);
+      print(x[0]);
+    `,
+    expected: dedent`
+      let x_1 = [1, 2, 3];
+      console.log(x_1.length);
+      console.log(x_1[0]);
+    `,
+  },
+]
+
+describe("The code generator", () => {
+  for (const fixture of fixtures) {
+    it(`produces expected js output for the ${fixture.name} program`, () => {
+      const actual = generate(optimize(analyze(parse(fixture.source))))
+      assert.deepEqual(actual, fixture.expected)
+    })
   }
+})

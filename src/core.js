@@ -82,11 +82,11 @@ export function assignmentStatement(source, target) {
   };
 }
 
-export function forLoopStatement(loopVar, upperBound, body) {
+export function forLoopStatement(loopVar, domainArgs, body) {
   return {
     kind: "ForLoopStatement",
     loopVar,
-    upperBound,
+    domainArgs,
     body,
   };
 }
@@ -109,16 +109,6 @@ export function methodCall(object, methodName, args, type) {
     type,
   };
 }
-
-// export function staticMethodCall(className, methodName, args, type) {
-//   return {
-//     kind: "StaticMethodCall",
-//     className,
-//     methodName,
-//     args,
-//     type,
-//   };
-// }
 
 export function binaryExpression(op, left, right, type) {
   return {

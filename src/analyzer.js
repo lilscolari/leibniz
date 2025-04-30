@@ -229,9 +229,6 @@ export default function analyze(match) {
     return false;
   }
   
-  
-  
-
   const analyzer = grammar.createSemantics().addOperation("analyze", {
     Program(statements) {
       return core.program(statements.children.map((s) => s.analyze()));
@@ -249,25 +246,37 @@ export default function analyze(match) {
     Stmt_break(_break, _semi) {
       return core.breakStatement();
     },
-    ForLoop(_for, id, _in, _domain, _open, forInt, _close, block) {
+    ForLoop(_for, id, _in, _domain, domainArgs, block) {
       // Create new context for the loop variable
       const savedContext = context;
       context = context.newChildContext();
       
+      // Analyze domain arguments to get start, stop, and step values
+      const args = domainArgs.analyze();
+      
+      // Check that all arguments are integers
+      args.forEach(arg => checkInteger(arg, domainArgs));
+      
+      // Check that we have between 1 and 3 arguments
+      check(
+        args.length >= 1 && args.length <= 3,
+        `domain() requires 1 to 3 arguments, got ${args.length}`,
+        domainArgs
+      );
+      
       // Analyze loop variable and body
       const loopVar = core.variable(id.sourceString, "integer", false);
       context.add(id.sourceString, loopVar);
-
-      const upperBound = forInt.analyze();
-      checkInteger(upperBound, forInt);
       
-      // const upperBound = parseInt(forInt.sourceString, 10);
       const body = block.analyze();
       
       // Restore the previous context
       context = savedContext;
 
-      return core.forLoopStatement(loopVar, upperBound, body);
+      return core.forLoopStatement(loopVar, args, body);
+    },
+    DomainArgs(_open, expList, _close) {
+      return expList.analyze();
     },
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
       checkNotDeclared(id.sourceString, id);
@@ -340,9 +349,6 @@ export default function analyze(match) {
         returnExp,
       };
     },
-    
-    
-    
     
     FunctionCall(id, _open, args, _close) {
       const fun = context.lookup(id.sourceString);
@@ -716,46 +722,6 @@ export default function analyze(match) {
       // All geometric methods return float
       return core.methodCall(object, methodName, [], "float");
     },
-    // StaticMethodCall(objType, _dot, method, _open, args, _close) {
-    //   const objectType = objType.sourceString;
-    //   const methodName = method.sourceString;
-    //   const argValues = args ? args.analyze() : [];
-      
-    //   // Check that the static method call is valid
-    //   if (objectType === "Triangle") {
-    //     if (methodName === "area") {
-    //       check(argValues.length === 3, `Triangle.area requires 3 arguments (sides), got ${argValues.length}`, objType);
-    //     } else if (methodName === "perimeter") {
-    //       check(argValues.length === 3, `Triangle.perimeter requires 3 arguments (sides), got ${argValues.length}`, objType);
-    //     } else {
-    //       check(false, `Method ${methodName} not defined for Triangle class`, method);
-    //     }
-    //   } else if (objectType === "Rectangle") {
-    //     if (methodName === "area") {
-    //       check(argValues.length === 2, `Rectangle.area requires 2 arguments (width, height), got ${argValues.length}`, objType);
-    //     } else if (methodName === "perimeter") {
-    //       check(argValues.length === 2, `Rectangle.perimeter requires 2 arguments (width, height), got ${argValues.length}`, objType);
-    //     } else {
-    //       check(false, `Method ${methodName} not defined for Rectangle class`, method);
-    //     }
-    //   } else if (objectType === "Circle") {
-    //     if (methodName === "area") {
-    //       check(argValues.length === 1, `Circle.area requires 1 argument (radius), got ${argValues.length}`, objType);
-    //     } else if (methodName === "circumference") {
-    //       check(argValues.length === 1, `Circle.circumference requires 1 argument (radius), got ${argValues.length}`, objType);
-    //     } else if (methodName === "radius") {
-    //       check(argValues.length === 1, `Circle.radius requires 1 argument (circumference), got ${argValues.length}`, objType);
-    //     } else {
-    //       check(false, `Method ${methodName} not defined for Circle class`, method);
-    //     }
-    //   }
-      
-    //   // Check that all arguments are numeric
-    //   argValues.forEach(arg => checkNumber(arg, objType));
-      
-    //   // All geometric methods return float
-    //   return core.staticMethodCall(objectType, methodName, argValues, "float");
-    // },
     Primary_true(_) {
       return { type: "boolean", value: true };
     },
