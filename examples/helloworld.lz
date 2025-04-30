@@ -1,0 +1,5 @@
+fnc hello_world(): string = {
+    return "Hello world";
+}
+
+print(hello_world());
