@@ -129,12 +129,29 @@ export default function generate(program) {
 
         const variableName = gen(o.variable);
 
+        let semip, type, s1, s2, s3;
+
+        if (o.objectType == "Triangle") {
+          semip = (args[0] + args[1] + args[2]) / 2
+          if (args[0] == args[1] && args[0] == args[2]) {
+            type = "Equilateral"
+          } else if (args[0] !== args[1] && args[0] !== args[2] && args[1] !== args[2]) {
+            type = "Scalene"
+          } else {
+            type = "Isosceles"
+          }
+          s1 = parseInt(args[0], 10);
+          s2 = parseInt(args[1], 10);
+          s3 = parseInt(args[2], 10);
+        }
+
         if (o.objectType == "Circle") {
-          output.push(`let ${variableName} = {radius: ${args[0]}};`);
+          output.push(`let ${variableName} = {radius: ${args[0]}, area: function() {return ${Math.PI * args[0] ** 2}}, circumference: function() {return ${2 * Math.PI * args[0]}}};`);
         } else if (o.objectType == "Rectangle") {
-          output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}};`);
+          output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}, area: function() {return ${args[0] * args[1]}}, perimeter: function() {return ${2 * args[0] + 2 * args[1]}}};`);
         } else {
-          output.push(`let ${variableName} = {side1: ${args[0]}, side2: ${args[1]}, side3: ${args[2]}};`);
+          output.push(`let ${variableName} = {side1: ${s1}, side2: ${s2}, side3: ${s3}, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return ${s1 + s2 + s3}}, 
+            type: function() {return ${type}}};`);
         }
       },
       // ObjectMethodCall(o) {

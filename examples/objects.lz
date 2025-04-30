@@ -1,0 +1,11 @@
+obj new_circle = Circle(1);
+print(new_circle.area());
+print(new_circle.circumference());
+
+obj new_rectangle = Rectangle(2, 3);
+print(new_rectangle.area());
+print(new_rectangle.perimeter());
+
+obj new_triangle = Triangle(2, 3, 5);
+print(new_triangle.area());
+print(new_triangle.perimeter());
