@@ -69,6 +69,7 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 | Cannot read properties of undefined (`type`) |
 | `volume` is not a valid method for `Triangle` |
 | Function `sin` expects **1 arg**, received 0 |
+| All elements must have the same type, found string when expected integer |
 
 ---
 
