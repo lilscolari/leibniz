@@ -1,0 +1,13 @@
+let x: integer[] = [3, 2, 1, 10, 4, 3, 6];
+
+print(sort(x));
+print(mean(x));
+print(median(x));
+print(mode(x));
+print(min(x));
+print(max(x));
+print(prod(x));
+print(sum(x));
+print(std(x));
+print(variance(x));
+

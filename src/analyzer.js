@@ -577,10 +577,7 @@ export default function analyze(match) {
       
       // Determine return type based on function
       let returnType;
-      if (func.sourceString === "min" || func.sourceString === "max") {
-        // min/max return the more general of the two input types
-        returnType = getTypeCoercion(x.type, y.type);
-      } else if (func.sourceString === "pow") {
+      if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
       } 
@@ -593,15 +590,29 @@ export default function analyze(match) {
     MathFuncCall_unary(func, _open, arg, _close) {
       const x = arg.analyze();
 
+      let returnType;
+
       if (func.sourceString === "str") {
         checkNumber(x, arg); // Optional: if you only allow numbers -> string
         return core.callExpression("str", [x], "string");
+      }
+
+      if (func.sourceString === "median" || func.sourceString === "mean" || func.sourceString === "mode" || func.sourceString === "min"
+        || func.sourceString === "max" || func.sourceString === "prod" || func.sourceString === "sum" || func.sourceString === "std"
+        || func.sourceString === "variance"
+      ) {
+        checkArrayOrString(x, arg);
+        returnType = "float";
+        return core.callExpression(func.sourceString, [x], returnType);
+      } else if (func.sourceString === "sort") {
+        checkArrayOrString(x, arg);
+        returnType = "integer[]";
+        return core.callExpression(func.sourceString, [x], returnType);
       }
       
       checkNumber(x, arg);
       
       // Determine return type based on function
-      let returnType;
       if (func.sourceString === "floor" || func.sourceString === "ceil" || func.sourceString === "round") {
         returnType = "integer";
       } else if (func.sourceString === "abs") {

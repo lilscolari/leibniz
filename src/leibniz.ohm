@@ -77,10 +77,11 @@ Leibniz {
   
   UnaryMathFunc = sqrtFunc | expFunc | lnFunc | log10Func 
                 | absFunc | floorFunc | ceilFunc | roundFunc | toStringFunc
+                | medianFunc | meanFunc | sortFunc | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
 
   toStringFunc = "str" ~idchar
                 
-  BinaryMathFunc = minFunc | maxFunc | powFunc
+  BinaryMathFunc = powFunc
   
   let       = "let" ~idchar
   const     = "const" ~idchar
@@ -107,10 +108,18 @@ Leibniz {
   floorFunc = "floor" ~idchar
   ceilFunc = "ceil" ~idchar
   roundFunc = "round" ~idchar
-  minFunc = "min" ~idchar
-  maxFunc = "max" ~idchar
   powFunc = "pow" ~idchar
   derivativeFunction = "derivative" ~idchar
+  medianFunc = "median" ~idchar
+  meanFunc = "mean" ~idchar
+  sortFunc = "sort" ~idchar
+  modeFunc = "mode" ~idchar
+  minFunc = "min" ~idchar
+  maxFunc = "max" ~idchar
+  prodFunc = "prod" ~idchar
+  sumFunc = "sum" ~idchar
+  stdFunc = "std" ~idchar
+  varFunc = "variance" ~idchar
 
   mathConstant = piConst | eConst | piSymbol
   piConst = "pi" ~idchar
@@ -147,10 +156,11 @@ Leibniz {
             | break | true | false | cosFunc | sinFunc | tanFunc
             | arccosFunc | arcsinFunc | arctanFunc | sqrtFunc
             | expFunc | lnFunc | log10Func | absFunc | floorFunc
-            | ceilFunc | roundFunc | minFunc | maxFunc | powFunc
+            | ceilFunc | roundFunc | powFunc
             | triangleObj | rectangleObj | circleObj
             | domain | for | in | obj | derivativeFunction
-            | piConst | eConst
+            | piConst | eConst | medianFunc | meanFunc | sortFunc
+            | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"

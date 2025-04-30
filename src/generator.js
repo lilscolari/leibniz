@@ -1,8 +1,10 @@
+import * as math from "mathjs";
+
 export default function generate(program) {
     // When generating code for statements, we'll accumulate the lines of
     // the target code here. When we finish generating, we'll join the lines
     // with newlines and return the result.
-    const output = [];
+    const output = ['const math = require(\'mathjs\');'];
   
     // Variable and function names in JS will be suffixed with _1, _2, _3,
     // etc. This is because "switch", for example, is a legal name in Carlos,
@@ -167,7 +169,7 @@ export default function generate(program) {
       //   }
       // },
       CallExpression(e) {
-        const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp", "min", "max"]);
+        const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp"]);
         //console.log(e)
         const argsCode = e.args.map(gen).join(", ");
       
@@ -177,6 +179,26 @@ export default function generate(program) {
           return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
         } else if (e.callee == "str") {
           return `${argsCode}.toString()`
+        } else if (e.callee == "sort") {
+          return `math.sort(${argsCode})`
+        } else if (e.callee === "mean") {
+          return `math.mean(${argsCode})`;
+        } else if (e.callee === "median") {
+          return `math.median(${argsCode})`;
+        } else if (e.callee === "mode") {
+          return `math.mode(${argsCode})[0]`;
+        } else if (e.callee === "min") {
+          return `math.min(${argsCode})`;
+        } else if (e.callee === "max") {
+          return `math.max(${argsCode})`;
+        } else if (e.callee === "prod") {
+          return `math.prod(${argsCode})`;
+        } else if (e.callee === "sum") {
+          return `math.sum(${argsCode})`;
+        } else if (e.callee === "std") {
+          return `math.std(${argsCode})`;
+        } else if (e.callee === "variance") {
+          return `math.variance(${argsCode})`;
         }
       
         // Fallback for user-defined or unknown functions
