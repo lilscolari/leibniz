@@ -65,10 +65,10 @@ export default function analyze(match) {
     );
   }
 
-  function checkArrayOrString(e, parseTreeNode) {
+  function checkArrayOrStringOrMatrix(e, parseTreeNode) {
     check(
-      e.type === "string" || e.type.endsWith("[]"),
-      `Expected string or array, got ${e.type}`,
+      e.type === "string" || e.type.endsWith("[]") || e.type === "matrix",
+      `Expected string, array, or matrix, got ${e.type}`,
       parseTreeNode
     );
   }
@@ -246,28 +246,39 @@ export default function analyze(match) {
       return core.breakStatement();
     },
     ForLoop(_for, id, _in, _domain, domainArgs, block) {
-      // Create new context for the loop variable
       const savedContext = context;
       context = context.newChildContext();
-      
-      // Analyze loop variable and body
+    
       const loopVar = core.variable(id.sourceString, "integer", false);
       context.add(id.sourceString, loopVar);
-
-      const upperBound = domainArgs.analyze();
-      checkInteger(upperBound, domainArgs);
-      
+    
+      const args = domainArgs.analyze(); // now an array
+      let start, stop, step;
+    
+      if (args.length === 1) {
+        start = core.integerLiteral(0); // default start
+        stop = args[0];
+        step = core.integerLiteral(1); // default step
+      } else if (args.length === 2) {
+        [start, stop] = args;
+        step = core.integerLiteral(1); // default step
+      } else if (args.length === 3) {
+        [start, stop, step] = args;
+      } else {
+        throw new Error("range() expects 1 to 3 arguments");
+      }
+    
       const body = block.analyze();
-      
-      // Restore the previous context
       context = savedContext;
-
-      return core.forLoopStatement(loopVar, upperBound, body);
+    
+      return core.forLoopStatement(loopVar, start, stop, step, body);
     },
     DomainArgs(_open, exp, _close) {
-      const upperBound = exp.analyze();
-      checkInteger(upperBound, exp);
-      return upperBound;
+      const args = exp.asIteration().children.map(arg => arg.analyze());
+
+      args.forEach((arg, i) => checkInteger(arg, exp.child(i)));
+    
+      return args;
     },
     ArrayIndexAssignment(subscript, _eq, exp, _semi) {
       const arraySubscript = subscript.analyze();
@@ -276,7 +287,7 @@ export default function analyze(match) {
       const array = arraySubscript.array;
       const index = arraySubscript.index;
       
-      checkArrayOrString(array, subscript);
+      checkArrayOrStringOrMatrix(array, subscript);
       
       if (array.type.endsWith("[]")) {
         const elementType = getArrayElementType(array.type);
@@ -458,6 +469,7 @@ export default function analyze(match) {
     Type_float(_) { return "float"; },
     Type_boolean(_) { return "boolean"; },
     Type_string(_) { return "string"; },
+    Type_matrix(_) { return "matrix"; },
     Type_void(_) { return "void"; },
     PrintStmt(_print, _open, exp, _close, _semi) {
       const argument = exp.analyze();
@@ -592,7 +604,7 @@ export default function analyze(match) {
     },
     Factor_len(_op, operand) {
       const e = operand.analyze();
-      checkArrayOrString(e, operand);
+      checkArrayOrStringOrMatrix(e, operand);
       return core.unaryExpression("#", e, "integer");
     },
     Primary_int(_) {
@@ -606,33 +618,66 @@ export default function analyze(match) {
       return { type: "float", value: value };
     },
     Primary_array(_open, elements, _close) {
-      // Handle elements without using asIteration
       const contents = elements.children.map(e => e.analyze())[0] || [];
+    
+      // Check if this is a 2D array (matrix candidate)
+      const isMatrixCandidate = contents.length > 0 && contents.every(
+        e => e.kind === "ArrayExpression"
+      );
+    
+      if (isMatrixCandidate) {
+        const rowLengths = contents.map(row => row.elements.length);
+        const allSameLength = rowLengths.every(len => len === rowLengths[0]);
+    
+        if (!allSameLength) {
+          throw new Error("All rows in a matrix must have the same length");
+        }
+    
+        const allElements = contents.flatMap(row => row.elements);
+        checkAllElementsHaveSameType(allElements, _open);
+    
+        const numericType = allElements.reduce((type, elem) =>
+          getTypeCoercion(type, elem.type), allElements[0].type);
+    
+        if (!isNumericType(numericType)) {
+          throw new Error("Matrix elements must be numeric");
+        }
+    
+        return core.matrixExpression(contents, "matrix");
+      }
+    
+      // Handle regular arrays
       checkAllElementsHaveSameType(contents, _open);
-      
-      let elementType;
+    
+      let elementType = "any";
       if (contents.length > 0) {
-        // If elements are numeric, use the most general numeric type
         if (isNumericType(contents[0].type)) {
-          elementType = contents.reduce((type, elem) => getTypeCoercion(type, elem.type), contents[0].type);
+          elementType = contents.reduce((type, elem) =>
+            getTypeCoercion(type, elem.type), contents[0].type);
         } else {
           elementType = contents[0].type;
         }
-      } else {
-        elementType = "any"; // Default for empty arrays
       }
-      
+    
       return core.arrayExpression(contents, `${elementType}[]`);
     },
     Primary_subscript(array, _open, index, _close) {
       const e = array.analyze();
       const i = index.analyze();
-      checkArrayOrString(e, array);
+      if (e.type === "array") {
+        return core.subscriptExpression(e, i, "number");
+      }
+      checkArrayOrStringOrMatrix(e, array);
       checkNumber(i, index);
-      const baseType = e.type.endsWith("[]") 
-        ? e.type.slice(0, -2) 
-        : "string";
-      return core.subscriptExpression(e, i, baseType);
+      if (e.type === "matrix") {
+        return core.subscriptExpression(e, i, "array");
+      }
+      let baseType = e.type.endsWith("[]") 
+        ? e.type.slice(0, -2)
+        : e.type === "matrix"
+        ? "array"
+        : "string";   
+        return core.subscriptExpression(e, i, baseType);
     },
     Primary_mathfunc(call) {
       return call.analyze();
@@ -673,11 +718,11 @@ export default function analyze(match) {
         || func.sourceString === "max" || func.sourceString === "prod" || func.sourceString === "sum" || func.sourceString === "std"
         || func.sourceString === "variance"
       ) {
-        checkArrayOrString(x, arg);
+        checkArrayOrStringOrMatrix(x, arg);
         returnType = "float";
         return core.callExpression(func.sourceString, [x], returnType);
       } else if (func.sourceString === "sort") {
-        checkArrayOrString(x, arg);
+        checkArrayOrStringOrMatrix(x, arg);
         if (x.type === "string") {
           returnType = "string";
         } else {

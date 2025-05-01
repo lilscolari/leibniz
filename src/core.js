@@ -82,11 +82,13 @@ export function assignmentStatement(source, target) {
   };
 }
 
-export function forLoopStatement(loopVar, domainArgs, body) {
+export function forLoopStatement(loopVar, start, stop, step, body) {
   return {
     kind: "ForLoopStatement",
     loopVar,
-    domainArgs,
+    start,
+    stop,
+    step,
     body,
   };
 }
@@ -219,5 +221,13 @@ export function returnStatement(expression) {
     kind: "ReturnStatement",
     expression,
     type: expression?.type ?? "void",
+  };
+}
+
+export function matrixExpression(rows, type = "matrix") {
+  return {
+    kind: "MatrixExpression",
+    rows,
+    type,
   };
 }

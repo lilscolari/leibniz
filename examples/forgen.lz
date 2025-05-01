@@ -11,3 +11,44 @@ print(sum(x));
 print(std(x));
 print(variance(x));
 
+const sorted: integer[] = sort(x);
+
+for x in domain(#sorted) {
+    sorted[x] = 1;
+    print(sorted[x]);
+}
+
+print(sorted);
+
+sorted[3] = 10;
+
+print(sorted[5] * 3);
+
+print(sorted);
+
+// test filter, map, and void
+
+let m: matrix = [[1, 0], [0, 1]];
+
+let m2: matrix = [[pi, 5.23], [42, pow(2, 3)]];
+
+print(m);
+
+print(m2);
+
+print(derivative("x^3", "x", 5));
+
+//print(m[1]);
+
+m2 = [[1]];
+
+print(m[0]);
+
+print(m2[0][0] / 37);
+
+let big_m: matrix = [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1]];
+
+print(big_m[2][2] * pi);

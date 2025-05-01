@@ -1,5 +1,5 @@
 export default function generate(program) {
-  const output = [];
+  const output = ['const math = require(\'mathjs\');'];
   
   const targetName = ((mapping) => {
     return (entity) => {
@@ -93,24 +93,65 @@ export default function generate(program) {
       const args = o.args.map(gen); 
       const variableName = gen(o.variable);
 
-      if (o.objectType == "Circle") {
-        output.push(`let ${variableName} = {radius: ${args[0]}};`);
-      } else if (o.objectType == "Rectangle") {
-        output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}};`);
-      } else {
-        output.push(`let ${variableName} = {side1: ${args[0]}, side2: ${args[1]}, side3: ${args[2]}};`);
-      }
+      let semip, type, s1, s2, s3;
+
+        if (o.objectType == "Triangle") {
+          semip = (args[0] + args[1] + args[2]) / 2
+          if (args[0] == args[1] && args[0] == args[2]) {
+            type = "Equilateral"
+          } else if (args[0] !== args[1] && args[0] !== args[2] && args[1] !== args[2]) {
+            type = "Scalene"
+          } else {
+            type = "Isosceles"
+          }
+          s1 = parseInt(args[0], 10);
+          s2 = parseInt(args[1], 10);
+          s3 = parseInt(args[2], 10);
+        }
+
+        if (o.objectType == "Circle") {
+          output.push(`let ${variableName} = {radius: ${args[0]}, area: function() {return ${Math.PI * args[0] ** 2}}, circumference: function() {return ${2 * Math.PI * args[0]}}};`);
+        } else if (o.objectType == "Rectangle") {
+          output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}, area: function() {return ${args[0] * args[1]}}, perimeter: function() {return ${2 * args[0] + 2 * args[1]}}};`);
+        } else {
+          output.push(`let ${variableName} = {side1: ${s1}, side2: ${s2}, side3: ${s3}, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return ${s1 + s2 + s3}},
+            type: function() {return ${type}}};`);
+        }
+
     },
     CallExpression(e) {
-      const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp"]);
+      const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp", "pow"]);
       const argsCode = e.args.map(gen).join(", ");
     
       if (mathFuncs.has(e.callee)) {
         return `Math.${e.callee}(${argsCode})`;
       } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
-        return `Math.a${e.callee.slice(3)}(${argsCode})`
+        return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
       } else if (e.callee == "str") {
         return `${argsCode}.toString()`
+      } else if (e.callee == "sort") {
+        return `math.sort(${argsCode})`
+      } else if (e.callee === "mean") {
+        return `math.mean(${argsCode})`;
+      } else if (e.callee === "median") {
+        return `math.median(${argsCode})`;
+      } else if (e.callee === "mode") {
+        return `math.mode(${argsCode})[0]`;
+      } else if (e.callee === "min") {
+        return `math.min(${argsCode})`;
+      } else if (e.callee === "max") {
+        return `math.max(${argsCode})`;
+      } else if (e.callee === "prod") {
+        return `math.prod(${argsCode})`;
+      } else if (e.callee === "sum") {
+        return `math.sum(${argsCode})`;
+      } else if (e.callee === "std") {
+        return `math.std(${argsCode})`;
+      } else if (e.callee === "variance") {
+        return `math.variance(${argsCode})`;
+      } else if (e.callee === "derivative") {
+        console.log(argsCode)
+        return `math.derivative(${gen(e.args[0])}, ${gen(e.args[1])}).evaluate({${gen(e.args[1])[1]}: ${gen(e.args[2])}})`
       }
     
       // Fallback for user-defined or unknown functions
@@ -141,8 +182,7 @@ export default function generate(program) {
     },
     
     ForLoopStatement(s) {
-      const upperBound = gen(s.upperBound);
-      output.push(`for (let ${gen(s.loopVar)} = 0; ${gen(s.loopVar)} < ${upperBound}; ${gen(s.loopVar)}++) {`);
+      output.push(`for (let ${gen(s.loopVar)} = ${gen(s.start)}; ${gen(s.loopVar)} < ${gen(s.stop)}; ${gen(s.loopVar)} += ${gen(s.step)}) {`);
       s.body.statements.forEach(gen);
       output.push("}");
     },
@@ -163,6 +203,11 @@ export default function generate(program) {
       const array = gen(e.array);
       const transform = gen(e.transform);
       return `${array}.map(x => ${transform})`;
+    },
+
+    MatrixExpression(e) {
+      const elements = e.rows.map(gen).join(", ");
+      return `[${elements}]`
     }
   };
     

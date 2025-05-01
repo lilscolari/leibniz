@@ -27,6 +27,7 @@ Leibniz {
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" Type
   Type      = Type "[]"                       --array
+            | "matrix"                        --matrix
             | "number"                        --number 
             | "integer"                       --integer
             | "float"                         --float
