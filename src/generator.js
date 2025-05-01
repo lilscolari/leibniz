@@ -203,18 +203,22 @@ export default function generate(program) {
       const method = o.methodName;
       return `${variableName}.${method}()`;
     },
-    
-    FilterExpression(e) {
-      const array = gen(e.array);
-      const predicate = gen(e.predicate);
-      return `${array}.filter(x => ${predicate})`;
+
+    MapOrFilterCall(o) {
+      return `${gen(o.object)}.${o.methodName}(x => ${gen(o.args[0])}(x))`
     },
     
-    MapExpression(e) {
-      const array = gen(e.array);
-      const transform = gen(e.transform);
-      return `${array}.map(x => ${transform})`;
-    },
+    // FilterExpression(e) {
+    //   const array = gen(e.object);
+    //   const predicate = gen(e.args[0]);
+    //   return `${array}.filter(x => ${predicate})`;
+    // },
+    
+    // MapExpression(e) {
+    //   const array = gen(e.array);
+    //   const transform = gen(e.transform);
+    //   return `${array}.map(x => ${transform})`;
+    // },
 
     MatrixExpression(e) {
       const elements = e.rows.map(gen).join(", ");

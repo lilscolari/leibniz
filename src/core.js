@@ -112,6 +112,36 @@ export function methodCall(object, methodName, args, type) {
   };
 }
 
+export function mapOrFilterCall(object, methodName, args, type) {
+  return {
+    kind: "MapOrFilterCall",
+    object,
+    methodName,
+    args,
+    type,
+  };
+}
+
+export function filterExpression(object, methodName, args, type) {
+  return {
+    kind: "FilterExpression",
+    object,
+    methodName,
+    args,
+    type,
+  };
+}
+
+export function mapExpression(object, methodName, args, type) {
+  return {
+    kind: "MapExpression",
+    object,
+    methodName,
+    args,
+    type,
+  };
+}
+
 export function binaryExpression(op, left, right, type) {
   return {
     kind: "BinaryExpression",

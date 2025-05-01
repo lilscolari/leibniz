@@ -328,11 +328,13 @@ export default function analyze(match) {
       
       // For map and filter operations
       if (methodName === "map") {
+        //console.log(arrayVar.type)
         // For map, the return type could be different based on the lambda
-        return core.methodCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
+        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
+        // return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
       } else if (methodName === "filter") {
         // For filter, the return type is the same as the input array
-        return core.methodCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
+        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       }
       
       check(false, `Unknown array method: ${methodName}`, method);
@@ -419,11 +421,27 @@ export default function analyze(match) {
     },
         
     FuncBody(_open, stmts, maybeReturn, _close) {
-      const statements = stmts.children.map(s => s.analyze());
-      const returnExp = maybeReturn.numChildren === 0 ? null : maybeReturn.children[0].analyze();
+      let returnExp = "void";
+      const bodyStatements = [];
+
+      for (const stmt of stmts.children) {
+        const analyzedStmt = stmt.analyze();
+        
+        if (analyzedStmt.kind === "ReturnStatement") {
+          returnExp = analyzedStmt.expression;
+        } else {
+          bodyStatements.push(analyzedStmt);
+        }
+        
+        if (returnExp !== "void") {
+          bodyStatements.push(core.returnStatement(returnExp));
+        }
+      }
+
+      //console.log(returnExp)
       return {
         kind: "FuncBody",
-        statements,
+        statements: bodyStatements,
         returnExp,
       };
     },
