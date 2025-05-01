@@ -146,6 +146,25 @@ export function subscriptExpression(array, index, type) {
   };
 }
 
+export function arrayIndexAssignment(target, index, source) {
+  return {
+    kind: "ArrayIndexAssignment",
+    target,
+    index,
+    source,
+  };
+}
+
+export function arrayMethodCall(array, method, callback, type) {
+  return {
+    kind: "ArrayMethodCall",
+    array,
+    method,
+    callback,
+    type,
+  };
+}
+
 export function callExpression(callee, args, type) {
   return {
     kind: "CallExpression",
@@ -199,6 +218,6 @@ export function returnStatement(expression) {
   return {
     kind: "ReturnStatement",
     expression,
-    type: expression.type, // So you can check return type compatibility
+    type: expression?.type ?? "void",
   };
 }

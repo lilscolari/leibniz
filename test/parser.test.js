@@ -46,6 +46,12 @@ describe("The parser", () => {
   it("matches function declaration", () => {
     assert.ok(parse("fnc add(x: integer, y: integer): integer = { return x + y; }"));
   });
+  
+  it("matches void function declaration", () => {
+    assert.ok(parse("fnc printOnly(x: integer): void = { print(x); }"));
+    assert.ok(parse("fnc noReturn(): void = { }"));
+    assert.ok(parse("fnc emptyReturn(): void = { return; }"));
+  });
 
   it("matches comment", () => {
     assert.ok(parse("let x: integer = 1; // hello world"));
@@ -110,6 +116,17 @@ describe("The parser", () => {
         }
       `)
     );
+  });
+  
+  it("matches array indexing and assignment", () => {
+    assert.ok(parse("let a: integer[] = [1, 2, 3]; let x: integer = a[0];"));
+    assert.ok(parse("let a: integer[] = [1, 2, 3]; a[0] = 5;"));
+  });
+  
+  it("matches array map and filter operations", () => {
+    assert.ok(parse("let a: integer[] = [1, 2, 3]; let b: integer[] = a.map(x: integer => x * 2);"));
+    assert.ok(parse("let a: integer[] = [1, 2, 3]; let b: integer[] = a.filter(x: integer => x > 1);"));
+    assert.ok(parse("let a: integer[] = [1, 2, 3]; let b: integer[] = a.filter(x > 1);"));
   });
 
   it("matches object creation", () => {

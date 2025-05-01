@@ -202,7 +202,6 @@ export default function analyze(match) {
     check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
   }
 
-
   function everyPathReturns(statements) {
     for (let i = 0; i < statements.length; i++) {
       const stmt = statements[i];
@@ -251,33 +250,100 @@ export default function analyze(match) {
       const savedContext = context;
       context = context.newChildContext();
       
-      // Analyze domain arguments to get start, stop, and step values
-      const args = domainArgs.analyze();
-      
-      // Check that all arguments are integers
-      args.forEach(arg => checkInteger(arg, domainArgs));
-      
-      // Check that we have between 1 and 3 arguments
-      check(
-        args.length >= 1 && args.length <= 3,
-        `domain() requires 1 to 3 arguments, got ${args.length}`,
-        domainArgs
-      );
-      
       // Analyze loop variable and body
       const loopVar = core.variable(id.sourceString, "integer", false);
       context.add(id.sourceString, loopVar);
+
+      const upperBound = domainArgs.analyze();
+      checkInteger(upperBound, domainArgs);
       
       const body = block.analyze();
       
       // Restore the previous context
       context = savedContext;
 
-      return core.forLoopStatement(loopVar, args, body);
+      return core.forLoopStatement(loopVar, upperBound, body);
     },
-    DomainArgs(_open, expList, _close) {
-      return expList.analyze();
+    DomainArgs(_open, exp, _close) {
+      const upperBound = exp.analyze();
+      checkInteger(upperBound, exp);
+      return upperBound;
     },
+    ArrayIndexAssignment(subscript, _eq, exp, _semi) {
+      const arraySubscript = subscript.analyze();
+      const value = exp.analyze();
+      
+      const array = arraySubscript.array;
+      const index = arraySubscript.index;
+      
+      checkArrayOrString(array, subscript);
+      
+      if (array.type.endsWith("[]")) {
+        const elementType = getArrayElementType(array.type);
+        checkTypesCompatible(value.type, elementType, exp);
+      } else if (array.type === "string") {
+        checkType(value, "string", exp);
+      }
+      
+      return core.assignmentStatement(value, arraySubscript);
+    },
+    ArrayMethodCall_higherorder(array, _dot, method, _open, paramId, _colon, paramType, _arrow, exp, _close) {
+      const arrayVar = array.analyze();
+      const methodName = method.sourceString;
+      
+      // Create a new context for the lambda parameter
+      const savedContext = context;
+      context = context.newChildContext();
+      
+      // Add the parameter to the context
+      const paramTypeValue = paramType.analyze();
+      const param = core.variable(paramId.sourceString, paramTypeValue, false);
+      context.add(paramId.sourceString, param);
+      
+      // Analyze the expression in the lambda
+      const lambdaExp = exp.analyze();
+      
+      // Restore context
+      context = savedContext;
+      
+      // Check that the array is actually an array
+      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+      
+      const elementType = getArrayElementType(arrayVar.type);
+      
+      // Check that the parameter type matches the array element type
+      checkTypesCompatible(elementType, paramTypeValue, paramType);
+      
+      // For map and filter operations
+      if (methodName === "map") {
+        // For map, the return type could be different based on the lambda
+        return core.methodCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
+      } else if (methodName === "filter") {
+        // For filter, the return type is the same as the input array
+        return core.methodCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
+      }
+      
+      check(false, `Unknown array method: ${methodName}`, method);
+    },
+    
+    ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
+      const arrayVar = array.analyze();
+      const methodName = method.sourceString;
+      const argExp = arg.analyze();
+      
+      // Check that the array is actually an array
+      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+      
+      // Return appropriate type based on method
+      if (methodName === "map" || methodName === "filter") {
+        return core.methodCall(arrayVar, methodName, [argExp], arrayVar.type);
+      }
+      
+      check(false, `Unknown array method: ${methodName}`, method);
+    },
+    
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
       checkNotDeclared(id.sourceString, id);
       const declaredType = type.analyze();
@@ -300,7 +366,6 @@ export default function analyze(match) {
       context.add(id.sourceString, variable);
       return core.variableDeclaration(variable, initializer);
     },
-    // Updated to match grammar rule arity - 7 parameters
     FunDec(_fun, id, params, _colon, returnType, _eq, body) {
       checkNotDeclared(id.sourceString, id);
       const declaredReturnType = returnType.analyze();
@@ -332,14 +397,16 @@ export default function analyze(match) {
       context.add(id.sourceString, fun);
       return core.functionDeclaration(fun, core.functionBody(finalStatements));
     },
-    
 
     ReturnStatement(_return, exp, _semi) {
-      const expression = exp.analyze();
+      // Handle the optional expression in return
+      if (exp.numChildren === 0) {
+        return core.returnStatement({type: "void", value: null});
+      }
+      const expression = exp.children[0].analyze();
       return core.returnStatement(expression);
     },
         
-  
     FuncBody(_open, stmts, maybeReturn, _close) {
       const statements = stmts.children.map(s => s.analyze());
       const returnExp = maybeReturn.numChildren === 0 ? null : maybeReturn.children[0].analyze();
@@ -391,6 +458,7 @@ export default function analyze(match) {
     Type_float(_) { return "float"; },
     Type_boolean(_) { return "boolean"; },
     Type_string(_) { return "string"; },
+    Type_void(_) { return "void"; },
     PrintStmt(_print, _open, exp, _close, _semi) {
       const argument = exp.analyze();
       return core.printStatement(argument);
@@ -539,7 +607,7 @@ export default function analyze(match) {
     },
     Primary_array(_open, elements, _close) {
       // Handle elements without using asIteration
-      const contents = elements.children.map(e => e.analyze())[0];
+      const contents = elements.children.map(e => e.analyze())[0] || [];
       checkAllElementsHaveSameType(contents, _open);
       
       let elementType;
@@ -550,10 +618,9 @@ export default function analyze(match) {
         } else {
           elementType = contents[0].type;
         }
-      } 
-      // else {
-      //   elementType = "any";
-      // }
+      } else {
+        elementType = "any"; // Default for empty arrays
+      }
       
       return core.arrayExpression(contents, `${elementType}[]`);
     },
@@ -586,10 +653,9 @@ export default function analyze(match) {
       if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
-      } 
-      // else {
-      //   returnType = "float"; // Default for any other binary math functions
-      // }
+      } else {
+        returnType = "float"; // Default for any other binary math functions
+      }
       
       return core.callExpression(func.sourceString, [x, y], returnType);
     },
@@ -612,7 +678,12 @@ export default function analyze(match) {
         return core.callExpression(func.sourceString, [x], returnType);
       } else if (func.sourceString === "sort") {
         checkArrayOrString(x, arg);
-        returnType = "integer[]";
+        if (x.type === "string") {
+          returnType = "string";
+        } else {
+          // Preserve the array element type
+          returnType = x.type;
+        }
         return core.callExpression(func.sourceString, [x], returnType);
       }
       
@@ -715,9 +786,6 @@ export default function analyze(match) {
           method
         );
       } 
-      // else {
-      //   check(false, `Object ${objName} does not support methods`, id);
-      // }
       
       // All geometric methods return float
       return core.methodCall(object, methodName, [], "float");

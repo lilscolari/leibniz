@@ -10,6 +10,7 @@ Leibniz {
             | break ";"                       --break
             | ObjectCreation
             | AssignmentStmt
+            | ArrayIndexAssignment
             | "++" Primary_id ";"             --increment
             | "--" Primary_id ";"             --decrement
   ForLoop = for id in domain DomainArgs Block
@@ -21,7 +22,7 @@ Leibniz {
   VarDec    = (let | const) id ":" Type "=" Exp ";"
   FunDec    = fnc id Params ":" Type "=" FuncBody
   FuncBody = "{" Stmt* (ReturnStatement)? "}"
-  ReturnStatement = "return" Exp ";"
+  ReturnStatement = "return" Exp? ";"
   FunctionCall = id "(" ExpList ")"
   Params    = "(" ListOf<Param, ","> ")"
   Param     = id ":" Type
@@ -31,9 +32,11 @@ Leibniz {
             | "float"                         --float
             | "boolean"                       --boolean
             | "string"                        --string
+            | "void"                          --void
             
   PrintStmt = print "(" Exp ")" ";"
   AssignmentStmt = Primary_id "=" Exp ";"
+  ArrayIndexAssignment = Primary_subscript "=" Exp ";"
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   WhileStmt = while Exp Block
   Block     = "{" Stmt* "}"
@@ -57,6 +60,7 @@ Leibniz {
             | true                       --true
             | false                      --false
             | ObjectMethodCall
+            | ArrayMethodCall
             | stringlit                  --string
             | Primary "[" Exp "]"        --subscript
             | MathFuncCall               --mathfunc
@@ -66,6 +70,13 @@ Leibniz {
             | id                         --id
             | "[" ListOf<Exp, ","> "]"   --array
             | "(" Exp ")"                --parens
+  
+  ArrayMethodCall = Primary "." arrayMethod "(" id ":" Type "=>" Exp ")" --higherorder
+                  | Primary "." arrayMethod "(" Exp ")"                  --simple
+
+  arrayMethod = mapMethod | filterMethod
+  mapMethod = "map" ~idchar
+  filterMethod = "filter" ~idchar
   
   MathFuncCall = TrigFunc "(" Exp ")"            --trig
                | BinaryMathFunc "(" Exp "," Exp ")"  --binary
@@ -94,6 +105,7 @@ Leibniz {
   break     = "break" ~idchar
   true      = "true" ~idchar
   false     = "false" ~idchar
+  void      = "void" ~idchar
   
   cosFunc = "cos" ~idchar
   sinFunc = "sin" ~idchar
@@ -162,6 +174,7 @@ Leibniz {
             | domain | for | in | obj | derivativeFunction
             | piConst | eConst | medianFunc | meanFunc | sortFunc
             | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
+            | mapMethod | filterMethod | void
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"

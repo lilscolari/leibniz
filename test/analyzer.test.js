@@ -117,6 +117,28 @@ describe("The analyzer", () => {
     `);
   });
 
+  it("handles void functions without return value", () => {
+    checkSuccess(`
+      fnc printSum(x: integer, y: integer): void = {
+        let z: integer = x + y;
+        print(z);
+      }
+    `);
+    checkSuccess(`
+      fnc printSum(x: integer, y: integer): void = {
+        let z: integer = x + y;
+        print(z);
+        return;
+      }
+    `);
+    checkFailure(`
+      fnc printSum(x: integer, y: integer): void = {
+        let z: integer = x + y;
+        return z;
+      }
+    `, "Void function cannot return a value");
+  });
+
   it("type checks if statements", () => {
     checkSuccess("if (true) { print(1); }");
     checkFailure("if (1) { print(1); }", "Expected boolean");
@@ -161,6 +183,23 @@ describe("The analyzer", () => {
     checkFailure("let a: integer[] = [1, 2, 3]; let x: integer = a[true];", "Expected number");
     checkSuccess("let s: string = \"hello\"; let c: string = s[0];");
     checkSuccess("let a: boolean[] = [];");
+  });
+
+  it("validates array index assignment", () => {
+    checkSuccess("let a: integer[] = [1, 2, 3]; a[0] = 5;");
+    checkFailure("let a: integer[] = [1, 2, 3]; a[0] = true;", "Cannot assign boolean to integer");
+    checkFailure("let a: integer[] = [1, 2, 3]; a[true] = 5;", "Expected number");
+    checkFailure("const a: integer[] = [1, 2, 3]; a[0] = 5;", "immutable");
+  });
+
+  it("validates array map and filter operations", () => {
+    checkSuccess("let a: integer[] = [1, 2, 3]; let b: integer[] = a.map(x: integer => x * 2);");
+    checkSuccess("let a: integer[] = [1, 2, 3]; let b: string[] = a.map(x: integer => \"Value: \" + str(x));");
+    checkSuccess("let a: integer[] = [1, 2, 3]; let b: integer[] = a.filter(x: integer => x > 1);");
+    checkSuccess("let a: integer[] = [1, 2, 3]; let b: integer[] = a.filter(x > 1);");
+    
+    checkFailure("let a: integer[] = [1, 2, 3]; let b: integer[] = a.map(x: string => 1);", "Parameter type string is not compatible with array element type integer");
+    checkFailure("let s: string = \"hello\"; let b: string[] = s.map(c: string => c);", "Expected array");
   });
 
   it("validates ++ and -- operators", () => {
