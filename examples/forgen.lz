@@ -91,3 +91,6 @@ let name2: integer[] = test.map(x: integer => multiply_by_2);
 
 print(name);
 print(name2);
+
+let name3: integer[] = test.filter(greater_than_2);
+print(name3);

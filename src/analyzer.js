@@ -351,7 +351,7 @@ export default function analyze(match) {
       
       // Return appropriate type based on method
       if (methodName === "map" || methodName === "filter") {
-        return core.methodCall(arrayVar, methodName, [argExp], arrayVar.type);
+        return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
       
       check(false, `Unknown array method: ${methodName}`, method);
