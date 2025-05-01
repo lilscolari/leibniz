@@ -150,8 +150,11 @@ export default function generate(program) {
       } else if (e.callee === "variance") {
         return `math.variance(${argsCode})`;
       } else if (e.callee === "derivative") {
-        console.log(argsCode)
         return `math.derivative(${gen(e.args[0])}, ${gen(e.args[1])}).evaluate({${gen(e.args[1])[1]}: ${gen(e.args[2])}})`
+      } else if (e.callee === "zeta") {
+        return `math.zeta(${argsCode})`
+      } else if (e.callee === "arandom") {
+        return `math.pickRandom(${argsCode})`;
       }
     
       // Fallback for user-defined or unknown functions

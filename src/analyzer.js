@@ -716,7 +716,7 @@ export default function analyze(match) {
 
       if (func.sourceString === "median" || func.sourceString === "mean" || func.sourceString === "mode" || func.sourceString === "min"
         || func.sourceString === "max" || func.sourceString === "prod" || func.sourceString === "sum" || func.sourceString === "std"
-        || func.sourceString === "variance"
+        || func.sourceString === "variance" || func.sourceString === "arandom"
       ) {
         checkArrayOrStringOrMatrix(x, arg);
         returnType = "float";

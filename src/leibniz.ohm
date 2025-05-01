@@ -91,6 +91,7 @@ Leibniz {
   UnaryMathFunc = sqrtFunc | expFunc | lnFunc | log10Func 
                 | absFunc | floorFunc | ceilFunc | roundFunc | toStringFunc
                 | medianFunc | meanFunc | sortFunc | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
+                | zetaFunc | arandomFunc
 
   toStringFunc = "str" ~idchar
                 
@@ -134,6 +135,8 @@ Leibniz {
   sumFunc = "sum" ~idchar
   stdFunc = "std" ~idchar
   varFunc = "variance" ~idchar
+  zetaFunc = "zeta" ~idchar
+  arandomFunc = "arandom" ~idchar
 
   mathConstant = piConst | eConst | piSymbol
   piConst = "pi" ~idchar
@@ -175,7 +178,7 @@ Leibniz {
             | domain | for | in | obj | derivativeFunction
             | piConst | eConst | medianFunc | meanFunc | sortFunc
             | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
-            | mapMethod | filterMethod | void
+            | mapMethod | filterMethod | void | zetaFunc | arandomFunc
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"
