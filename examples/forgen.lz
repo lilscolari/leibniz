@@ -65,3 +65,8 @@ for i in domain(ITERATIONS) {
 
 print(choose(7, 5));
 print(perm(5, 3));
+
+for i in domain(ITERATIONS) {
+    print(rand(0, 100));
+    print(randint(0, 100));
+}

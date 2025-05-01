@@ -159,8 +159,12 @@ export default function generate(program) {
         return `math.permutations(${gen(e.args[0])}, ${gen(e.args[1])})`;
       } else if (e.callee === "choose") {
         return `math.combinations(${gen(e.args[0])}, ${gen(e.args[1])})`;
-      } 
-    
+      } else if (e.callee === "rand") {
+        return `math.random(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } else if (e.callee === "randint") {
+        return `math.randomInt(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      }
+
       // Fallback for user-defined or unknown functions
       return `${gen(e.callee)}(${argsCode})`;
     },
