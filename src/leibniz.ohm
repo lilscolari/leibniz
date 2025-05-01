@@ -95,7 +95,7 @@ Leibniz {
 
   toStringFunc = "str" ~idchar
                 
-  BinaryMathFunc = powFunc
+  BinaryMathFunc = powFunc | permFunc | chooseFunc
   
   let       = "let" ~idchar
   const     = "const" ~idchar
@@ -137,6 +137,8 @@ Leibniz {
   varFunc = "variance" ~idchar
   zetaFunc = "zeta" ~idchar
   arandomFunc = "arandom" ~idchar
+  permFunc = "perm" ~idchar
+  chooseFunc = "choose" ~idchar
 
   mathConstant = piConst | eConst | piSymbol
   piConst = "pi" ~idchar
@@ -179,6 +181,7 @@ Leibniz {
             | piConst | eConst | medianFunc | meanFunc | sortFunc
             | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
             | mapMethod | filterMethod | void | zetaFunc | arandomFunc
+            | permFunc | chooseFunc
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"

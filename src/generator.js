@@ -155,7 +155,11 @@ export default function generate(program) {
         return `math.zeta(${argsCode})`
       } else if (e.callee === "arandom") {
         return `math.pickRandom(${argsCode})`;
-      }
+      } else if (e.callee === "perm") {
+        return `math.permutations(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } else if (e.callee === "choose") {
+        return `math.combinations(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } 
     
       // Fallback for user-defined or unknown functions
       return `${gen(e.callee)}(${argsCode})`;

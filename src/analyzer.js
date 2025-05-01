@@ -698,6 +698,10 @@ export default function analyze(match) {
       if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
+      } else if (func.sourceString === "choose") {
+        returnType = "integer";
+      } else if (func.sourceString === "perm") {
+        returnType = "integer";
       } else {
         returnType = "float"; // Default for any other binary math functions
       }

@@ -62,3 +62,6 @@ let a: integer[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 for i in domain(ITERATIONS) {
     print(arandom(a));
 }
+
+print(choose(7, 5));
+print(perm(5, 3));
