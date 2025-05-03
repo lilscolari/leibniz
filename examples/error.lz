@@ -1,0 +1,9 @@
+      fnc maximum(a: integer, b: integer): integer = {
+        let arr: integer[] = [a, b];
+        return max(arr);
+        }
+
+      const x: integer = -7;
+      const y: integer = 34;
+      obj r = Rectangle(x, y);
+      print(r.area());

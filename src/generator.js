@@ -114,8 +114,7 @@ export default function generate(program) {
         } else if (o.objectType == "Rectangle") {
           output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}, area: function() {return ${args[0] * args[1]}}, perimeter: function() {return ${2 * args[0] + 2 * args[1]}}};`);
         } else {
-          output.push(`let ${variableName} = {side1: ${s1}, side2: ${s2}, side3: ${s3}, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return ${s1 + s2 + s3}},
-            type: function() {return ${type}}};`);
+          output.push(`let ${variableName} = {side1: ${s1}, side2: ${s2}, side3: ${s3}, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return ${s1 + s2 + s3}}, type: function() {return ${type}}};`);
         }
 
     },

@@ -71,6 +71,7 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 | Function `sin` expects **1 arg**, received 0 |
 | All elements must have the same type, found string when expected integer |
 | Cannot assign string to integer |
+| Expected not a keyword |
 
 ---
 
