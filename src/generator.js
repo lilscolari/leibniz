@@ -239,11 +239,7 @@ export default function generate(program) {
     },
 
     MapOrFilterCall(o) {
-      const array = gen(o.object);
-      const method = o.methodName;
-      const args = o.args.map(gen);
-      
-      return `${array}.${method}(x => ${gen(o.args[0])}(x))`;
+      return `${gen(o.object)}.${o.methodName}(x => ${gen(o.args[0])}(x))`;
     },
     
     // FilterExpression(e) {

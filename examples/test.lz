@@ -1,24 +1,22 @@
-let threeby3: matrix = [
-    [1, 0, 0],
-    [0, 1, 0],
-    [0, 0, 1]];
-
-print(column(threeby3, 1));
-print(count(threeby3));
-print(count("test"));
-threeby3[1][1] = 5;
-print(threeby3);
-print(cross([1, 1, 0], [0, 1, 1]));
-print(det([[1, 2], [3, 4]]));
-print(diag([1, 2, 3]));
-const a_matrix: matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-print(diag(a_matrix));
-print(dot([1, 2, 3], [2, 3, 4]));
-print(eigs([[1, 0], [0, 1]]));
-print(identity(4));
-print(inv([[1, 2], [3, 4]]));
-print(ones(7));
-print(zeros(8));
-print(arange(5, 10));
-print(transpose([[1, 2, 3], [4, 5, 6]]));
-print(shape([[1, 2, 3], [4, 5, 6]]));
+        fnc greater_than_2(i: integer): boolean = {
+            if i > 2 {
+                return true;
+            }
+            return false;
+        }
+  
+        fnc multiply_by_2(i: integer): integer = {
+            return i * 2;
+        }
+  
+        let test: integer[] = [1, 2, 3, 4, 5, 6, 7];
+  
+        // Use explicit function calls in the lambda expressions
+        let name: integer[] = test.filter(x: integer => greater_than_2);
+        let name2: integer[] = test.map(x: integer => multiply_by_2);
+  
+        print(name);
+        print(name2);
+  
+        let name3: integer[] = test.filter(greater_than_2);
+        print(name3);

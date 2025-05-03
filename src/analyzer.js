@@ -332,14 +332,10 @@ export default function analyze(match) {
     
       return core.assignmentStatement(value, matrixSubscript);
     },
-    
+
     ArrayMethodCall_higherorder(array, _dot, method, _open, paramId, _colon, paramType, _arrow, exp, _close) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
-      
-      // Check if this is an array first
-      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
-            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
       
       const savedContext = context;
       context = context.newChildContext();
@@ -351,11 +347,15 @@ export default function analyze(match) {
       const lambdaExp = exp.analyze();
       
       context = savedContext;
+
+      // Check if this is an array first
+      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+      `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
       
       const elementType = getArrayElementType(arrayVar.type);
       
       checkTypesCompatible(elementType, paramTypeValue, paramType);
-      
+
       if (methodName === "map") {
         // The return type should be an array of the lambda's return type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
@@ -367,70 +367,119 @@ export default function analyze(match) {
       check(false, `Unknown array method: ${methodName}`, method);
     },
     
+    // ArrayMethodCall_higherorder(array, _dot, method, _open, paramId, _colon, paramType, _arrow, exp, _close) {
+    //   const arrayVar = array.analyze();
+    //   const methodName = method.sourceString;
+      
+    //   // Check if this is an array first
+    //   check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+    //         `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+      
+    //   const savedContext = context;
+    //   context = context.newChildContext();
+      
+    //   const paramTypeValue = paramType.analyze();
+    //   const param = core.variable(paramId.sourceString, paramTypeValue, false);
+    //   context.add(paramId.sourceString, param);
+      
+    //   const lambdaExp = exp.analyze();
+      
+    //   context = savedContext;
+      
+    //   const elementType = getArrayElementType(arrayVar.type);
+      
+    //   checkTypesCompatible(elementType, paramTypeValue, paramType);
+      
+    //   if (methodName === "map") {
+    //     // The return type should be an array of the lambda's return type
+    //     return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
+    //   } else if (methodName === "filter") {
+    //     // Filter maintains the original array type
+    //     return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
+    //   }
+      
+    //   check(false, `Unknown array method: ${methodName}`, method);
+    // },
+
     ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
-      
-      // Check if this is an array first
-      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+      const argExp = arg.analyze()
+
+      check(arrayVar.type && arrayVar.type.endsWith("[]"),
             `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
-            
-      // For simple filter/map with just a function name
-      if (arg.sourceString && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
-        const funcName = arg.sourceString;
-        const func = context.lookup(funcName);
-        
-        if (func && func.kind === "Function") {
-          // For filter, check that it returns boolean
-          if (methodName === "filter") {
-            // Verify the function returns a boolean
-            check(func.returnType === "boolean", 
-                  `Filter function must return boolean, got ${func.returnType}`, arg);
-            return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
-          } 
-          // For map, use the function's return type
-          else if (methodName === "map") {
-            return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
-          }
-        }
-      }
-      
-      // Handle the case where the argument is an expression
-      if (methodName === "filter" && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
-        // Create a context for shorthand expression like 'filter(x > 1)'
-        const savedContext = context;
-        context = context.newChildContext();
-        
-        const elementType = getArrayElementType(arrayVar.type);
-        const tempVar = core.variable("x", elementType, false);
-        context.add("x", tempVar);
-        
-        const argExp = arg.analyze();
-        checkBoolean(argExp, arg);
-        
-        context = savedContext;
+
+      if (methodName === "map" || methodName === "filter") {
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
-      
-      // Normal analyze for other cases
-      const argExp = arg.analyze();
-      
-      if (methodName === "map") {
-        // Handle function reference or expression
-        if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
-          const func = context.lookup(argExp.name);
-          return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-        } else {
-          return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-        }
-      } else if (methodName === "filter") {
-        // Check that the expression returns a boolean
-        checkBoolean(argExp, arg);
-        return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-      }
-      
+
       check(false, `Unknown array method: ${methodName}`, method);
     },
+    
+    // ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
+    //   const arrayVar = array.analyze();
+    //   const methodName = method.sourceString;
+      
+    //   // Check if this is an array first
+    //   check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+    //         `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+            
+    //   // For simple filter/map with just a function name
+    //   if (arg.sourceString && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
+    //     const funcName = arg.sourceString;
+    //     const func = context.lookup(funcName);
+        
+    //     if (func && func.kind === "Function") {
+    //       // For filter, check that it returns boolean
+    //       if (methodName === "filter") {
+    //         // Verify the function returns a boolean
+    //         check(func.returnType === "boolean", 
+    //               `Filter function must return boolean, got ${func.returnType}`, arg);
+    //         return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
+    //       } 
+    //       // For map, use the function's return type
+    //       else if (methodName === "map") {
+    //         return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
+    //       }
+    //     }
+    //   }
+      
+    //   // Handle the case where the argument is an expression
+    //   if (methodName === "filter" && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
+    //     // Create a context for shorthand expression like 'filter(x > 1)'
+    //     const savedContext = context;
+    //     context = context.newChildContext();
+        
+    //     const elementType = getArrayElementType(arrayVar.type);
+    //     const tempVar = core.variable("x", elementType, false);
+    //     context.add("x", tempVar);
+        
+    //     const argExp = arg.analyze();
+    //     checkBoolean(argExp, arg);
+        
+    //     context = savedContext;
+    //     return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
+    //   }
+      
+    //   // Normal analyze for other cases
+    //   const argExp = arg.analyze();
+      
+    //   if (methodName === "map") {
+    //     // Handle function reference or expression
+    //     if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
+    //       const func = context.lookup(argExp.name);
+    //       return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
+    //     } else {
+    //       return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
+    //     }
+    //   } else if (methodName === "filter") {
+    //     // Check that the expression returns a boolean
+    //     checkBoolean(argExp, arg);
+    //     return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
+    //   }
+      
+    //   check(false, `Unknown array method: ${methodName}`, method);
+    // },
     
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
       checkNotDeclared(id.sourceString, id);
