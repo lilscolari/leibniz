@@ -231,7 +231,7 @@ const fixtures = [
       print(std(x));
       print(variance(x));
 
-      const sorted: integer[] = sort(x);
+      let sorted: integer[] = sort(x);
 
       for x in domain(#sorted) {
           sorted[x] = 1;

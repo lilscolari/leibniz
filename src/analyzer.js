@@ -277,10 +277,20 @@ export default function analyze(match) {
     },
     
     DomainArgs(_open, exp, _close) {
+      if (exp.numChildren === 0 || exp.asIteration().children.length === 0) {
+        throw new Error("domain() requires 1 to 3 arguments, got 0");
+      }
+      
       const args = exp.asIteration().children.map(arg => arg.analyze());
-
-      args.forEach((arg, i) => checkInteger(arg, exp.child(i)));
-    
+      
+      for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        const child = exp.asIteration().children[i];
+        if (arg && child) {
+          checkInteger(arg, child);
+        }
+      }
+      
       return args;
     },
     
@@ -327,36 +337,27 @@ export default function analyze(match) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
       
-      // Create a new context for the lambda parameter
       const savedContext = context;
       context = context.newChildContext();
       
-      // Add the parameter to the context
       const paramTypeValue = paramType.analyze();
       const param = core.variable(paramId.sourceString, paramTypeValue, false);
       context.add(paramId.sourceString, param);
       
-      // Analyze the expression in the lambda
       const lambdaExp = exp.analyze();
       
-      // Restore context
       context = savedContext;
       
-      // Check that the array is actually an array
       check(arrayVar.type && arrayVar.type.endsWith("[]"), 
             `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
       
       const elementType = getArrayElementType(arrayVar.type);
       
-      // Check that the parameter type matches the array element type
       checkTypesCompatible(elementType, paramTypeValue, paramType);
       
-      // For map and filter operations
       if (methodName === "map") {
-        // For map, the return type should be based on the lambda's return type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
       } else if (methodName === "filter") {
-        // For filter, the return type is the same as the input array
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       }
       
@@ -366,20 +367,30 @@ export default function analyze(match) {
     ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
+      
+      const savedContext = context;
+      context = context.newChildContext();
+      
+      if (arrayVar.type && arrayVar.type.endsWith("[]")) {
+        const elementType = getArrayElementType(arrayVar.type);
+        const tempVar = core.variable("x", elementType, false);
+        context.add("x", tempVar);
+      }
+      
       const argExp = arg.analyze();
       
-      // Check that the array is actually an array
+      context = savedContext;
+      
       check(arrayVar.type && arrayVar.type.endsWith("[]"), 
             `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
       
-      // Return appropriate type based on method
       if (methodName === "map") {
-        // For map operations with callback functions, use the callback's return type
         if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
           const func = context.lookup(argExp.name);
           return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${func.returnType}[]`);
         }
-        return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
+        const elementType = argExp.type || getArrayElementType(arrayVar.type);
+        return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${elementType}[]`);
       } else if (methodName === "filter") {
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
@@ -984,10 +995,8 @@ export default function analyze(match) {
       const object = context.lookup(objName);
       const methodName = method.sourceString;
       
-      // Check that the object exists and has the correct type
       check(object, `Object ${objName} not declared`, id);
       
-      // Check that the method is valid for the object type
       if (object.type === "Triangle") {
         check(
           methodName === "area" || methodName === "perimeter",
@@ -1008,7 +1017,6 @@ export default function analyze(match) {
         );
       } 
       
-      // All geometric methods return float
       return core.methodCall(object, methodName, [], "float");
     },
     
