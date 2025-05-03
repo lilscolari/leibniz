@@ -298,6 +298,23 @@ export default function analyze(match) {
       
       return core.assignmentStatement(value, arraySubscript);
     },
+    MatrixIndexAssignment(subscript, _eq, exp, _semi) {
+      const matrixSubscript = subscript.analyze();
+      const value = exp.analyze();
+    
+      const matrix = matrixSubscript.matrix;
+      const row = matrixSubscript.row;
+      const column = matrixSubscript.column;
+    
+      checkArrayOrStringOrMatrix(matrix, subscript);
+      checkNumber(row, subscript);
+      checkNumber(column, subscript);
+    
+      // Allow any number type (e.g., "int", "float")
+      checkNumber(value, exp);
+    
+      return core.assignmentStatement(value, matrixSubscript);
+    },
     ArrayMethodCall_higherorder(array, _dot, method, _open, paramId, _colon, paramType, _arrow, exp, _close) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
@@ -697,6 +714,21 @@ export default function analyze(match) {
         : "string";   
         return core.subscriptExpression(e, i, baseType);
     },
+    Primary_matrix_subscript(array, _open, rowIndex, _close, _open2, colIndex, _close2) {
+      const matrix = array.analyze();
+      const row = rowIndex.analyze();
+      const col = colIndex.analyze();
+    
+      checkArrayOrStringOrMatrix(matrix, array);
+      checkNumber(row, rowIndex);
+      checkNumber(col, colIndex);
+    
+      if (matrix.type !== "matrix") {
+        throw new Error("Only matrices support two-dimensional subscripting");
+      }
+    
+      return core.matrixSubscriptExpression(matrix, row, col, "matrix");
+    },
     Primary_mathfunc(call) {
       return call.analyze();
     },
@@ -708,11 +740,24 @@ export default function analyze(match) {
     MathFuncCall_binary(func, _open, arg1, _comma, arg2, _close) {
       const x = arg1.analyze();
       const y = arg2.analyze();
+      let returnType;
+
+      if (func.sourceString === "column" || func.sourceString === "cross") {
+        checkArrayOrStringOrMatrix(x, arg1);
+        returnType = "array";
+        return core.callExpression(func.sourceString, [x, y], returnType);
+      }
+
+      if (func.sourceString === "dot") {
+        checkArrayOrStringOrMatrix(x, arg1);
+        returnType = "float";
+        return core.callExpression(func.sourceString, [x, y], returnType);
+      }
+
       checkNumber(x, arg1);
       checkNumber(y, arg2);
       
       // Determine return type based on function
-      let returnType;
       if (func.sourceString === "pow") {
         // pow typically returns float
         returnType = "float";
@@ -724,6 +769,8 @@ export default function analyze(match) {
         returnType = "float";
       } else if (func.sourceString === "randint") {
         returnType = "integer";
+      } else if (func.sourceString === "arange") {
+        returnType = "integer[]"
       } else {
         returnType = "float"; // Default for any other binary math functions
       }
@@ -740,9 +787,46 @@ export default function analyze(match) {
         return core.callExpression("str", [x], "string");
       }
 
+      if (func.sourceString === "count") {
+        checkArrayOrStringOrMatrix(x, arg);
+        returnType = "integer";
+        return core.callExpression(func.sourceString, [x], returnType);
+      }
+
+      if (func.sourceString === "inv" || func.sourceString == "transpose") {
+        checkArrayOrStringOrMatrix(x, arg);
+        returnType = "matrix";
+        return core.callExpression(func.sourceString, [x], returnType);
+      } 
+
+      if (func.sourceString === "eigs") {
+        checkArrayOrStringOrMatrix(x, arg);
+        returnType = "array";
+        return core.callExpression(func.sourceString, [x], returnType);
+      }
+
+      if (func.sourceString === "ones" || func.sourceString === "zeros") {
+        checkNumber(x, arg);
+        returnType = "integer[]";
+        return core.callExpression(func.sourceString, [x], returnType);
+      }
+
+      if (func.sourceString === "identity") {
+        checkNumber(x, arg);
+        returnType = "matrix";
+        return core.callExpression(func.sourceString, [x], returnType);
+      }
+
+      if (func.sourceString === "shape") {
+        checkArrayOrStringOrMatrix(x, arg);
+        returnType = "integer[]";
+        return core.callExpression(func.sourceString, [x], returnType);
+      }
+      
+
       if (func.sourceString === "median" || func.sourceString === "mean" || func.sourceString === "mode" || func.sourceString === "min"
         || func.sourceString === "max" || func.sourceString === "prod" || func.sourceString === "sum" || func.sourceString === "std"
-        || func.sourceString === "variance" || func.sourceString === "arandom"
+        || func.sourceString === "variance" || func.sourceString === "arandom" || func.sourceString === "det"
       ) {
         checkArrayOrStringOrMatrix(x, arg);
         returnType = "float";
@@ -755,6 +839,18 @@ export default function analyze(match) {
           // Preserve the array element type
           returnType = x.type;
         }
+        
+        return core.callExpression(func.sourceString, [x], returnType);
+      }
+
+      
+      if (x.type.endsWith("[]")) {
+        checkArrayOrStringOrMatrix(x, arg);
+        returnType = "matrix";
+        return core.callExpression(func.sourceString, [x], returnType);
+      } else if (x.type === "matrix") {
+        checkArrayOrStringOrMatrix(x, arg);
+        returnType = "float[]";
         return core.callExpression(func.sourceString, [x], returnType);
       }
       

@@ -94,3 +94,45 @@ print(name2);
 
 let name3: integer[] = test.filter(greater_than_2);
 print(name3);
+
+
+let threeby3: matrix = [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1]];
+
+print(column(threeby3, 1));
+
+print(count(threeby3));
+
+print(count("test"));
+
+threeby3[1][1] = 5;
+
+print(threeby3);
+
+print(cross([1, 1, 0], [0, 1, 1]));
+
+print(det([[1, 2], [3, 4]]));
+
+print(diag([1, 2, 3]));
+
+const a_matrix: matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+print(diag(a_matrix));
+
+print(dot([1, 2, 3], [2, 3, 4]));
+
+print(eigs([[1, 0], [0, 1]]));
+
+print(identity(4));
+
+print(inv([[1, 2], [3, 4]]));
+
+print(ones(7));
+print(zeros(8));
+
+print(arange(5, 10));
+
+print(transpose([[1, 2, 3], [4, 5, 6]]));
+
+print(shape([[1, 2, 3], [4, 5, 6]]));

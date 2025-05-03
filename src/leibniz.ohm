@@ -10,6 +10,7 @@ Leibniz {
             | break ";"                       --break
             | ObjectCreation
             | AssignmentStmt
+            | MatrixIndexAssignment
             | ArrayIndexAssignment
             | "++" Primary_id ";"             --increment
             | "--" Primary_id ";"             --decrement
@@ -38,6 +39,7 @@ Leibniz {
   PrintStmt = print "(" Exp ")" ";"
   AssignmentStmt = Primary_id "=" Exp ";"
   ArrayIndexAssignment = Primary_subscript "=" Exp ";"
+  MatrixIndexAssignment = Primary_matrix_subscript "=" Exp ";"
   IfStmt    = if Exp Block (else (Block | IfStmt))?
   WhileStmt = while Exp Block
   Block     = "{" Stmt* "}"
@@ -64,6 +66,7 @@ Leibniz {
             | ArrayMethodCall
             | stringlit                  --string
             | Primary "[" Exp "]"        --subscript
+            | Primary "[" Exp "]" "[" Exp "]" --matrix_subscript
             | MathFuncCall               --mathfunc
             | FunctionCall
             | DerivativeFuncCall
@@ -91,11 +94,11 @@ Leibniz {
   UnaryMathFunc = sqrtFunc | expFunc | lnFunc | log10Func 
                 | absFunc | floorFunc | ceilFunc | roundFunc | toStringFunc
                 | medianFunc | meanFunc | sortFunc | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
-                | zetaFunc | arandomFunc
+                | zetaFunc | arandomFunc | countFunc | detFunc | diagFunc | eigsFunc | identityFunc | invFunc | onesFunc | zerosFunc | transposeFunc | shapeFunc
 
   toStringFunc = "str" ~idchar
                 
-  BinaryMathFunc = powFunc | permFunc | chooseFunc | randFunc | randintFunc
+  BinaryMathFunc = powFunc | permFunc | chooseFunc | randFunc | randintFunc | columnFunc | crossFunc | dotFunc | arangeFunc
   
   let       = "let" ~idchar
   const     = "const" ~idchar
@@ -142,6 +145,21 @@ Leibniz {
   randFunc = "rand" ~idchar
   randintFunc = "randint" ~idchar
 
+  columnFunc = "column" ~idchar
+  countFunc = "count" ~idchar
+  crossFunc = "cross" ~idchar
+  detFunc = "det" ~idchar
+  diagFunc = "diag" ~idchar
+  dotFunc = "dot" ~idchar
+  eigsFunc = "eigs" ~idchar
+  identityFunc = "identity" ~idchar
+  invFunc = "inv" ~idchar
+  onesFunc = "ones" ~idchar
+  zerosFunc = "zeros" ~idchar
+  arangeFunc = "arange" ~idchar
+  transposeFunc = "transpose" ~idchar
+  shapeFunc = "shape" ~idchar
+
   mathConstant = piConst | eConst | piSymbol
   piConst = "pi" ~idchar
   eConst = "e" ~idchar
@@ -184,6 +202,8 @@ Leibniz {
             | modeFunc | minFunc | maxFunc | prodFunc | sumFunc | stdFunc | varFunc
             | mapMethod | filterMethod | void | zetaFunc | arandomFunc
             | permFunc | chooseFunc | randFunc | randintFunc
+            | columnFunc | countFunc | crossFunc | detFunc | diagFunc | dotFunc 
+            | eigsFunc | identityFunc | invFunc | onesFunc | zerosFunc | arangeFunc | transposeFunc | shapeFunc
 
   id        = ~keyword letter idchar*
   idchar    = letter | digit | "_"

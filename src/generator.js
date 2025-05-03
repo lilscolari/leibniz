@@ -163,6 +163,34 @@ export default function generate(program) {
         return `math.random(${gen(e.args[0])}, ${gen(e.args[1])})`;
       } else if (e.callee === "randint") {
         return `math.randomInt(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } else if (e.callee === "column") {
+        return `math.column(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } else if (e.callee === "count") {
+        return `math.count(${argsCode})`;
+      } else if (e.callee === "cross") {
+        return `math.cross(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } else if (e.callee === "det") {
+        return `math.det(${argsCode})`;
+      } else if (e.callee === "diag") {
+        return `math.diag(${argsCode})`;
+      } else if (e.callee === "dot") {
+        return `math.dot(${gen(e.args[0])}, ${gen(e.args[1])})`;
+      } else if (e.callee === "eigs") {
+        return `math.eigs(${argsCode}).values`;
+      } else if (e.callee === "identity") {
+        return `math.identity(${argsCode})._data`;
+      } else if (e.callee === "inv") {
+        return `math.inv(${argsCode})`;
+      } else if (e.callee === "ones") {
+        return `math.ones(${argsCode})._data`;
+      } else if (e.callee === "zeros") {
+        return `math.zeros(${argsCode})._data`;
+      } else if (e.callee === "arange") {
+        return `math.range(${gen(e.args[0])}, ${gen(e.args[1])})._data`;
+      } else if (e.callee === "transpose") {
+        return `math.transpose(${argsCode})`;
+      } else if (e.callee === "shape") {
+        return `math.size(${argsCode})`;
       }
 
       // Fallback for user-defined or unknown functions
@@ -190,6 +218,13 @@ export default function generate(program) {
       const variableName = gen(e.array);
       const index = gen(e.index);
       return `${variableName}[${index}]`
+    },
+
+    MatrixSubscriptExpression(e) {
+      const variableName = gen(e.matrix);
+      const index1 = gen(e.row);
+      const index2 = gen(e.column);
+      return `${variableName}[${index1}][${index2}]`
     },
     
     ForLoopStatement(s) {

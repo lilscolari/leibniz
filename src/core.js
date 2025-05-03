@@ -178,6 +178,16 @@ export function subscriptExpression(array, index, type) {
   };
 }
 
+export function matrixSubscriptExpression(matrix, row, column, type) {
+  return {
+    kind: "MatrixSubscriptExpression",
+    matrix,
+    row,
+    column,
+    type,
+  };
+}
+
 export function arrayIndexAssignment(target, index, source) {
   return {
     kind: "ArrayIndexAssignment",
