@@ -372,46 +372,47 @@ const fixtures = [
   {
     name: "map and filter",
     source: `
-      fnc greater_than_2(i: integer): boolean = {
-          if i > 2 {
-              return true;
-          }
-          return false;
-      }
-
-      fnc multiply_by_2(i: integer): integer = {
-          return i * 2;
-      }
-
-      let test: integer[] = [1, 2, 3, 4, 5, 6, 7];
-
-      let name: integer[] = test.filter(x: integer => greater_than_2);
-      let name2: integer[] = test.map(x: integer => multiply_by_2);
-
-      print(name);
-      print(name2);
-
-      let name3: integer[] = test.filter(greater_than_2);
-      print(name3);
+        fnc greater_than_2(i: integer): boolean = {
+            if i > 2 {
+                return true;
+            }
+            return false;
+        }
+  
+        fnc multiply_by_2(i: integer): integer = {
+            return i * 2;
+        }
+  
+        let test: integer[] = [1, 2, 3, 4, 5, 6, 7];
+  
+        // Use explicit function calls in the lambda expressions
+        let name: integer[] = test.filter(x: integer => greater_than_2(x));
+        let name2: integer[] = test.map(x: integer => multiply_by_2(x));
+  
+        print(name);
+        print(name2);
+  
+        let name3: integer[] = test.filter(greater_than_2);
+        print(name3);
     `,
     expected: dedent`
-      const math = require('mathjs');
-      function greater_than_2_1(i_2) {
-      if (i_2 > 2) {
-      return true;
-      }
-      return false;
-      }
-      function multiply_by_2_3(i_4) {
-      return i_4 * 2;
-      }
-      let test_5 = [1, 2, 3, 4, 5, 6, 7];
-      let name_6 = test_5.filter(x => greater_than_2_1(x));
-      let name2_7 = test_5.map(x => multiply_by_2_3(x));
-      console.log(name_6);
-      console.log(name2_7);
-      let name3_8 = test_5.filter(x => greater_than_2_1(x));
-      console.log(name3_8);
+        const math = require('mathjs');
+        function greater_than_2_1(i_2) {
+        if (i_2 > 2) {
+        return true;
+        }
+        return false;
+        }
+        function multiply_by_2_3(i_4) {
+        return i_4 * 2;
+        }
+        let test_5 = [1, 2, 3, 4, 5, 6, 7];
+        let name_6 = test_5.filter(x => greater_than_2_1(x));
+        let name2_7 = test_5.map(x => multiply_by_2_3(x));
+        console.log(name_6);
+        console.log(name2_7);
+        let name3_8 = test_5.filter(x => greater_than_2_1(x));
+        console.log(name3_8);
     `,
   },
   {

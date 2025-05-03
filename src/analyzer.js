@@ -374,28 +374,58 @@ export default function analyze(match) {
       // Check if this is an array first
       check(arrayVar.type && arrayVar.type.endsWith("[]"), 
             `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+            
+      // For simple filter/map with just a function name
+      if (arg.sourceString && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
+        const funcName = arg.sourceString;
+        const func = context.lookup(funcName);
+        
+        if (func && func.kind === "Function") {
+          // For filter, check that it returns boolean
+          if (methodName === "filter") {
+            // Verify the function returns a boolean
+            check(func.returnType === "boolean", 
+                  `Filter function must return boolean, got ${func.returnType}`, arg);
+            return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
+          } 
+          // For map, use the function's return type
+          else if (methodName === "map") {
+            return core.mapOrFilterCall(arrayVar, methodName, [func], `${func.returnType}[]`);
+          }
+        }
+      }
       
-      const savedContext = context;
-      context = context.newChildContext();
+      // Handle the case where the argument is an expression
+      if (methodName === "filter" && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
+        // Create a context for shorthand expression like 'filter(x > 1)'
+        const savedContext = context;
+        context = context.newChildContext();
+        
+        const elementType = getArrayElementType(arrayVar.type);
+        const tempVar = core.variable("x", elementType, false);
+        context.add("x", tempVar);
+        
+        const argExp = arg.analyze();
+        checkBoolean(argExp, arg);
+        
+        context = savedContext;
+        return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
+      }
       
-      const elementType = getArrayElementType(arrayVar.type);
-      const tempVar = core.variable("x", elementType, false);
-      context.add("x", tempVar);
-      
+      // Normal analyze for other cases
       const argExp = arg.analyze();
       
-      context = savedContext;
-      
       if (methodName === "map") {
+        // Handle function reference or expression
         if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
           const func = context.lookup(argExp.name);
-          // Use the function's return type for the resulting array
           return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${func.returnType}[]`);
         } else {
-          // For expressions, use the expression's type
           return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${argExp.type}[]`);
         }
       } else if (methodName === "filter") {
+        // Check that the expression returns a boolean
+        checkBoolean(argExp, arg);
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
       
