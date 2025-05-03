@@ -239,18 +239,13 @@ export default function generate(program) {
     },
 
     MapOrFilterCall(o) {
-      // For map and filter operations
       const array = gen(o.object);
       const method = o.methodName;
       const args = o.args.map(gen);
       
-      // Simplify to always use 'x' parameter for the lambda function
       if (args.length === 1) {
-        // For both direct function references and function calls in lambdas
-        // Always use 'x' as the parameter name without suffix
         return `${array}.${method}(x => ${args[0].replace(/\(x_\d+\)\(x\)/, "(x)")})`;
       } else {
-        // For any other case
         return `${array}.${method}(${args.join(", ")})`;
       }
     },

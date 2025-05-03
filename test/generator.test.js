@@ -395,7 +395,7 @@ const fixtures = [
         let name3: integer[] = test.filter(greater_than_2);
         print(name3);
     `,
-    // Updated to match what your generator actually produces
+
     expected: dedent`
         const math = require('mathjs');
         function greater_than_2_1(i_2) {
