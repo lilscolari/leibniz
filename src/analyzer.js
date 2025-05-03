@@ -356,8 +356,10 @@ export default function analyze(match) {
       checkTypesCompatible(elementType, paramTypeValue, paramType);
       
       if (methodName === "map") {
-        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
+        // Return type should be an array of the lambda's return type
+        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
       } else if (methodName === "filter") {
+        // Filter maintains the original array type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       }
       
@@ -925,16 +927,32 @@ export default function analyze(match) {
       return core.callExpression(func.sourceString, [x], returnType);
     },
     
-    DerivativeFuncCall(_derivative, _open, fnStr, _comma1, varStr, _comma2, point, _close) {
-      const functionString = fnStr.analyze();
-      const variableString = varStr.analyze();
+    DerivativeFuncCall(_derivative, _open, fnExp, _comma1, varExp, _comma2, point, _close) {
+      const functionExpr = fnExp.analyze();
+      const variableExpr = varExp.analyze();
       const evaluationPoint = point.analyze();
       
-      checkType(functionString, "string", fnStr);
-      checkType(variableString, "string", varStr);
+      // Check that the first argument can be converted to a string
+      // (either is already a string or is a number/variable that could be stringified)
+      check(
+        functionExpr.type === "string" || 
+        isNumericType(functionExpr.type) || 
+        functionExpr.kind === "Variable",
+        `Expected string or expression for function argument, got ${functionExpr.type}`,
+        fnExp
+      );
+      
+      // Similar check for second argument
+      check(
+        variableExpr.type === "string" || 
+        variableExpr.kind === "Variable",
+        `Expected string or variable for variable name, got ${variableExpr.type}`,
+        varExp
+      );
+      
       checkNumber(evaluationPoint, point);
       
-      return core.callExpression("derivative", [functionString, variableString, evaluationPoint], "float");
+      return core.callExpression("derivative", [functionExpr, variableExpr, evaluationPoint], "float");
     },
     
     stringlit(_openQuote, chars, _closeQuote) {

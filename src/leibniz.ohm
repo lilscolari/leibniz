@@ -86,7 +86,8 @@ Leibniz {
                | BinaryMathFunc "(" Exp "," Exp ")"  --binary
                | UnaryMathFunc "(" Exp ")"       --unary
 
-  DerivativeFuncCall = derivativeFunction "(" stringlit "," stringlit "," Exp ")"
+  DerivativeFuncCall = derivativeFunction "(" Exp "," Exp "," Exp ")"
+
 
   TrigFunc   = cosFunc | sinFunc | tanFunc 
              | arccosFunc | arcsinFunc | arctanFunc
