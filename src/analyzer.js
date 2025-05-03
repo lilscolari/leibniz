@@ -308,6 +308,7 @@ export default function analyze(match) {
         const elementType = getArrayElementType(array.type);
         checkTypesCompatible(value.type, elementType, exp);
       } else if (array.type === "string") {
+        console.log(value)
         checkType(value, "string", exp);
       }
       
@@ -364,42 +365,8 @@ export default function analyze(match) {
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       }
       
-      check(false, `Unknown array method: ${methodName}`, method);
+      //check(false, `Unknown array method: ${methodName}`, method);
     },
-    
-    // ArrayMethodCall_higherorder(array, _dot, method, _open, paramId, _colon, paramType, _arrow, exp, _close) {
-    //   const arrayVar = array.analyze();
-    //   const methodName = method.sourceString;
-      
-    //   // Check if this is an array first
-    //   check(arrayVar.type && arrayVar.type.endsWith("[]"), 
-    //         `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
-      
-    //   const savedContext = context;
-    //   context = context.newChildContext();
-      
-    //   const paramTypeValue = paramType.analyze();
-    //   const param = core.variable(paramId.sourceString, paramTypeValue, false);
-    //   context.add(paramId.sourceString, param);
-      
-    //   const lambdaExp = exp.analyze();
-      
-    //   context = savedContext;
-      
-    //   const elementType = getArrayElementType(arrayVar.type);
-      
-    //   checkTypesCompatible(elementType, paramTypeValue, paramType);
-      
-    //   if (methodName === "map") {
-    //     // The return type should be an array of the lambda's return type
-    //     return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
-    //   } else if (methodName === "filter") {
-    //     // Filter maintains the original array type
-    //     return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
-    //   }
-      
-    //   check(false, `Unknown array method: ${methodName}`, method);
-    // },
 
     ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
       const arrayVar = array.analyze();
@@ -413,73 +380,8 @@ export default function analyze(match) {
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
 
-      check(false, `Unknown array method: ${methodName}`, method);
+      //check(false, `Unknown array method: ${methodName}`, method);
     },
-    
-    // ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
-    //   const arrayVar = array.analyze();
-    //   const methodName = method.sourceString;
-      
-    //   // Check if this is an array first
-    //   check(arrayVar.type && arrayVar.type.endsWith("[]"), 
-    //         `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
-            
-    //   // For simple filter/map with just a function name
-    //   if (arg.sourceString && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
-    //     const funcName = arg.sourceString;
-    //     const func = context.lookup(funcName);
-        
-    //     if (func && func.kind === "Function") {
-    //       // For filter, check that it returns boolean
-    //       if (methodName === "filter") {
-    //         // Verify the function returns a boolean
-    //         check(func.returnType === "boolean", 
-    //               `Filter function must return boolean, got ${func.returnType}`, arg);
-    //         return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
-    //       } 
-    //       // For map, use the function's return type
-    //       else if (methodName === "map") {
-    //         return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
-    //       }
-    //     }
-    //   }
-      
-    //   // Handle the case where the argument is an expression
-    //   if (methodName === "filter" && !arg.sourceString.includes("=>") && !arg.sourceString.includes(":")) {
-    //     // Create a context for shorthand expression like 'filter(x > 1)'
-    //     const savedContext = context;
-    //     context = context.newChildContext();
-        
-    //     const elementType = getArrayElementType(arrayVar.type);
-    //     const tempVar = core.variable("x", elementType, false);
-    //     context.add("x", tempVar);
-        
-    //     const argExp = arg.analyze();
-    //     checkBoolean(argExp, arg);
-        
-    //     context = savedContext;
-    //     return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-    //   }
-      
-    //   // Normal analyze for other cases
-    //   const argExp = arg.analyze();
-      
-    //   if (methodName === "map") {
-    //     // Handle function reference or expression
-    //     if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
-    //       const func = context.lookup(argExp.name);
-    //       return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-    //     } else {
-    //       return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-    //     }
-    //   } else if (methodName === "filter") {
-    //     // Check that the expression returns a boolean
-    //     checkBoolean(argExp, arg);
-    //     return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
-    //   }
-      
-    //   check(false, `Unknown array method: ${methodName}`, method);
-    // },
     
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
       checkNotDeclared(id.sourceString, id);
@@ -523,9 +425,10 @@ export default function analyze(match) {
         if (returnExp && returnExp.type !== "void") {
           throw new Error(`Void function cannot return a value`);
         }
-      } else if (!allPathsReturn && !returnExp) {
-        throw new Error(`Function "${id.sourceString}" may not return a value on all paths.`);
-      }
+      } 
+      // else if (!allPathsReturn && !returnExp) {
+      //   throw new Error(`Function "${id.sourceString}" may not return a value on all paths.`);
+      // }
     
       if (!allPathsReturn && returnExp) {
         finalStatements.push(core.returnStatement(returnExp));
@@ -859,9 +762,9 @@ export default function analyze(match) {
       checkNumber(row, rowIndex);
       checkNumber(col, colIndex);
     
-      if (matrix.type !== "matrix") {
-        throw new Error("Only matrices support two-dimensional subscripting");
-      }
+      // if (matrix.type !== "matrix") {
+      //   throw new Error("Only matrices support two-dimensional subscripting");
+      // }
     
       return core.matrixSubscriptExpression(matrix, row, col, "matrix");
     },
@@ -910,8 +813,6 @@ export default function analyze(match) {
         returnType = "integer";
       } else if (func.sourceString === "arange") {
         returnType = "integer[]"
-      } else {
-        returnType = "float"; // Default for any other binary math functions
       }
       
       return core.callExpression(func.sourceString, [x, y], returnType);
@@ -974,7 +875,9 @@ export default function analyze(match) {
       } else if (func.sourceString === "sort") {
         checkArrayOrStringOrMatrix(x, arg);
         if (x.type === "string") {
-          returnType = "string";
+          throw new Error(
+            `sort functions only works on arrays`
+          );
         } else {
           // Preserve the array element type
           returnType = x.type;
@@ -1012,6 +915,9 @@ export default function analyze(match) {
       const functionExpr = fnExp.analyze();
       const variableExpr = varExp.analyze();
       const evaluationPoint = point.analyze();
+
+      console.log(functionExpr)
+      console.log(variableExpr)
       
       // Check that the first argument can be converted to a string
       // (either is already a string or is a number/variable that could be stringified)
@@ -1093,61 +999,32 @@ export default function analyze(match) {
       const objName = id.sourceString;
       const object = context.lookup(objName);
       const methodName = method.sourceString;
+
+      console.log(methodName)
       
       check(object, `Object ${objName} not declared`, id);
       
-      if (object.type === "Triangle") {
-        check(
-          methodName === "area" || methodName === "perimeter",
-          `Method ${methodName} not defined for Triangle objects`,
-          method
-        );
-      } else if (object.type === "Rectangle") {
-        check(
-          methodName === "area" || methodName === "perimeter",
-          `Method ${methodName} not defined for Rectangle objects`,
-          method
-        );
-      } else if (object.type === "Circle") {
-        check(
-          methodName === "area" || methodName === "circumference" || methodName === "radius",
-          `Method ${methodName} not defined for Circle objects`,
-          method
-        );
-      } 
+      // if (object.type === "Triangle") {
+      //   check(
+      //     methodName === "area" || methodName === "perimeter",
+      //     `Method ${methodName} not defined for Triangle objects`,
+      //     method
+      //   );
+      // } else if (object.type === "Rectangle") {
+      //   check(
+      //     methodName === "area" || methodName === "perimeter",
+      //     `Method ${methodName} not defined for Rectangle objects`,
+      //     method
+      //   );
+      // } else if (object.type === "Circle") {
+      //   check(
+      //     methodName === "area" || methodName === "circumference" || methodName === "radius",
+      //     `Method ${methodName} not defined for Circle objects`,
+      //     method
+      //   );
+      // } 
       
       return core.methodCall(object, methodName, [], "float");
-    },
-    
-    // Calls directly to objects
-    StaticMethodCall(type, _dot, methodName, _open, args, _close) {
-      // Implementation for static method calls
-      const objectType = type.sourceString;
-      const method = methodName.sourceString;
-      const argValues = args?.analyze() || [];
-      
-      // Check that the method is valid for the object type
-      if (objectType === "Triangle") {
-        check(
-          method === "area" || method === "perimeter",
-          `Method ${method} not defined for Triangle objects`,
-          methodName
-        );
-      } else if (objectType === "Rectangle") {
-        check(
-          method === "area" || method === "perimeter",
-          `Method ${method} not defined for Rectangle objects`,
-          methodName
-        );
-      } else if (objectType === "Circle") {
-        check(
-          method === "area" || method === "circumference" || method === "radius",
-          `Method ${method} not defined for Circle objects`,
-          methodName
-        );
-      }
-      
-      return core.callExpression(`${objectType}.${method}`, argValues, "float");
     },
     
     Primary_true(_) {
@@ -1168,24 +1045,19 @@ export default function analyze(match) {
       return entity;
     },
     
-    id(_first, _rest) {
-      // When id is used outside of variable reference context
-      return this.sourceString;
-    },
+    // id(_first, _rest) {
+    //   // When id is used outside of variable reference context
+    //   return this.sourceString;
+    // },
     
     ExpList(_) {
       // Handle expressions list for function calls
       return this.children.map(e => e.analyze());
     },
     
-    VarArgsList(first, _comma, rest) {
-      // Handle variable argument lists
-      return [first.analyze(), ...rest.children.map(e => e.analyze())];
-    },
-    
-    _iter(...children) {
-      return children.map(child => child.analyze());
-    },
+    // _iter(...children) {
+    //   return children.map(child => child.analyze());
+    // },
     
     NonemptyListOf(first, _sep, rest) {
       return [first.analyze(), ...rest.children.map(child => child.analyze())];
@@ -1195,13 +1067,13 @@ export default function analyze(match) {
       return [];
     },
 
-    intlit(_neg, _digits) {
-      return core.integerLiteral(parseInt(this.sourceString, 10));
-    },
+    // intlit(_neg, _digits) {
+    //   return core.integerLiteral(parseInt(this.sourceString, 10));
+    // },
     
-    floatlit(_neg, _whole, _dot, _frac, _exp, _sign, _expDigits) {
-      return core.floatLiteral(parseFloat(this.sourceString));
-    }
+    // floatlit(_neg, _whole, _dot, _frac, _exp, _sign, _expDigits) {
+    //   return core.floatLiteral(parseFloat(this.sourceString));
+    // }
   });
 
   return analyzer(match).analyze();

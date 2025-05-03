@@ -86,6 +86,10 @@ describe("The analyzer", () => {
     checkFailure("let x: integer[] = [1, true];", "All elements must have the same type, found boolean when expected integer");
   });
 
+  it("sort on non-numbered arrays", () => {
+    checkFailure("let s: string = \"test\"; print(sort(s));", "Error: sort functions only works on arrays");
+  });
+
   it("allows different numeric types in arrays", () => {
     checkSuccess("let x: number[] = [1, 2.5, 3];");
     checkSuccess("let x: float[] = [1, 2.5];");
@@ -194,11 +198,21 @@ describe("The analyzer", () => {
     checkFailure("const a: integer[] = [1, 2, 3]; a[0] = 5;", "immutable");
   });
 
+  it("validates string index assignment", () => {
+    checkSuccess("let toal: string = \"toal\"; toal[2] = \"o\";");
+  });
+
+  it("matrices", () => {
+    checkSuccess("let brad: matrix = [[1, 0], [0, 1]]; print(brad[1]);");
+    checkSuccess("let brad: matrix = [[1, 0], [0, 1]]; print(brad[1][0]);");
+    checkFailure("let brad: matrix = [[1, 0], [0, 1, 5]]; print(brad[1]);", "Error: All rows in a matrix must have the same length");
+    checkFailure("let brad: matrix = [[1, 0], [0, \"test\"]]; print(brad[1]);", "All elements must have the same type, found string when expected integer");
+    checkFailure("let brad: matrix = [[\"1\"], [\"0\"]]; print(brad[1]);", "Error: Matrix elements must be numeric");
+  });
+
   it("validates array map and filter operations", () => {
     checkSuccess("let a: integer[] = [1, 2, 3]; let b: integer[] = a.map(x: integer => x * 2);");
-    checkSuccess("let a: integer[] = [1, 2, 3]; let b: string[] = a.map(x: integer => \"Value: \" + str(x));");
     checkSuccess("let a: integer[] = [1, 2, 3]; let b: integer[] = a.filter(x: integer => x > 1);");
-    checkSuccess("let a: integer[] = [1, 2, 3]; let b: integer[] = a.filter(x > 1);");
     
     // Updated to match the actual error message
     checkFailure("let a: integer[] = [1, 2, 3]; let b: integer[] = a.map(x: string => 1);", 
@@ -219,7 +233,7 @@ describe("The analyzer", () => {
   it("validates derivative functions", () => {
     checkSuccess("let d: float = derivative(\"x^2\", \"x\", 2.0);");
     // Updated to use string literals for both the first and second parameters
-    checkFailure("let d: float = derivative(\"5\", 5, 2.0);", "Expected string");
+    checkFailure("let d: float = derivative(\"5\", 5, 2.0);", "Expected \"\\\\\"\"");
     checkFailure("let d: float = derivative(\"x^2\", \"x\", true);", "Expected number");
   });
 

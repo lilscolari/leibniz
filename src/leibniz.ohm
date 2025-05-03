@@ -86,7 +86,7 @@ Leibniz {
                | BinaryMathFunc "(" Exp "," Exp ")"  --binary
                | UnaryMathFunc "(" Exp ")"       --unary
 
-  DerivativeFuncCall = derivativeFunction "(" Exp "," Exp "," Exp ")"
+  DerivativeFuncCall = derivativeFunction "(" stringlit "," stringlit "," Exp ")"
 
 
   TrigFunc   = cosFunc | sinFunc | tanFunc 
@@ -166,8 +166,6 @@ Leibniz {
   eConst = "e" ~idchar
   piSymbol = "π" ~idchar
 
-  VarArgsList = Exp ("," Exp)*
-
   ExpList = ListOf<Exp, ",">
 
   ObjectCreation = obj id "=" objectType "(" ExpList ")" ";"
@@ -175,10 +173,7 @@ Leibniz {
   objectType = triangleObj | rectangleObj | circleObj
   
   ObjectMethodCall = id "." methodName "(" ")"
-  
-  // Calls directly to objects
-  StaticMethodCall = (triangleObj | rectangleObj | circleObj) "." methodName "(" VarArgsList? ")"
-  
+    
   methodName = areaMethod | perimeterMethod | circumferenceMethod | radiusMethod
 
   triangleObj = "Triangle" ~idchar
