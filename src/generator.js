@@ -243,11 +243,7 @@ export default function generate(program) {
       const method = o.methodName;
       const args = o.args.map(gen);
       
-      if (args.length === 1) {
-        return `${array}.${method}(x => ${args[0].replace(/\(x_\d+\)\(x\)/, "(x)")})`;
-      } else {
-        return `${array}.${method}(${args.join(", ")})`;
-      }
+      return `${array}.${method}(x => ${gen(o.args[0])}(x))`;
     },
     
     // FilterExpression(e) {

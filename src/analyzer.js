@@ -358,7 +358,7 @@ export default function analyze(match) {
       
       if (methodName === "map") {
         // The return type should be an array of the lambda's return type
-        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
+        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       } else if (methodName === "filter") {
         // Filter maintains the original array type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
@@ -390,7 +390,7 @@ export default function analyze(match) {
           } 
           // For map, use the function's return type
           else if (methodName === "map") {
-            return core.mapOrFilterCall(arrayVar, methodName, [func], `${func.returnType}[]`);
+            return core.mapOrFilterCall(arrayVar, methodName, [func], arrayVar.type);
           }
         }
       }
@@ -419,9 +419,9 @@ export default function analyze(match) {
         // Handle function reference or expression
         if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
           const func = context.lookup(argExp.name);
-          return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${func.returnType}[]`);
+          return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
         } else {
-          return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${argExp.type}[]`);
+          return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
         }
       } else if (methodName === "filter") {
         // Check that the expression returns a boolean
