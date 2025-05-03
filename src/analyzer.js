@@ -337,6 +337,10 @@ export default function analyze(match) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
       
+      // Check if this is an array first
+      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+      
       const savedContext = context;
       context = context.newChildContext();
       
@@ -348,15 +352,12 @@ export default function analyze(match) {
       
       context = savedContext;
       
-      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
-            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
-      
       const elementType = getArrayElementType(arrayVar.type);
       
       checkTypesCompatible(elementType, paramTypeValue, paramType);
       
       if (methodName === "map") {
-        // Return type should be an array of the lambda's return type
+        // The return type should be an array of the lambda's return type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
       } else if (methodName === "filter") {
         // Filter maintains the original array type
@@ -370,29 +371,30 @@ export default function analyze(match) {
       const arrayVar = array.analyze();
       const methodName = method.sourceString;
       
+      // Check if this is an array first
+      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
+            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
+      
       const savedContext = context;
       context = context.newChildContext();
       
-      if (arrayVar.type && arrayVar.type.endsWith("[]")) {
-        const elementType = getArrayElementType(arrayVar.type);
-        const tempVar = core.variable("x", elementType, false);
-        context.add("x", tempVar);
-      }
+      const elementType = getArrayElementType(arrayVar.type);
+      const tempVar = core.variable("x", elementType, false);
+      context.add("x", tempVar);
       
       const argExp = arg.analyze();
       
       context = savedContext;
       
-      check(arrayVar.type && arrayVar.type.endsWith("[]"), 
-            `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
-      
       if (methodName === "map") {
         if (argExp.kind === "Variable" && context.lookup(argExp.name)?.kind === "Function") {
           const func = context.lookup(argExp.name);
+          // Use the function's return type for the resulting array
           return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${func.returnType}[]`);
+        } else {
+          // For expressions, use the expression's type
+          return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${argExp.type}[]`);
         }
-        const elementType = argExp.type || getArrayElementType(arrayVar.type);
-        return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       } else if (methodName === "filter") {
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
