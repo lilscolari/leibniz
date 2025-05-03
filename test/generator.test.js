@@ -436,3 +436,10 @@ describe("The code generator", () => {
     })
   }
 })
+
+describe("generator", () => {
+  it("returns an empty string for null input", () => {
+    const result = generate(null);
+    assert.equal(result, "const math = require('mathjs');");
+  });
+});

@@ -1,9 +1,25 @@
-      obj new_rectangle = Rectangle(3, 3);
-      obj c = Circle(2);
-      print(new_rectangle.perimeter());
-      obj s = Triangle(5, pow(3, 2), 2);
-      print(s.area());
-      obj t = Triangle(5, 5, 2);
-      print(t);
-      obj t2 = Triangle(5, 5, 5);
-      print(t2);
+      fnc greater_than_2(i: integer): boolean = {
+          if i > 2 {
+              return true;
+          }
+          return false;
+      }
+
+      fnc multiply_by_2(i: integer): integer = {
+          return i * 2;
+      }
+
+      let test: integer[] = [1, 2, 3, 4, 5, 6, 7];
+
+      let name: integer[] = test.filter(x: integer => greater_than_2);
+      let name2: integer[] = test.map(x: integer => multiply_by_2);
+
+      print(name);
+      print(name2);
+
+      let name3: integer[] = test.filter(greater_than_2);
+      print(name3);
+
+      let name4: integer[] = test.map(multiply_by_2);
+
+      print(name4);

@@ -356,7 +356,7 @@ export default function analyze(match) {
       checkTypesCompatible(elementType, paramTypeValue, paramType);
       
       if (methodName === "map") {
-        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], `${lambdaExp.type}[]`);
+        return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       } else if (methodName === "filter") {
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       }
@@ -390,7 +390,7 @@ export default function analyze(match) {
           return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${func.returnType}[]`);
         }
         const elementType = argExp.type || getArrayElementType(arrayVar.type);
-        return core.mapOrFilterCall(arrayVar, methodName, [argExp], `${elementType}[]`);
+        return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       } else if (methodName === "filter") {
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
