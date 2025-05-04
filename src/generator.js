@@ -125,7 +125,7 @@ export default function generate(program) {
       if (mathFuncs.has(e.callee)) {
         return `Math.${e.callee}(${argsCode})`;
       } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
-        return `${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
+        return `Math.${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
       } else if (e.callee == "str") {
         return `${argsCode}.toString()`
       } else if (e.callee == "sort") {
@@ -190,6 +190,10 @@ export default function generate(program) {
         return `math.transpose(${argsCode})`;
       } else if (e.callee === "shape") {
         return `math.size(${argsCode})`;
+      } else if (e.callee === "ln") {
+        return `Math.log(${argsCode})`;
+      } else if (e.callee === "log10") {
+        return `Math.log10(${argsCode})`;
       }
 
       // Fallback for user-defined or unknown functions

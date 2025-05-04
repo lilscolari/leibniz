@@ -1,0 +1,5 @@
+print(derivative("x^3", "x", 5));
+
+print(derivative("(x+1)/2", "x", 1));
+
+print(derivative("sin(x)", "x", pi));

@@ -1,0 +1,9 @@
+// A high school club consists of 4 freshmen, 5 sophomores, 5 juniors, and 6 seniors. How many ways can a committee of 4 people be chosen that includes
+
+// One student from each class?
+
+const answer: float = choose(4, 1) * (choose(5, 1) ** 2) * choose(6, 1);
+print(answer);
+
+// We can also do permutations:
+print(perm(5, 3));
