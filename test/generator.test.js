@@ -42,10 +42,10 @@ const fixtures = [
       console.log(Math.sqrt(twenty_five_1));
       console.log(math.min([2, 3]));
       console.log(math.max([3, 4]));
-      console.log(ln(2.718281828459045));
-      console.log(log10(3.141592653589793));
+      console.log(Math.log(2.718281828459045));
+      console.log(Math.log10(3.141592653589793));
       console.log(Math.floor(10.4342));
-      console.log(atan(22));
+      console.log(Math.atan(22));
     `,
   },
   {
@@ -54,24 +54,26 @@ const fixtures = [
       obj new_rectangle = Rectangle(3, 3);
       obj c = Circle(2);
       print(new_rectangle.perimeter());
-      obj s = Triangle(5, pow(3, 2), 2);
+      obj s = Triangle(pow(2, 1), pow(3, 2), pow(3, 3));
       print(s.area());
       obj t = Triangle(5, 5, 2);
       print(t);
       obj t2 = Triangle(5, 5, 5);
       print(t2);
+      print(t2.perimeter());
     `,
     expected: dedent`
       const math = require('mathjs');
       let new_rectangle_1 = {width: 3, height: 3, area: function() {return 3 * 3}, perimeter: function() {return 2 * 3 + 2 * 3}};
-      let c_2 = {radius: 2, area: function() {return 3.141592653589793 * 2 ** 2}}, circumference: function() {return 2 * 3.141592653589793 * 2}};
+      let c_2 = {radius: 2, area: function() {return 3.141592653589793 * 2 ** 2}, circumference: function() {return 2 * 3.141592653589793 * 2}};
       console.log(new_rectangle_1.perimeter());
-      let s_3 = {side1: 5, side2: NaN, side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 5 + NaN + 2}, type: function() {return Scalene}};
+      let s_3 = {side1: 2, side2: 9, side3: 27, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 2 + 9 + 27}, type: function() {return Scalene}};
       console.log(s_3.area());
       let t_4 = {side1: 5, side2: 5, side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 5 + 5 + 2}, type: function() {return Isosceles}};
       console.log(t_4);
       let t2_5 = {side1: 5, side2: 5, side3: 5, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 5 + 5 + 5}, type: function() {return Equilateral}};
       console.log(t2_5);
+      console.log(t2_5.perimeter());
     `,
   },
   {

@@ -1,18 +1,18 @@
 const x: integer = 5;
 const y: integer = -10; 
-let total: integer = x + y; 
+let add: integer = x + y; 
 
-total = 3;
+add = 3;
 
 print(x);  
-print(total);
+print(add);
 
 
 fnc addition(a: integer, b: integer): integer = {print(2); return a + b;}
 
 fnc circleArea(radius: float): float = {return 3.14159 * (radius ** 2);}
 
-fnc maximum(a: integer, b: integer): integer = {return max(a, b);}
+fnc maximum(a: integer, b: integer): float = {let x: integer[] = [a, b]; return max(x);}
 
 fnc greeting(name: string): string = {return "Hello, " + name;}
 
@@ -27,21 +27,24 @@ const b: integer = 3;
 let result: float = a / b;
 
 
-let sum: integer = 0;
+let total: integer = 0;
 let counter: integer = 1;
 while true {
-    sum = sum + counter;
-    if sum > 100 {
+    total = total + counter;
+    if total > 100 {
         break;
     }
     counter = counter + 1;
 }
 
-print(sum);
+print(total);
 
-print(arcsin(π));
-print(arcsin(e));
-print(arcsin(pi));
+print(arcsin(1));
+print(arcsin(0));
+print(arcsin(-1));
+
+print(pi);
+print(e);
 
 if x > 3 {print(true);} else if x == 3 {print(2);}
 
@@ -92,10 +95,6 @@ const twenty_five: integer = 25;
 
 print(sqrt(twenty_five));
 
-print(min(2, 3));
-
-print(max(3, 4)); //need to allow to accept arrays
-
 print(ln(e));
 
 print(log10(22));
@@ -103,8 +102,6 @@ print(log10(22));
 print(floor(10.4342));
 
 print(abs(3 * -5));
-
-print(derivative("x^2", "x", 231.4));
 
 print(addition(2, 3));
 

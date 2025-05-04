@@ -1,0 +1,10 @@
+      obj new_rectangle = Rectangle(3, 3);
+      obj c = Circle(2);
+      print(new_rectangle.perimeter());
+      obj s = Triangle(pow(2, 1), pow(3, 2), pow(3, 3));
+      print(s.area());
+      obj t = Triangle(5, 5, 2);
+      print(t);
+      obj t2 = Triangle(5, 5, 5);
+      print(t2);
+      print(t2.perimeter());

@@ -11,9 +11,6 @@ export default function analyze(match) {
     add(name, entity) {
       this.locals.set(name, entity);
     }
-    // has(name) {
-    //   return this.locals.has(name);
-    // }
     lookup(name) {
       return this.locals.get(name) ?? (this.parent && this.parent.lookup(name));
     }
@@ -49,48 +46,24 @@ export default function analyze(match) {
     check(e.type === "integer", `Expected integer, got ${e.type}`, parseTreeNode);
   }
 
-  // function checkFloat(e, parseTreeNode) {
-  //   check(e.type === "float", `Expected float, got ${e.type}`, parseTreeNode);
-  // }
-
   function checkBoolean(e, parseTreeNode) {
     check(e.type === "boolean", `Expected boolean, got ${e.type}`, parseTreeNode);
   }
 
-  // function checkNumberOrString(e, parseTreeNode) {
-  //   check(
-  //     e.type === "number" || e.type === "integer" || e.type === "float" || e.type === "string",
-  //     `Expected number, integer, float, or string, got ${e.type}`,
-  //     parseTreeNode
-  //   );
-  // }
-
   function checkArrayOrStringOrMatrix(e, parseTreeNode) {
     check(
       e.type === "string" || e.type.endsWith("[]") || e.type === "matrix",
-      `Expected string or array, got ${e.type}`, // Changed to match test expectations
+      `Expected string or array, got ${e.type}`,
       parseTreeNode
     );
   }
-
-  // function checkSameTypes(x, y, parseTreeNode) {
-  //   // Special case for numeric types: allow integer, float, and number to be compatible
-  //   if (isNumericType(x.type) && isNumericType(y.type)) {
-  //     return;
-  //   }
-  //   check(x.type === y.type, `Operands must have the same type: ${x.type} and ${y.type}`, parseTreeNode);
-  // }
 
   function isNumericType(type) {
     return type === "number" || type === "integer" || type === "float";
   }
 
-  // function isArrayType(type) {
-  //   return type && type.endsWith("[]");
-  // }
-
   function getArrayElementType(arrayType) {
-    return arrayType.slice(0, -2); // Remove the '[]' suffix
+    return arrayType.slice(0, -2);
   }
 
   function getTypeCoercion(type1, type2) {
@@ -114,7 +87,6 @@ export default function analyze(match) {
     if (elements.length > 0) {
       const type = elements[0].type;
       for (const e of elements) {
-        // For numeric types, allow mixing integers, floats, and numbers
         if (isNumericType(type) && isNumericType(e.type)) {
           continue;
         }
@@ -129,17 +101,13 @@ export default function analyze(match) {
 
   function checkArrayTypeMatches(arrayElements, declaredType, parseTreeNode) {
     if (arrayElements.length === 0) {
-      // Empty arrays can match any array type
       return;
     }
     
-    // Extract the element type from the array type (remove the '[]')
     const expectedElementType = getArrayElementType(declaredType);
     
-    // Check that all elements match the expected type
     for (const element of arrayElements) {
       if (isNumericType(expectedElementType) && isNumericType(element.type)) {
-        // For numeric types, allow implicit conversion if it's safe
         if (expectedElementType === "number" || 
             (expectedElementType === "float" && element.type === "integer")) {
           continue;
@@ -167,66 +135,29 @@ export default function analyze(match) {
   }
 
   function checkTypesCompatible(sourceType, targetType, parseTreeNode) {
-    // if (!sourceType || !targetType) {
-    //   throw new Error(`Type mismatch: sourceType = ${sourceType}, targetType = ${targetType}`);
-    // }
-
-    // Check if types are exactly the same
     if (sourceType === targetType) {
       return true;
     }
     
-    // Check if both are array types
     if (sourceType.endsWith("[]") && targetType.endsWith("[]")) {
       const sourceElementType = sourceType.slice(0, -2);
       const targetElementType = targetType.slice(0, -2);
       
-      // Check if element types are compatible
       return checkTypesCompatible(sourceElementType, targetElementType, parseTreeNode);
     }
     
-    // Check if both are numeric types (integer, float, number)
     if (isNumericType(sourceType) && isNumericType(targetType)) {
-      // Allow assignment from more specific to more general type
       if (sourceType === "integer" && (targetType === "number" || targetType === "float")) {
         return true;
       }
       if (sourceType === "float" && targetType === "number") {
         return true;
       }
-      // Don't allow assignment from more general to more specific type
       check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
     }
     
-    // If we got here, types are not compatible
     check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
   }
-
-  // function everyPathReturns(statements) {
-  //   for (let i = 0; i < statements.length; i++) {
-  //     const stmt = statements[i];
-  //     if (stmt.kind === "ReturnStatement") {
-  //       return true;
-  //     }
-  //     if (stmt.kind === "IfStatement") {
-  //       if (
-  //         stmt.consequent &&
-  //         stmt.alternate &&
-  //         everyPathReturns(stmt.consequent) &&
-  //         everyPathReturns(stmt.alternate)
-  //       ) {
-  //         return true;
-  //       }
-  //     }
-  //     // if (stmt.kind === "WhileStatement" || stmt.kind === "ForLoopStatement") {
-  //     //   // Check if the loop *body* unconditionally returns
-  //     //   if (everyPathReturns(stmt.body)) {
-  //     //     return true;
-  //     //   }
-  //     // }
-  //   }
-  //   return false;
-  // }
   
   const analyzer = grammar.createSemantics().addOperation("analyze", {
     Program(statements) {
@@ -252,16 +183,16 @@ export default function analyze(match) {
       const loopVar = core.variable(id.sourceString, "integer", false);
       context.add(id.sourceString, loopVar);
     
-      const args = domainArgs.analyze(); // now an array
+      const args = domainArgs.analyze();
       let start, stop, step;
     
      if (args.length === 1) {
-        start = core.integerLiteral(0); // default start
+        start = core.integerLiteral(0);
         stop = args[0];
-        step = core.integerLiteral(1); // default step
+        step = core.integerLiteral(1);
       } else if (args.length === 2) {
         [start, stop] = args;
-        step = core.integerLiteral(1); // default step
+        step = core.integerLiteral(1);
       } else if (args.length === 3) {
         [start, stop, step] = args;
       } else {
@@ -300,7 +231,7 @@ export default function analyze(match) {
       const index = arraySubscript.index;
       
       checkArrayOrStringOrMatrix(array, subscript);
-      checkIsMutable(array, subscript); // Added check for mutability
+      checkIsMutable(array, subscript);
       
       if (array.type.endsWith("[]")) {
         const elementType = getArrayElementType(array.type);
@@ -323,9 +254,8 @@ export default function analyze(match) {
       checkArrayOrStringOrMatrix(matrix, subscript);
       checkNumber(row, subscript);
       checkNumber(column, subscript);
-      checkIsMutable(matrix, subscript); // Added check for mutability
+      checkIsMutable(matrix, subscript);
     
-      // Allow any number type (e.g., "int", "float")
       checkNumber(value, exp);
     
       return core.assignmentStatement(value, matrixSubscript);
@@ -346,7 +276,6 @@ export default function analyze(match) {
       
       context = savedContext;
 
-      // Check if this is an array first
       check(arrayVar.type && arrayVar.type.endsWith("[]"), 
       `Cannot call ${methodName} on non-array type ${arrayVar.type}`, array);
       
@@ -355,14 +284,10 @@ export default function analyze(match) {
       checkTypesCompatible(elementType, paramTypeValue, paramType);
 
       if (methodName === "map") {
-        // The return type should be an array of the lambda's return type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
       } else if (methodName === "filter") {
-        // Filter maintains the original array type
         return core.mapOrFilterCall(arrayVar, methodName, [lambdaExp], arrayVar.type);
-      }
-      
-      //check(false, `Unknown array method: ${methodName}`, method);
+      }  
     },
 
     ArrayMethodCall_simple(array, _dot, method, _open, arg, _close) {
@@ -376,8 +301,6 @@ export default function analyze(match) {
       if (methodName === "map" || methodName === "filter") {
         return core.mapOrFilterCall(arrayVar, methodName, [argExp], arrayVar.type);
       }
-
-      //check(false, `Unknown array method: ${methodName}`, method);
     },
     
     VarDec(qualifier, id, _colon, type, _eq, exp, _semi) {
@@ -385,11 +308,9 @@ export default function analyze(match) {
       const declaredType = type.analyze();
       const initializer = exp.analyze();
       
-      // Special handling for array types
       if (declaredType.endsWith("[]") && initializer.kind === "ArrayExpression") {
         checkArrayTypeMatches(initializer.elements, declaredType, exp);
       } else {
-        // Check that initializer type is compatible with declared type
         checkTypesCompatible(initializer.type, declaredType, exp);
       }
       
@@ -413,27 +334,15 @@ export default function analyze(match) {
       const analyzedBody = body.analyze();
       const { statements, returnExp } = analyzedBody;
     
-      // Add returnExp as the final return if not all paths return
-      //const allPathsReturn = everyPathReturns(statements);
       const finalStatements = [...statements];
     
-      // Special handling for void functions
       if (declaredReturnType === "void") {
         if (returnExp && returnExp.type !== "void") {
           throw new Error(`Void function cannot return a value`);
         }
       } 
-      // else if (!allPathsReturn && !returnExp) {
-      //   throw new Error(`Function "${id.sourceString}" may not return a value on all paths.`);
-      // }
-    
-      // if (!allPathsReturn && returnExp) {
-      //   finalStatements.push(core.returnStatement(returnExp));
-      // }
       finalStatements.push(core.returnStatement(returnExp));
 
-    
-      // Check return type
       if (returnExp) {
         checkTypesCompatible(returnExp.type, declaredReturnType, returnType);
       }
@@ -446,7 +355,6 @@ export default function analyze(match) {
     },
 
     ReturnStatement(_return, exp, _semi) {
-      // Handle the optional expression in return
       if (exp.numChildren === 0) {
         return core.returnStatement({type: "void", value: null});
       }
@@ -463,7 +371,7 @@ export default function analyze(match) {
         
         if (analyzedStmt.kind === "ReturnStatement") {
           returnExp = analyzedStmt.expression;
-          break; // Exit after finding the first return statement
+          break;
         } else {
           bodyStatements.push(analyzedStmt);
         }
@@ -483,14 +391,12 @@ export default function analyze(match) {
       
       const actualArgs = args.analyze().flat();
       
-      // Check that the number of arguments matches
       check(
         actualArgs.length === fun.parameters.length,
         `Expected ${fun.parameters.length} argument(s), got ${actualArgs.length}`,
         id
       );
       
-      // Check that argument types match parameter types
       for (let i = 0; i < actualArgs.length; i++) {
         checkTypesCompatible(actualArgs[i].type, fun.parameters[i].type, args.children[i]);
       }
@@ -499,7 +405,6 @@ export default function analyze(match) {
     },
     
     Params(_open, params, _close) {
-      // Handle params that may or may not be iterated
       return params.children.map(p => p.analyze());
     },
     
@@ -533,7 +438,6 @@ export default function analyze(match) {
       const source = exp.analyze();
       const target = id.analyze();
       
-      // Check that source type is compatible with target type
       checkTypesCompatible(source.type, target.type, id);
       
       checkIsMutable(target, id);
@@ -552,7 +456,6 @@ export default function analyze(match) {
       checkBoolean(test, exp);
       const consequentBlock = consequent.analyze();
       
-      // Handle the optional alternate branch
       let alternateBlock = null;
       if (alternate && alternate.children && alternate.children.length > 0) {
         alternateBlock = alternate.children[0].analyze();
@@ -562,12 +465,9 @@ export default function analyze(match) {
     },
     
     Block(_open, statements, _close) {
-      // Create a new context for this block
       const savedContext = context;
       context = context.newChildContext();
-      // Direct access to children instead of using asIteration
       const stmts = statements.children.map(s => s.analyze());
-      // Restore the previous context when we're done
       context = savedContext;
       return core.block(stmts);
     },
@@ -576,11 +476,9 @@ export default function analyze(match) {
       const x = left.analyze();
       const y = right.analyze();
       if (op.sourceString === "==" || op.sourceString === "!=") {
-        // For equality operators, types must be compatible
         const compatibleType = getTypeCoercion(x.type, y.type);
         check(compatibleType !== null, `Type mismatch: ${x.type} and ${y.type}`, op);
       } else {
-        // For other relational operators, operands must be numeric
         checkNumber(x, left);
         checkNumber(y, right);
       }
@@ -590,12 +488,8 @@ export default function analyze(match) {
     Condition_add(left, _op, right) {
       const x = left.analyze();
       const y = right.analyze();
-      
-      // For addition, accept either:
-      // 1. Both operands are numeric (integer, float, number)
-      // 2. Both operands are strings (for concatenation)
+
       if (isNumericType(x.type) && isNumericType(y.type)) {
-        // Result type is the more general of the two types
         const resultType = getTypeCoercion(x.type, y.type);
         return core.binaryExpression("+", x, y, resultType);
       } else if (x.type === "string" && y.type === "string") {
@@ -610,7 +504,6 @@ export default function analyze(match) {
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      // Result type is the more general of the two types
       const resultType = getTypeCoercion(x.type, y.type);
       return core.binaryExpression("-", x, y, resultType);
     },
@@ -620,7 +513,6 @@ export default function analyze(match) {
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      // Result type is the more general of the two types
       const resultType = getTypeCoercion(x.type, y.type);
       return core.binaryExpression("*", x, y, resultType);
     },
@@ -630,7 +522,6 @@ export default function analyze(match) {
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      // Division always returns float (except when explicitly handling integer division)
       return core.binaryExpression("/", x, y, "float");
     },
     
@@ -639,8 +530,6 @@ export default function analyze(match) {
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      // Modulo operation typically returns the same type as the operands,
-      // but we'll use integer for integer operands, otherwise float
       const resultType = (x.type === "integer" && y.type === "integer") ? "integer" : "float";
       return core.binaryExpression("%", x, y, resultType);
     },
@@ -654,7 +543,6 @@ export default function analyze(match) {
       const y = right.analyze();
       checkNumber(x, left);
       checkNumber(y, right);
-      // Exponentiation typically returns float unless both are integers and the exponent is positive
       return core.binaryExpression("**", x, y, "float");
     },
     
@@ -677,13 +565,11 @@ export default function analyze(match) {
     },
     
     Primary_int(_) {
-      // Handle the optional negative sign in the grammar
       const value = parseInt(this.sourceString, 10);
       return { type: "integer", value: value };
     },
     
     Primary_float(_) {
-      // Handle the optional negative sign in the grammar
       const value = parseFloat(this.sourceString);
       return { type: "float", value: value };
     },
@@ -691,7 +577,6 @@ export default function analyze(match) {
     Primary_array(_open, elements, _close) {
       const contents = elements.children.map(e => e.analyze())[0] || [];
     
-      // Check if this is a 2D array (matrix candidate)
       const isMatrixCandidate = contents.length > 0 && contents.every(
         e => e.kind === "ArrayExpression"
       );
@@ -717,7 +602,6 @@ export default function analyze(match) {
         return core.matrixExpression(contents, "matrix");
       }
     
-      // Handle regular arrays
       checkAllElementsHaveSameType(contents, _open);
     
       let elementType = "any";
@@ -763,10 +647,6 @@ export default function analyze(match) {
       checkNumber(row, rowIndex);
       checkNumber(col, colIndex);
     
-      // if (matrix.type !== "matrix") {
-      //   throw new Error("Only matrices support two-dimensional subscripting");
-      // }
-    
       return core.matrixSubscriptExpression(matrix, row, col, "matrix");
     },
     
@@ -800,9 +680,7 @@ export default function analyze(match) {
       checkNumber(x, arg1);
       checkNumber(y, arg2);
       
-      // Determine return type based on function
       if (func.sourceString === "pow") {
-        // pow typically returns float
         returnType = "float";
       } else if (func.sourceString === "choose") {
         returnType = "integer";
@@ -825,7 +703,7 @@ export default function analyze(match) {
       let returnType;
 
       if (func.sourceString === "str") {
-        checkNumber(x, arg); // Optional: if you only allow numbers -> string
+        checkNumber(x, arg);
         return core.callExpression("str", [x], "string");
       }
 
@@ -880,7 +758,6 @@ export default function analyze(match) {
             `sort functions only works on arrays`
           );
         } else {
-          // Preserve the array element type
           returnType = x.type;
         }
         
@@ -900,11 +777,9 @@ export default function analyze(match) {
       
       checkNumber(x, arg);
       
-      // Determine return type based on function
       if (func.sourceString === "floor" || func.sourceString === "ceil" || func.sourceString === "round") {
         returnType = "integer";
       } else if (func.sourceString === "abs") {
-        // abs preserves the input type
         returnType = x.type;
       } else {
         returnType = "float"; 
@@ -916,24 +791,6 @@ export default function analyze(match) {
       const functionExpr = fnExp.analyze();
       const variableExpr = varExp.analyze();
       const evaluationPoint = point.analyze();
-      
-      // Check that the first argument can be converted to a string
-      // (either is already a string or is a number/variable that could be stringified)
-      // check(
-      //   functionExpr.type === "string" || 
-      //   isNumericType(functionExpr.type) || 
-      //   functionExpr.kind === "Variable",
-      //   `Expected string or expression for function argument, got ${functionExpr.type}`,
-      //   fnExp
-      // );
-      
-      // // Similar check for second argument
-      // check(
-      //   variableExpr.type === "string" || 
-      //   variableExpr.kind === "Variable",
-      //   `Expected string or variable for variable name, got ${variableExpr.type}`,
-      //   varExp
-      // );
       
       checkNumber(evaluationPoint, point);
       
@@ -964,12 +821,10 @@ export default function analyze(match) {
       const objectType = objType.sourceString;
       const argValues = args.analyze()[0];
       
-      // Check argument count and types based on object type
       if (objectType === "Triangle") {
         check(argValues.length === 3, `Triangle requires 3 arguments (sides), got ${argValues.length}`, objType);
         argValues.forEach(arg => checkNumber(arg, objType));
         
-        // Create a new object with the Triangle type
         const variable = core.variable(id.sourceString, "Triangle", true);
         context.add(id.sourceString, variable);
         return core.objectCreation(variable, "Triangle", argValues);
@@ -977,7 +832,6 @@ export default function analyze(match) {
         check(argValues.length === 2, `Rectangle requires 2 arguments (width, height), got ${argValues.length}`, objType);
         argValues.forEach(arg => checkNumber(arg, objType));
         
-        // Create a new object with the Rectangle type
         const variable = core.variable(id.sourceString, "Rectangle", true);
 
         context.add(id.sourceString, variable);
@@ -986,7 +840,6 @@ export default function analyze(match) {
         check(argValues.length === 1, `Circle requires 1 argument (radius), got ${argValues.length}`, objType);
         argValues.forEach(arg => checkNumber(arg, objType));
         
-        // Create a new object with the Circle type
         const variable = core.variable(id.sourceString, "Circle", true);
         context.add(id.sourceString, variable);
         return core.objectCreation(variable, "Circle", argValues);
@@ -999,26 +852,6 @@ export default function analyze(match) {
       const methodName = method.sourceString;
       
       check(object, `Object ${objName} not declared`, id);
-      
-      // if (object.type === "Triangle") {
-      //   check(
-      //     methodName === "area" || methodName === "perimeter",
-      //     `Method ${methodName} not defined for Triangle objects`,
-      //     method
-      //   );
-      // } else if (object.type === "Rectangle") {
-      //   check(
-      //     methodName === "area" || methodName === "perimeter",
-      //     `Method ${methodName} not defined for Rectangle objects`,
-      //     method
-      //   );
-      // } else if (object.type === "Circle") {
-      //   check(
-      //     methodName === "area" || methodName === "circumference" || methodName === "radius",
-      //     `Method ${methodName} not defined for Circle objects`,
-      //     method
-      //   );
-      // } 
       
       return core.methodCall(object, methodName, [], "float");
     },
@@ -1041,19 +874,9 @@ export default function analyze(match) {
       return entity;
     },
     
-    // id(_first, _rest) {
-    //   // When id is used outside of variable reference context
-    //   return this.sourceString;
-    // },
-    
     ExpList(_) {
-      // Handle expressions list for function calls
       return this.children.map(e => e.analyze());
     },
-    
-    // _iter(...children) {
-    //   return children.map(child => child.analyze());
-    // },
     
     NonemptyListOf(first, _sep, rest) {
       return [first.analyze(), ...rest.children.map(child => child.analyze())];
@@ -1062,14 +885,6 @@ export default function analyze(match) {
     EmptyListOf() {
       return [];
     },
-
-    // intlit(_neg, _digits) {
-    //   return core.integerLiteral(parseInt(this.sourceString, 10));
-    // },
-    
-    // floatlit(_neg, _whole, _dot, _frac, _exp, _sign, _expDigits) {
-    //   return core.floatLiteral(parseFloat(this.sourceString));
-    // }
   });
 
   return analyzer(match).analyze();
@@ -1079,7 +894,6 @@ Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
 
-// try to make integer and float literals work properly
 Object.defineProperty(Number.prototype, "value", {
   get() { return this; }
 });
