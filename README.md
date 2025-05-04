@@ -121,6 +121,9 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 <p align="center">
   🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/examples/longestcommonprefix.lz">LeetCode Problem 14</a>
 </p>
+<p align="center">
+  🔗 <a href="https://github.com/lilscolari/leibniz/tree/main/examples">More Examples</a>
+</p>
 
 ### 🔹 Derivative Example
 
