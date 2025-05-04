@@ -105,7 +105,7 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 
 ---
 
-## 💻 Potential Example Programs
+## 💻 Example Programs
 
 ### 🔹 Derivative Example
 
