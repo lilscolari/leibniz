@@ -31,7 +31,8 @@ describe("The analyzer", () => {
   });
 
   it("throws on variables that are already declared", () => {
-    checkFailure("let x: number = 1; let x: number = 2;", "already declared");
+    checkFailure("let x: number = 1; let x: number = 2;", "Variable already declared: x");
+    checkFailure("fnc int(x: integer, x: integer): integer = {return 2;}", "Variable already declared: x");
   });
 
   it("throws on assignment to constants", () => {
@@ -54,6 +55,10 @@ describe("The analyzer", () => {
     checkFailure("let x: integer = 5 / false;", "Expected number");
     checkFailure("let x: integer = 5 % false;", "Expected number");
     checkFailure("let x: integer = 5 ** false;", "Expected number");
+  });
+
+  it("modulus", () => {
+    checkSuccess("print(5 % 2); print(5 % 2.5);");
   });
 
   it("throws on bad types for relational operators", () => {
@@ -82,6 +87,7 @@ describe("The analyzer", () => {
     checkSuccess("let x: float[] = [1.0, 2.5, 3.0];");
     checkSuccess("let x: string[] = [\"hi\", \"bye\"];");
     checkSuccess("let x: boolean[] = [true, false];");
+    checkSuccess("let x: integer[] = [];");
     checkFailure("let x: integer[] = [1, \"bye\"];", "All elements must have the same type, found string when expected integer");
     checkFailure("let x: integer[] = [1, true];", "All elements must have the same type, found boolean when expected integer");
   });
@@ -143,6 +149,10 @@ describe("The analyzer", () => {
     `, "Void function cannot return a value");
   });
 
+  it("throws on assigning void return to a different type", () => {
+    checkFailure("fnc test(x: boolean): integer = {if x {return true;}}", "Cannot assign void to integer");
+  });
+
   it("type checks if statements", () => {
     checkSuccess("if (true) { print(1); }");
     checkFailure("if (1) { print(1); }", "Expected boolean");
@@ -157,9 +167,8 @@ describe("The analyzer", () => {
     checkSuccess("for i in domain(5) { print(i); }");
     checkSuccess("for i in domain(1, 5) { print(i); }");
     checkSuccess("for i in domain(1, 10, 2) { print(i); }");
-    
-    checkFailure("for i in domain() { print(i); }", "domain\\(\\) requires 1 to 3 arguments, got 0");
-    checkFailure("for i in domain(1, 2, 3, 4) { print(i); }", "domain\\(\\) requires 1 to 3 arguments, got 4");
+    checkFailure("for i in domain() { print(i); }", "Error: domain\\(\\) requires 1 to 3 arguments, got 0");
+    checkFailure("for i in domain(1, 2, 3, 4) { print(i); }", "Error: domain\\(\\) requires 1 to 3 arguments, got 4");
     checkFailure("for i in domain(true) { print(i); }", "Expected integer");
     checkFailure("for i in domain(1, true) { print(i); }", "Expected integer");
     checkFailure("for i in domain(1, 5, false) { print(i); }", "Expected integer");
@@ -247,6 +256,7 @@ describe("The analyzer", () => {
     checkSuccess("let x: number = 5;");
     checkSuccess("let x: number = 5.5;");
     checkSuccess("let x: float = 5;");
+    checkSuccess("let x: number = 5; let y: number = 3; print(x + y);");
     checkFailure("let x: integer = 5.5;", "Cannot assign float to integer");
   });
 

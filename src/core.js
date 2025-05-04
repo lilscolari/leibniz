@@ -122,25 +122,25 @@ export function mapOrFilterCall(object, methodName, args, type) {
   };
 }
 
-export function filterExpression(object, methodName, args, type) {
-  return {
-    kind: "FilterExpression",
-    object,
-    methodName,
-    args,
-    type,
-  };
-}
+// export function filterExpression(object, methodName, args, type) {
+//   return {
+//     kind: "FilterExpression",
+//     object,
+//     methodName,
+//     args,
+//     type,
+//   };
+// }
 
-export function mapExpression(object, methodName, args, type) {
-  return {
-    kind: "MapExpression",
-    object,
-    methodName,
-    args,
-    type,
-  };
-}
+// export function mapExpression(object, methodName, args, type) {
+//   return {
+//     kind: "MapExpression",
+//     object,
+//     methodName,
+//     args,
+//     type,
+//   };
+// }
 
 export function binaryExpression(op, left, right, type) {
   return {
@@ -188,24 +188,24 @@ export function matrixSubscriptExpression(matrix, row, column, type) {
   };
 }
 
-export function arrayIndexAssignment(target, index, source) {
-  return {
-    kind: "ArrayIndexAssignment",
-    target,
-    index,
-    source,
-  };
-}
+// export function arrayIndexAssignment(target, index, source) {
+//   return {
+//     kind: "ArrayIndexAssignment",
+//     target,
+//     index,
+//     source,
+//   };
+// }
 
-export function arrayMethodCall(array, method, callback, type) {
-  return {
-    kind: "ArrayMethodCall",
-    array,
-    method,
-    callback,
-    type,
-  };
-}
+// export function arrayMethodCall(array, method, callback, type) {
+//   return {
+//     kind: "ArrayMethodCall",
+//     array,
+//     method,
+//     callback,
+//     type,
+//   };
+// }
 
 export function callExpression(callee, args, type) {
   return {
@@ -248,13 +248,13 @@ export function integerLiteral(value) {
   }
 }
 
-export function floatLiteral(value) {
-  return {
-    kind: "FloatLiteral",
-    type: "float",
-    value
-  }
-}
+// export function floatLiteral(value) {
+//   return {
+//     kind: "FloatLiteral",
+//     type: "float",
+//     value
+//   }
+// }
 
 export function returnStatement(expression) {
   return {

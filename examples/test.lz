@@ -1,7 +1,5 @@
-let toal: string = "toal";
-
-toal[2] = "o";
-
-print(toal[2]);
-
-print(toal);
+fnc test(x: boolean): integer = {
+    if x {
+        return true;
+    }
+}

@@ -11,9 +11,9 @@ export default function analyze(match) {
     add(name, entity) {
       this.locals.set(name, entity);
     }
-    has(name) {
-      return this.locals.has(name);
-    }
+    // has(name) {
+    //   return this.locals.has(name);
+    // }
     lookup(name) {
       return this.locals.get(name) ?? (this.parent && this.parent.lookup(name));
     }
@@ -49,21 +49,21 @@ export default function analyze(match) {
     check(e.type === "integer", `Expected integer, got ${e.type}`, parseTreeNode);
   }
 
-  function checkFloat(e, parseTreeNode) {
-    check(e.type === "float", `Expected float, got ${e.type}`, parseTreeNode);
-  }
+  // function checkFloat(e, parseTreeNode) {
+  //   check(e.type === "float", `Expected float, got ${e.type}`, parseTreeNode);
+  // }
 
   function checkBoolean(e, parseTreeNode) {
     check(e.type === "boolean", `Expected boolean, got ${e.type}`, parseTreeNode);
   }
 
-  function checkNumberOrString(e, parseTreeNode) {
-    check(
-      e.type === "number" || e.type === "integer" || e.type === "float" || e.type === "string",
-      `Expected number, integer, float, or string, got ${e.type}`,
-      parseTreeNode
-    );
-  }
+  // function checkNumberOrString(e, parseTreeNode) {
+  //   check(
+  //     e.type === "number" || e.type === "integer" || e.type === "float" || e.type === "string",
+  //     `Expected number, integer, float, or string, got ${e.type}`,
+  //     parseTreeNode
+  //   );
+  // }
 
   function checkArrayOrStringOrMatrix(e, parseTreeNode) {
     check(
@@ -73,21 +73,21 @@ export default function analyze(match) {
     );
   }
 
-  function checkSameTypes(x, y, parseTreeNode) {
-    // Special case for numeric types: allow integer, float, and number to be compatible
-    if (isNumericType(x.type) && isNumericType(y.type)) {
-      return;
-    }
-    check(x.type === y.type, `Operands must have the same type: ${x.type} and ${y.type}`, parseTreeNode);
-  }
+  // function checkSameTypes(x, y, parseTreeNode) {
+  //   // Special case for numeric types: allow integer, float, and number to be compatible
+  //   if (isNumericType(x.type) && isNumericType(y.type)) {
+  //     return;
+  //   }
+  //   check(x.type === y.type, `Operands must have the same type: ${x.type} and ${y.type}`, parseTreeNode);
+  // }
 
   function isNumericType(type) {
     return type === "number" || type === "integer" || type === "float";
   }
 
-  function isArrayType(type) {
-    return type && type.endsWith("[]");
-  }
+  // function isArrayType(type) {
+  //   return type && type.endsWith("[]");
+  // }
 
   function getArrayElementType(arrayType) {
     return arrayType.slice(0, -2); // Remove the '[]' suffix
@@ -167,9 +167,9 @@ export default function analyze(match) {
   }
 
   function checkTypesCompatible(sourceType, targetType, parseTreeNode) {
-    if (!sourceType || !targetType) {
-      throw new Error(`Type mismatch: sourceType = ${sourceType}, targetType = ${targetType}`);
-    }
+    // if (!sourceType || !targetType) {
+    //   throw new Error(`Type mismatch: sourceType = ${sourceType}, targetType = ${targetType}`);
+    // }
 
     // Check if types are exactly the same
     if (sourceType === targetType) {
@@ -202,31 +202,31 @@ export default function analyze(match) {
     check(false, `Cannot assign ${sourceType} to ${targetType}`, parseTreeNode);
   }
 
-  function everyPathReturns(statements) {
-    for (let i = 0; i < statements.length; i++) {
-      const stmt = statements[i];
-      if (stmt.kind === "ReturnStatement") {
-        return true;
-      }
-      if (stmt.kind === "IfStatement") {
-        if (
-          stmt.consequent &&
-          stmt.alternate &&
-          everyPathReturns(stmt.consequent) &&
-          everyPathReturns(stmt.alternate)
-        ) {
-          return true;
-        }
-      }
-      if (stmt.kind === "WhileStatement" || stmt.kind === "ForLoopStatement") {
-        // Check if the loop *body* unconditionally returns
-        if (everyPathReturns(stmt.body)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  // function everyPathReturns(statements) {
+  //   for (let i = 0; i < statements.length; i++) {
+  //     const stmt = statements[i];
+  //     if (stmt.kind === "ReturnStatement") {
+  //       return true;
+  //     }
+  //     if (stmt.kind === "IfStatement") {
+  //       if (
+  //         stmt.consequent &&
+  //         stmt.alternate &&
+  //         everyPathReturns(stmt.consequent) &&
+  //         everyPathReturns(stmt.alternate)
+  //       ) {
+  //         return true;
+  //       }
+  //     }
+  //     // if (stmt.kind === "WhileStatement" || stmt.kind === "ForLoopStatement") {
+  //     //   // Check if the loop *body* unconditionally returns
+  //     //   if (everyPathReturns(stmt.body)) {
+  //     //     return true;
+  //     //   }
+  //     // }
+  //   }
+  //   return false;
+  // }
   
   const analyzer = grammar.createSemantics().addOperation("analyze", {
     Program(statements) {
@@ -255,9 +255,7 @@ export default function analyze(match) {
       const args = domainArgs.analyze(); // now an array
       let start, stop, step;
     
-      if (args.length === 0) {
-        throw new Error("domain() requires 1 to 3 arguments, got 0"); // Changed error message
-      } else if (args.length === 1) {
+     if (args.length === 1) {
         start = core.integerLiteral(0); // default start
         stop = args[0];
         step = core.integerLiteral(1); // default step
@@ -417,7 +415,7 @@ export default function analyze(match) {
       const { statements, returnExp } = analyzedBody;
     
       // Add returnExp as the final return if not all paths return
-      const allPathsReturn = everyPathReturns(statements);
+      //const allPathsReturn = everyPathReturns(statements);
       const finalStatements = [...statements];
     
       // Special handling for void functions
@@ -430,9 +428,11 @@ export default function analyze(match) {
       //   throw new Error(`Function "${id.sourceString}" may not return a value on all paths.`);
       // }
     
-      if (!allPathsReturn && returnExp) {
-        finalStatements.push(core.returnStatement(returnExp));
-      }
+      // if (!allPathsReturn && returnExp) {
+      //   finalStatements.push(core.returnStatement(returnExp));
+      // }
+      finalStatements.push(core.returnStatement(returnExp));
+
     
       // Check return type
       if (returnExp) {
@@ -745,12 +745,14 @@ export default function analyze(match) {
       if (e.type === "matrix") {
         return core.subscriptExpression(e, i, "array");
       }
-      let baseType = e.type.endsWith("[]") 
-        ? e.type.slice(0, -2)
-        : e.type === "matrix"
-        ? "array"
-        : "string";   
+
+      if (e.type.endsWith("[]")) {
+        let baseType = e.type.slice(0, -2);
         return core.subscriptExpression(e, i, baseType);
+      }
+
+      return core.subscriptExpression(e, i, "string");
+
     },
     
     Primary_matrix_subscript(array, _open, rowIndex, _close, _open2, colIndex, _close2) {
@@ -915,27 +917,24 @@ export default function analyze(match) {
       const functionExpr = fnExp.analyze();
       const variableExpr = varExp.analyze();
       const evaluationPoint = point.analyze();
-
-      console.log(functionExpr)
-      console.log(variableExpr)
       
       // Check that the first argument can be converted to a string
       // (either is already a string or is a number/variable that could be stringified)
-      check(
-        functionExpr.type === "string" || 
-        isNumericType(functionExpr.type) || 
-        functionExpr.kind === "Variable",
-        `Expected string or expression for function argument, got ${functionExpr.type}`,
-        fnExp
-      );
+      // check(
+      //   functionExpr.type === "string" || 
+      //   isNumericType(functionExpr.type) || 
+      //   functionExpr.kind === "Variable",
+      //   `Expected string or expression for function argument, got ${functionExpr.type}`,
+      //   fnExp
+      // );
       
-      // Similar check for second argument
-      check(
-        variableExpr.type === "string" || 
-        variableExpr.kind === "Variable",
-        `Expected string or variable for variable name, got ${variableExpr.type}`,
-        varExp
-      );
+      // // Similar check for second argument
+      // check(
+      //   variableExpr.type === "string" || 
+      //   variableExpr.kind === "Variable",
+      //   `Expected string or variable for variable name, got ${variableExpr.type}`,
+      //   varExp
+      // );
       
       checkNumber(evaluationPoint, point);
       
