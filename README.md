@@ -51,27 +51,35 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 
 | ❌ Error Message |
 |------------------|
-| Expected number |
-| Expected a digit |
-| Type mismatch |
-| Expected number or string |
-| Operands must have the same type |
-| `x` not declared |
-| Object `new_triangle` not found |
-| Expected `"Circle"`, `"Rectangle"`, or `"Triangle"` |
-| Rectangle requires **2 args** (base, height), got 1 |
-| Triangle requires **2 args** (base, height), got 1 |
-| Rectangle requires **2 args** (base, height), got 0 |
-| Triangle requires **2 args** (base, height), got 0 |
-| Circle requires **1 arg** (radius), got 2 |
-| `diameter` is not a valid method for `Circle` |
-| `circumference` is not a valid method for `Rectangle` |
-| Cannot read properties of undefined (`type`) |
-| `volume` is not a valid method for `Triangle` |
-| Function `sin` expects **1 arg**, received 0 |
 | All elements must have the same type, found string when expected integer |
 | Cannot assign string to integer |
 | Expected not a keyword |
+| Variable already declared: x |
+| Cannot assign boolean to integer |
+| Expected boolean |
+| Expected number |
+| Cannot add boolean and integer |
+| Expected number or string |
+| Expected number, integer, or float, got string |
+| `x` not declared |
+| Expected number |
+| Expected a digit |
+| Object `new_triangle` not found |
+| Expected `radius`, `circumference`, `perimeter`, `area`, `filter`, or `map` |
+| Circle requires **1 argument** (radius), got 2 |
+| Rectangle requires **2 arguments** (width, height), got 0 |
+| Triangle requires **3 arguments** (sides), got 0 |
+| Expected `"Circle"`, `"Rectangle"`, or `"Triangle"` |
+| Assignment to immutable variable |
+| Error: domain() requires 1 to 3 arguments, got 0 |
+| Cannot call filter on non-array type Circle |
+| Error: Void function cannot return a value |
+| Error: All rows in a matrix must have the same length |
+| Error: Matrix elements must be numeric |
+| Error: sort functions only works on arrays |
+| Type mismatch: integer and boolean |
+| All elements must have the same type, found string when expected integer |
+
 
 ---
 
