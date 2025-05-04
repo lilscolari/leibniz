@@ -1,0 +1,8 @@
+      const twenty_five: integer = 25;
+      print(sqrt(twenty_five));
+      print(min([2, 3]));
+      print(max([3, 4]));
+      print(ln(e));
+      print(log10(pi));
+      print(floor(10.4342));
+      print(arctan(22));

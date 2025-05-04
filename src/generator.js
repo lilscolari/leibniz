@@ -1,3 +1,5 @@
+import * as math from 'mathjs';
+
 export default function generate(program) {
   const output = ['const math = require(\'mathjs\');'];
   
@@ -93,17 +95,18 @@ export default function generate(program) {
       let semip, type, s1, s2, s3;
 
         if (o.objectType == "Triangle") {
-          semip = (args[0] + args[1] + args[2]) / 2
-          if (args[0] == args[1] && args[0] == args[2]) {
-            type = "Equilateral"
-          } else if (args[0] !== args[1] && args[0] !== args[2] && args[1] !== args[2]) {
-            type = "Scalene"
+          s1 = (args[0].includes("Math.") ? math.evaluate(args[0].replace(/Math\./g, '')) : parseInt(args[0], 10));
+          s2 = (args[1].includes("Math.") ? math.evaluate(args[1].replace(/Math\./g, '')) : parseInt(args[1], 10));
+          s3 = (args[2].includes("Math.") ? math.evaluate(args[2].replace(/Math\./g, '')) : parseInt(args[2], 10));
+
+          semip = (s1 + s2 + s3) / 2;
+          if (s1 === s2 && s1 === s3) {
+            type = "Equilateral";
+          } else if (s1 !== s2 && s1 !== s3 && s2 !== s3) {
+            type = "Scalene";
           } else {
-            type = "Isosceles"
+            type = "Isosceles";
           }
-          s1 = parseInt(args[0], 10);
-          s2 = parseInt(args[1], 10);
-          s3 = parseInt(args[2], 10);
         }
 
         if (o.objectType == "Circle") {
@@ -116,7 +119,7 @@ export default function generate(program) {
 
     },
     CallExpression(e) {
-      const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp", "pow"]);
+      const mathFuncs = new Set(["sin", "cos", "tan", "sqrt", "log", "abs", "floor", "ceil", "round", "exp"]);
       const argsCode = e.args.map(gen).join(", ");
     
       if (mathFuncs.has(e.callee)) {
@@ -191,6 +194,8 @@ export default function generate(program) {
         return `Math.log(${argsCode})`;
       } else if (e.callee === "log10") {
         return `Math.log10(${argsCode})`;
+      } else if (e.callee === "pow") {
+        return `Math.pow(${gen(e.args[0])}, ${gen(e.args[1])})`;
       }
 
       return `${gen(e.callee)}(${argsCode})`;
