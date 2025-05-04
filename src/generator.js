@@ -13,7 +13,6 @@ export default function generate(program) {
   const gen = (node) => {
     if (node == null) return "";
   
-    // If node is a plain literal-like object (no `kind`), return its value
     if (typeof node === "object" && "value" in node && "type" in node) {
       if (node.type === "string") {
         return `"${node.value}"`;
@@ -25,8 +24,6 @@ export default function generate(program) {
   };
 
   const generators = {
-    // Key idea: when generating an expression, just return the JS string; when
-    // generating a statement, write lines of translated JS to the output array.
     Program(p) {
       p.statements.forEach(gen);
     },
@@ -124,11 +121,11 @@ export default function generate(program) {
     
       if (mathFuncs.has(e.callee)) {
         return `Math.${e.callee}(${argsCode})`;
-      } else if (e.callee == "arcsin" || e.callee == "arccos" || e.callee == "arctan"){
+      } else if (e.callee === "arcsin" || e.callee === "arccos" || e.callee === "arctan"){
         return `Math.${e.callee[0]}${e.callee.slice(3)}(${argsCode})`
-      } else if (e.callee == "str") {
+      } else if (e.callee === "str") {
         return `${argsCode}.toString()`
-      } else if (e.callee == "sort") {
+      } else if (e.callee === "sort") {
         return `math.sort(${argsCode})`
       } else if (e.callee === "mean") {
         return `math.mean(${argsCode})`;
@@ -196,7 +193,6 @@ export default function generate(program) {
         return `Math.log10(${argsCode})`;
       }
 
-      // Fallback for user-defined or unknown functions
       return `${gen(e.callee)}(${argsCode})`;
     },
 
@@ -245,18 +241,6 @@ export default function generate(program) {
     MapOrFilterCall(o) {
       return `${gen(o.object)}.${o.methodName}(x => ${gen(o.args[0])}(x))`;
     },
-    
-    // FilterExpression(e) {
-    //   const array = gen(e.object);
-    //   const predicate = gen(e.args[0]);
-    //   return `${array}.filter(x => ${predicate})`;
-    // },
-    
-    // MapExpression(e) {
-    //   const array = gen(e.array);
-    //   const transform = gen(e.transform);
-    //   return `${array}.map(x => ${transform})`;
-    // },
 
     MatrixExpression(e) {
       const elements = e.rows.map(gen).join(", ");
