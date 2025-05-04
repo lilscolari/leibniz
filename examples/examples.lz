@@ -1,39 +1,13 @@
-print(2);
-let y = sqrt(4); 
-let z = cos(3.14); 
-let x = 5; 
-print(cos(0)); 
-let y = 3 + 2 * 5;
+print(zeta(3));
+print(choose(7, 5));
+print(perm(5, 3));
 
-for x in domain(10) {
-    print(x);
+const ITERATIONS: integer = 10;
+
+let a: integer[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+for i in domain(ITERATIONS) {
+    print(arandom(a));
+    print(rand(0, 100));
+    print(randint(0, 100));
 }
-
-func add(x, y) {
-    print(x + y);
-}
-
-if x < 2 {
-    let y = 5;
-} else if (y == 3) {
-    print("testing");
-} else {
-    print("done");
-}
-
-if (x >= 3) {
-    print("do this");
-}
-
-obj new_circle = Circle;
-
-new_circle_area = Circle.area(3, 4);
-
-obj triangle = Triangle;
-
-triangle_perimeter = Triangle.perimeter(3, 4); //comment here
-
-// this is a comment
-// woooo comments
-
-print(sin(arcsin(2)));

@@ -110,7 +110,7 @@ export default function generate(program) {
         }
 
         if (o.objectType == "Circle") {
-          output.push(`let ${variableName} = {radius: ${args[0]}, area: function() {return ${Math.PI} * ${args[0]} ** 2}}, circumference: function() {return 2 * ${Math.PI} * ${args[0]}}};`);
+          output.push(`let ${variableName} = {radius: ${args[0]}, area: function() {return ${Math.PI} * ${args[0]} ** 2}, circumference: function() {return 2 * ${Math.PI} * ${args[0]}}};`);
         } else if (o.objectType == "Rectangle") {
           output.push(`let ${variableName} = {width: ${args[0]}, height: ${args[1]}, area: function() {return ${args[0]} * ${args[1]}}, perimeter: function() {return 2 * ${args[0]} + 2 * ${args[1]}}};`);
         } else {
