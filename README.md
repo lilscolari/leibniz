@@ -106,6 +106,21 @@ With support for user-defined functions and shapes, Leibniz allows users to expl
 ---
 
 ## 💻 Example Programs
+<p align="center">
+  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/examples/twosum.lz">LeetCode Problem 1</a>
+</p>
+<p align="center">
+  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/examples/stringtointeger.lz">LeetCode Problem 8</a>
+</p>
+<p align="center">
+  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/examples/palindromenumber.lz">LeetCode Problem 9</a>
+</p>
+<p align="center">
+  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/examples/containerwithmostwater.lz">LeetCode Problem 11</a>
+</p>
+<p align="center">
+  🔗 <a href="https://github.com/lilscolari/leibniz/blob/main/examples/longestcommonprefix.lz">LeetCode Problem 14</a>
+</p>
 
 ### 🔹 Derivative Example
 
