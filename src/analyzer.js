@@ -306,7 +306,6 @@ export default function analyze(match) {
         const elementType = getArrayElementType(array.type);
         checkTypesCompatible(value.type, elementType, exp);
       } else if (array.type === "string") {
-        console.log(value)
         checkType(value, "string", exp);
       }
       
@@ -998,8 +997,6 @@ export default function analyze(match) {
       const objName = id.sourceString;
       const object = context.lookup(objName);
       const methodName = method.sourceString;
-
-      console.log(methodName)
       
       check(object, `Object ${objName} not declared`, id);
       

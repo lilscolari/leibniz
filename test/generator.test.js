@@ -63,14 +63,14 @@ const fixtures = [
     `,
     expected: dedent`
       const math = require('mathjs');
-      let new_rectangle_1 = {width: 3, height: 3, area: function() {return 9}, perimeter: function() {return 12}};
-      let c_2 = {radius: 2, area: function() {return 12.566370614359172}, circumference: function() {return 12.566370614359172}};
+      let new_rectangle_1 = {width: 3, height: 3, area: function() {return 3 * 3}, perimeter: function() {return 2 * 3 + 2 * 3}};
+      let c_2 = {radius: 2, area: function() {return 3.141592653589793 * 2 ** 2}}, circumference: function() {return 2 * 3.141592653589793 * 2}};
       console.log(new_rectangle_1.perimeter());
-      let s_3 = {side1: 5, side2: NaN, side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return NaN}, type: function() {return Scalene}};
+      let s_3 = {side1: 5, side2: NaN, side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 5 + NaN + 2}, type: function() {return Scalene}};
       console.log(s_3.area());
-      let t_4 = {side1: 5, side2: 5, side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 12}, type: function() {return Isosceles}};
+      let t_4 = {side1: 5, side2: 5, side3: 2, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 5 + 5 + 2}, type: function() {return Isosceles}};
       console.log(t_4);
-      let t2_5 = {side1: 5, side2: 5, side3: 5, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 15}, type: function() {return Equilateral}};
+      let t2_5 = {side1: 5, side2: 5, side3: 5, area: function() {return "sorry no functionality for area of triangle yet"}, perimeter: function() {return 5 + 5 + 5}, type: function() {return Equilateral}};
       console.log(t2_5);
     `,
   },

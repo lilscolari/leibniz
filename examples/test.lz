@@ -1,5 +1,4 @@
-fnc test(x: boolean): integer = {
-    if x {
-        return true;
+      fnc maximum(a: integer, b: integer): float = {
+        let arr: integer[] = [a, b];
+        return max(arr);
     }
-}
