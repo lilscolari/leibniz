@@ -139,8 +139,8 @@
 
       <h5>Object and Method Call</h5>
       <pre class="code-box">
-obj t = Triangle(3, 5, 6);
-print(t.area());
+obj r = Rectangle(3, 5);
+print(r.area());
 obj c = Circle(5);
 print(c.circumference());</pre>
 
@@ -159,7 +159,7 @@ if cos(0) == 1 {
 print(sin(pi));
 print(cos(pi/2));
 print(pow(e, 2));
-print(max(1, 2));
+print(max([1, 2]));
 print(round(3.14159265));</pre>
 
         <h5>For Loop</h5>
@@ -186,6 +186,12 @@ let y: integer = f(1);</pre>
 let a: integer[] = [1, 2, 3];
 let x: integer = a[0];
 let length: integer = #a;</pre>
+
+      <h5>Matrices</h5>
+      <pre class="code-box">
+let m: matrix = identity(2);
+m[0][1] = 2;
+m = transpose(m);</pre>
 
       
     </section>
