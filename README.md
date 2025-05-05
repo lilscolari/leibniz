@@ -132,22 +132,24 @@ let f_prime: float = derivative("x^2", "x", 3);
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
-let f_prime_1 = derivative("x^2", "x", 3);
+const math = require('mathjs');
+let f_prime_1 = math.derivative("x^2", "x").evaluate({x: 3});
 ```
 
 ### 🔹 Object and Method Call
 
 ```leibniz
-obj t = Triangle(3, 5, 6);
-print(t.area());
+obj r = Rectangle(3, 5);
+print(r.area());
 obj c = Circle(5);
 print(c.circumference());
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
-let t_1 = {side1: 3, side2: 5, side3: 6};
-console.log(t_1.area());
-let c_2 = {radius: 5};
+const math = require('mathjs');
+let r_1 = {width: 3, height: 5, area: function() {return 3 * 5}, perimeter: function() {return 2 * 3 + 2 * 5}};
+console.log(r_1.area());
+let c_2 = {radius: 5, area: function() {return 3.141592653589793 * 5 ** 2}, circumference: function() {return 2 * 3.141592653589793 * 5}};
 console.log(c_2.circumference());
 ```
 
@@ -164,9 +166,11 @@ if cos(0) == 1 {
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
+const math = require('mathjs');
 if (Math.cos(0) === 1) {
   console.log(true);
-} else if (Math.cos(0) === 0) {
+} else
+if (Math.cos(0) === 0) {
   console.log(false);
 } else {
   console.log(Math.cos(0));
@@ -179,15 +183,16 @@ if (Math.cos(0) === 1) {
 print(sin(pi));
 print(cos(pi/2));
 print(pow(e, 2));
-print(max(1, 2));
+print(max([1, 2]));
 print(round(3.14159265));
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
+const math = require('mathjs');
 console.log(Math.sin(3.141592653589793));
 console.log(Math.cos(3.141592653589793 / 2));
-console.log(pow(2.718281828459045, 2));
-console.log(Math.max(1, 2));
+console.log(Math.pow(2.718281828459045, 2));
+console.log(math.max([1, 2]));
 console.log(Math.round(3.14159265));
 ```
 
@@ -200,7 +205,8 @@ for i in domain(5) {
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
-for (let i_1 of [0,1,2,3,4]) {
+const math = require('mathjs');
+for (let i_1 = 0; i_1 < 5; i_1 += 1) {
   console.log(i_1);
 }
 ```
@@ -214,6 +220,7 @@ while (true) {
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
+const math = require('mathjs');
 while (true) {
   console.log(1);
 }
@@ -229,6 +236,7 @@ let y: integer = f(1);
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
+const math = require('mathjs');
 function f_1(x_2) {
   return x_2;
 }
@@ -244,9 +252,24 @@ let length: integer = #a;
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
-let a_1 = [1, 2, 3];
-let x_2 = a_1[0];
-let length_3 = #(a_1);
+let a: integer[] = [1, 2, 3];
+let x: integer = a[0];
+let length: integer = #a;
+```
+
+### 🔹 Matrices
+
+```leibniz
+let m: matrix = identity(2);
+m[0][1] = 2;
+m = transpose(m);
+```
+<sub><b>Generated Output:</b></sub>  
+```js
+const math = require('mathjs');
+let m_1 = math.identity(2)._data;
+m_1[0][1] = 2;
+m_1 = math.transpose(m_1);
 ```
 
 
