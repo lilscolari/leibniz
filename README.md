@@ -252,9 +252,10 @@ let length: integer = #a;
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
-let a: integer[] = [1, 2, 3];
-let x: integer = a[0];
-let length: integer = #a;
+const math = require('mathjs');
+let a_1 = [1, 2, 3];
+let x_2 = a_1[0];
+let length_3 = a_1.length;
 ```
 
 ### 🔹 Matrices
