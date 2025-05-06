@@ -1,2 +1,5 @@
 // IntegerLiteral next
 
+let x: integer[] = [4, 5, 6];
+
+print(x[2]);

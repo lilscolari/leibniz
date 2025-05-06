@@ -71,6 +71,10 @@ const optimizers = {
       }
       lastAssignedValue[name] = { value: s.source.value, type: s.source.type };
     }
+
+    if (s.source.value === s.target.value) {
+      return [];
+    }
   
     return s;
   },
@@ -84,22 +88,13 @@ const optimizers = {
   IfStatement(s) {
     s.test = optimize(s.test);
   
-    if (s.test.type === "boolean") {
-      if (s.test.value) {
-        return optimize(s.consequent);
-      } else if (s.alternate) {
-        return optimize(s.alternate);
-      } else {
-        return [];
-      }
+    if (s.test) {
+      return optimize(s.consequent);
+    } else if (s.alternate) {
+      return optimize(s.alternate);
+    } else {
+      return [];
     }
-  
-    s.consequent = optimize(s.consequent);
-    if (s.alternate) {
-      s.alternate = optimize(s.alternate);
-    }
-  
-    return s;
   },
   WhileStatement(s) {
     s.test = optimize(s.test)
@@ -107,6 +102,7 @@ const optimizers = {
       // while false is a no-op
       return []
     }
+    console.log(s)
     s.body = s.body.statements.flatMap(optimize)
     return s
   },
@@ -116,6 +112,9 @@ const optimizers = {
     s.stop = optimize(s.stop)
     s.step = optimize(s.step)
     s.body = s.body.statements.flatMap(optimize)
+    if (s.stop.value === s.start.value) {
+      return []
+    }
     return s
   },
   BinaryExpression(e) {
@@ -126,6 +125,24 @@ const optimizers = {
     if (e.left && e.right && e.left.value !== undefined && e.right.value !== undefined) {
       let resultValue;
       let resultType;
+
+      // if (e.op === "+" && isZero(e.right)) {
+      //   return e.left;
+      // } else if (e.op === "+" && isZero(e.left)) {
+      //   return e.right;
+      // } else if (e.op === "-" && isZero(e.right)) {
+      //   return e.left;
+      // } else if (e.op === "-" && isZero(e.left)) {
+      //   return { type: e.right.type, value: -e.right.value };
+      // } else if (e.op === "*" && (isZero(e.left) || isZero(e.right))) {
+      //   return { type: 'integer', value: 0 };
+      // } else if (e.op === "*" && isOne(e.right)) {
+      //   return e.left;
+      // } else if (e.op === "*" && isOne(e.left)) {
+      //   return e.right;
+      // } else if (e.op === "/" && isOne(e.right)) {
+      //   return e.left;
+      // }
     
       if (e.op === "+") {
         resultValue = e.left.value + e.right.value;
@@ -213,7 +230,6 @@ const optimizers = {
   MapOrFilterCall(s) {
     return s
   },
-  // NOT YET IMPLEMENTED:
   MatrixSubscriptExpression(s) {
     s.row = optimize(s.row)
     s.column = optimize(s.column)
@@ -224,7 +240,7 @@ const optimizers = {
     return s;
   },
   IntegerLiteral(s) {
-    return s;
+    return { type: 'integer', value: s.value }
   },
   MatrixExpression(s) {
     s.rows = s.rows.flatMap(optimize)
