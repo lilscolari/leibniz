@@ -25,6 +25,8 @@ export default function optimize(node) {
   return optimizers?.[node.kind]?.(node) ?? node
 }
 
+const lastAssignedValue = Object.create(null);
+
 const isZero = n => n === 0 || n === 0n
 const isOne = n => n === 1 || n === 1n
 
@@ -36,14 +38,16 @@ const optimizers = {
   VariableDeclaration(d) {
     d.variable = optimize(d.variable)
     d.initializer = optimize(d.initializer)
+    lastAssignedValue[d.variable.name] = { value: d.initializer.value, type: d.initializer.type };
     return d
   },
   FunctionDeclaration(d) {
     d.fun = optimize(d.fun)
+    d.body = optimize(d.body)
     return d
   },
   Function(f) {
-    if (f.body) f.body = f.body.flatMap(optimize)
+    f.parameters = f.parameters.flatMap(optimize)
     return f
   },
   IncrementStatement(s) {
@@ -57,10 +61,18 @@ const optimizers = {
   AssignmentStatement(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
-    if (s.source === s.target) {
-      return []
+
+    if (s.target.kind === "Variable" && s.source?.value !== undefined) {
+      const name = s.target.name;
+      const last = lastAssignedValue[name];
+  
+      if (last && last.value === s.source.value && last.type === s.source.type) {
+        return [];
+      }
+      lastAssignedValue[name] = { value: s.source.value, type: s.source.type };
     }
-    return s
+  
+    return s;
   },
   BreakStatement(s) {
     return s
@@ -70,17 +82,24 @@ const optimizers = {
     return s
   },
   IfStatement(s) {
-    s.test = optimize(s.test)
-    s.consequent = s.consequent.flatMap(optimize)
-    if (s.alternate?.kind?.endsWith?.("IfStatement")) {
-      s.alternate = optimize(s.alternate)
-    } else {
-      s.alternate = s.alternate.flatMap(optimize)
+    s.test = optimize(s.test);
+  
+    if (s.test.type === "boolean") {
+      if (s.test.value) {
+        return optimize(s.consequent);
+      } else if (s.alternate) {
+        return optimize(s.alternate);
+      } else {
+        return [];
+      }
     }
-    if (s.test.constructor === Boolean) {
-      return s.test ? s.consequent : s.alternate
+  
+    s.consequent = optimize(s.consequent);
+    if (s.alternate) {
+      s.alternate = optimize(s.alternate);
     }
-    return s
+  
+    return s;
   },
   WhileStatement(s) {
     s.test = optimize(s.test)
@@ -103,6 +122,8 @@ const optimizers = {
     e.op = optimize(e.op)
     e.left = optimize(e.left)
     e.right = optimize(e.right)
+
+    console.log(e)
 
     if (e.left && e.right && e.left.value !== undefined && e.right.value !== undefined) {
       let resultValue;
@@ -171,16 +192,7 @@ const optimizers = {
     e.elements = e.elements.map(optimize)
     return e
   },
-  MemberExpression(e) {
-    e.object = optimize(e.object)
-    return e
-  },
-  FunctionCall(c) {
-    c.callee = optimize(c.callee)
-    c.args = c.args.map(optimize)
-    return c
-  },
-  ConstructorCall(c) {
+  CallExpression(c) {
     c.callee = optimize(c.callee)
     c.args = c.args.map(optimize)
     return c
@@ -189,10 +201,11 @@ const optimizers = {
     s.argument = optimize(s.argument)
     return s
   },
-  // NOT YET IMPLEMENTED:
   FunctionBody(s) {
+    s.statements = s.statements.flatMap(optimize)
     return s
   },
+  // NOT YET IMPLEMENTED:
   ObjectCreation(s) {
     return s
   },
@@ -205,10 +218,8 @@ const optimizers = {
   MatrixSubscriptExpression(s) {
     return s
   },
-  CallExpression(s) {
-    return s
-  },
   Block(s) {
+    s.statements = s.statements.flatMap(optimize)
     return s;
   },
   IntegerLiteral(s) {
@@ -217,5 +228,16 @@ const optimizers = {
   MatrixExpression(s) {
     s.rows = s.rows.flatMap(optimize)
     return s;
+  },
+  Variable(s) {
+    const known = lastAssignedValue[s.name];
+    if (s.type.endsWith('[]')) {
+      return s;
+    }
+    if (known !== undefined) {
+      return { type: known.type, value: known.value };
+    }
+    return s;
   }
+
 }

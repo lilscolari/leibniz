@@ -35,6 +35,7 @@ for i in domain(5) {
 
 while (2 < 4) {
     print(3 + 3);
+    break;
 }
 
 print([[1, 2 + 2], [3, 4]]);
@@ -43,3 +44,36 @@ print([[1, 2 + 2], [3, 4]]);
 while (3 < 2) {
     print(2 + 4);
 }
+
+let added: integer = 5 + 4;
+
+let test2: float = 4.56 + 2.43;
+test2 = 2.34 + 2.343;
+test2 = 4.683;
+
+let y: boolean = false;
+
+if y == true {
+    print(2 + 4);
+} else if y != true {
+    print(3.23 / 2);
+} else if 5 % 2 == 1 {
+    print(5 ** 1);
+} else {
+    print(7);
+}
+
+let x1: integer[] = [4, 5 + 3, 6];
+
+x1[2] = 5 + 3;
+
+print(x1);
+
+print(x1[2]);
+
+fnc test(f: float): float = {
+    // does not optimize if I put f + in here. That seems super complex and might be an issue with how core was made.
+    return 4.2 + 5.687;
+}
+
+print(test(2.3 + 1.4));
