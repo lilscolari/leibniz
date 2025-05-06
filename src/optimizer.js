@@ -50,15 +50,15 @@ const optimizers = {
     if (f.body) f.body = f.body.flatMap(optimize)
     return f
   },
-  Increment(s) {
+  IncrementStatement(s) {
     s.variable = optimize(s.variable)
     return s
   },
-  Decrement(s) {
+  DecrementStatement(s) {
     s.variable = optimize(s.variable)
     return s
   },
-  Assignment(s) {
+  AssignmentStatement(s) {
     s.source = optimize(s.source)
     s.target = optimize(s.target)
     if (s.source === s.target) {
@@ -98,45 +98,21 @@ const optimizers = {
     return s
   },
   WhileStatement(s) {
+    console.log(s)
     s.test = optimize(s.test)
     if (s.test === false) {
       // while false is a no-op
       return []
     }
-    s.body = s.body.flatMap(optimize)
+    s.body = s.body.statements.flatMap(optimize)
     return s
   },
-  RepeatStatement(s) {
-    s.count = optimize(s.count)
-    if (s.count === 0) {
-      // repeat 0 times is a no-op
-      return []
-    }
-    s.body = s.body.flatMap(optimize)
-    return s
-  },
-  ForRangeStatement(s) {
-    s.iterator = optimize(s.iterator)
-    s.low = optimize(s.low)
-    s.op = optimize(s.op)
-    s.high = optimize(s.high)
-    s.body = s.body.flatMap(optimize)
-    if (s.low.constructor === Number) {
-      if (s.high.constructor === Number) {
-        if (s.low > s.high) {
-          return []
-        }
-      }
-    }
-    return s
-  },
-  ForStatement(s) {
-    s.iterator = optimize(s.iterator)
-    s.collection = optimize(s.collection)
-    s.body = s.body.flatMap(optimize)
-    if (s.collection?.kind === "EmptyArray") {
-      return []
-    }
+  ForLoopStatement(s) {
+    s.loopVar = optimize(s.loopVar)
+    s.start = optimize(s.start)
+    s.stop = optimize(s.stop)
+    s.step = optimize(s.step)
+    s.body = s.body.statements.flatMap(optimize)
     return s
   },
   Conditional(e) {
@@ -152,56 +128,64 @@ const optimizers = {
     e.op = optimize(e.op)
     e.left = optimize(e.left)
     e.right = optimize(e.right)
-    if (e.op === "??") {
-      // Coalesce empty optional unwraps
-      if (e.left?.kind === "EmptyOptional") {
-        return e.right
+
+    if (e.left && e.right && e.left.value !== undefined && e.right.value !== undefined) {
+      let resultValue;
+      let resultType;
+    
+      if (e.op === "+") {
+        resultValue = e.left.value + e.right.value;
+      } else if (e.op === "-") {
+        resultValue = e.left.value - e.right.value;
+      } else if (e.op === "*") {
+        resultValue = e.left.value * e.right.value;
+      } else if (e.op === "/") {
+        resultValue = e.left.value / e.right.value;
+      } else if (e.op === "**") {
+        resultValue = e.left.value ** e.right.value;
+      } else if (e.op === "<") {
+        resultValue = e.left.value < e.right.value;
+        return { type: 'boolean', value: resultValue };
+      } else if (e.op === "<=") {
+        resultValue = e.left.value <= e.right.value;
+        return { type: 'boolean', value: resultValue };
+      } else if (e.op === "==") {
+        resultValue = e.left.value === e.right.value;
+        return { type: 'boolean', value: resultValue };
+      } else if (e.op === "!=") {
+        resultValue = e.left.value !== e.right.value;
+        return { type: 'boolean', value: resultValue };
+      } else if (e.op === ">=") {
+        resultValue = e.left.value >= e.right.value;
+        return { type: 'boolean', value: resultValue };
+      } else if (e.op === ">") {
+        resultValue = e.left.value > e.right.value;
+        return { type: 'boolean', value: resultValue };
+      } else if (e.op === "%") {
+        resultValue = e.left.value % e.right.value;
       }
-    } else if (e.op === "&&") {
-      // Optimize boolean constants in && and ||
-      if (e.left === true) return e.right
-      if (e.right === true) return e.left
-    } else if (e.op === "||") {
-      if (e.left === false) return e.right
-      if (e.right === false) return e.left
-    } else if ([Number, BigInt].includes(e.left.constructor)) {
-      // Numeric constant folding when left operand is constant
-      if ([Number, BigInt].includes(e.right.constructor)) {
-        if (e.op === "+") return e.left + e.right
-        if (e.op === "-") return e.left - e.right
-        if (e.op === "*") return e.left * e.right
-        if (e.op === "/") return e.left / e.right
-        if (e.op === "**") return e.left ** e.right
-        if (e.op === "<") return e.left < e.right
-        if (e.op === "<=") return e.left <= e.right
-        if (e.op === "==") return e.left === e.right
-        if (e.op === "!=") return e.left !== e.right
-        if (e.op === ">=") return e.left >= e.right
-        if (e.op === ">") return e.left > e.right
-      }
-      if (isZero(e.left) && e.op === "+") return e.right
-      if (isOne(e.left) && e.op === "*") return e.right
-      if (isZero(e.left) && e.op === "-") return core.unary("-", e.right)
-      if (isOne(e.left) && e.op === "**") return e.left
-      if (isZero(e.left) && ["*", "/"].includes(e.op)) return e.left
-    } else if ([Number, BigInt].includes(e.right.constructor)) {
-      // Numeric constant folding when right operand is constant
-      if (["+", "-"].includes(e.op) && isZero(e.right)) return e.left
-      if (["*", "/"].includes(e.op) && isOne(e.right)) return e.left
-      if (e.op === "*" && isZero(e.right)) return e.right
-      if (e.op === "**" && isZero(e.right)) return 1
+    
+      resultType = (Number.isInteger(resultValue)) ? 'integer' : 'float';
+    
+      return { type: resultType, value: resultValue };
     }
-    return e
+  
+    return e;
   },
   UnaryExpression(e) {
-    e.op = optimize(e.op)
-    e.operand = optimize(e.operand)
-    if (e.operand.constructor === Number) {
+    e.op = optimize(e.op);
+    e.operand = optimize(e.operand);
+  
+    if (typeof e.operand.value === "number") {
       if (e.op === "-") {
-        return -e.operand
+        return {
+          type: Number.isInteger(-e.operand.value) ? "integer" : "float",
+          value: -e.operand.value
+        };
       }
     }
-    return e
+  
+    return e;
   },
   SubscriptExpression(e) {
     e.array = optimize(e.array)
@@ -226,8 +210,40 @@ const optimizers = {
     c.args = c.args.map(optimize)
     return c
   },
-  Print(s) {
-    s.args = s.args.map(optimize)
+  PrintStatement(s) {
+    s.argument = optimize(s.argument)
     return s
   },
+  // NOT YET IMPLEMENTED:
+  FunctionBody(s) {
+    return s
+  },
+  ObjectCreation(s) {
+    return s
+  },
+  MethodCall(s) {
+    return s
+  },
+  MapOrFilterCall(s) {
+    return s
+  },
+  MatrixSubscriptExpression(s) {
+    return s
+  },
+  CallExpression(s) {
+    return s
+  },
+  Block(s) {
+    return s;
+  },
+  IntegerLiteral(s) {
+    return s;
+  },
+  ReturnStatement(s) {
+    return s;
+  },
+  MatrixExpression(s) {
+    s.rows = s.rows.flatMap(optimize)
+    return s;
+  }
 }
