@@ -1,2 +1,10 @@
-let x: integer = 5;
-x = 5;
+      let total: integer = 0;
+      let counter: integer = 1;
+
+      while true {
+          total = total + counter;
+          if total > 100 {
+              break;
+          }
+          counter = counter + 1;
+      }
