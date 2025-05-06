@@ -156,7 +156,7 @@ console.log(c_2.circumference());
 ### 🔹 Conditional Statement
 
 ```leibniz
-if cos(0) == 1 {
+if cos(0) == 2 {
   print(true);
 } else if cos(0) == 0 {
   print(false);
@@ -167,14 +167,7 @@ if cos(0) == 1 {
 <sub><b>Generated Output:</b></sub>  
 ```js
 const math = require('mathjs');
-if (Math.cos(0) === 1) {
-  console.log(true);
-} else
-if (Math.cos(0) === 0) {
-  console.log(false);
-} else {
-  console.log(Math.cos(0));
-}
+console.log(Math.cos(0));
 ```
 
 ### 🔹 Math Functions
@@ -190,7 +183,7 @@ print(round(3.14159265));
 ```js
 const math = require('mathjs');
 console.log(Math.sin(3.141592653589793));
-console.log(Math.cos(3.141592653589793 / 2));
+console.log(Math.cos(1.5707963267948966));
 console.log(Math.pow(2.718281828459045, 2));
 console.log(math.max([1, 2]));
 console.log(Math.round(3.14159265));
@@ -246,14 +239,14 @@ let y_3 = f_1(1);
 ### 🔹 Arrays
 
 ```leibniz
-let a: integer[] = [1, 2, 3];
+let a: integer[] = [1, 2 + 2, 3];
 let x: integer = a[0];
 let length: integer = #a;
 ```
 <sub><b>Generated Output:</b></sub>  
 ```js
 const math = require('mathjs');
-let a_1 = [1, 2, 3];
+let a_1 = [1, 4, 3];
 let x_2 = a_1[0];
 let length_3 = a_1.length;
 ```

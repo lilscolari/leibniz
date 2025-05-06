@@ -69,7 +69,7 @@ const optimizers = {
       lastAssignedValue[name] = { value: s.source.value, type: s.source.type };
     }
 
-    if (s.source.value === s.target.value) {
+    if (s.source.value === s.target.value && s.source.value !== undefined) {
       return [];
     }
   
