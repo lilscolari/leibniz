@@ -114,6 +114,20 @@ const fixtures = [
           `,
   },
   {
+    name: "void function",
+    source: `
+      fnc add(x: integer): void = {
+          return;
+      }
+    `,
+    expected: dedent`
+      const math = require('mathjs');
+      function add_1(x_2) {
+      return null;
+      }
+    `,
+  },
+  {
     name: "while loop",
     source: `
       let total: integer = 0;

@@ -213,7 +213,8 @@ export function returnStatement(expression) {
   return {
     kind: "ReturnStatement",
     expression,
-    type: expression?.type ?? "void",
+    type: expression?.type
+    // ?? "void",
   };
 }
 

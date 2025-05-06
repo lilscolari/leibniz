@@ -27,9 +27,6 @@ export default function optimize(node) {
 
 const lastAssignedValue = Object.create(null);
 
-const isZero = n => n === 0 || n === 0n
-const isOne = n => n === 1 || n === 1n
-
 const optimizers = {
   Program(p) {
     p.statements = p.statements.flatMap(optimize)

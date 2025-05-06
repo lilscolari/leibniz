@@ -33,23 +33,14 @@ import * as core from "../src/core.js"
 
 const x = { kind: 'IntegerLiteral', type: 'integer', value: 5 };
 const y = { kind: 'IntegerLiteral', type: 'integer', value: 8 };
-const f = { kind: 'FloatLiteral', type: 'float', value: 8 };
+const f = { kind: 'FloatLiteral', type: 'float', value: 8.27 };
 const zero = { king: 'IntegerLiteral', type: 'integer', value: 0 };
 const one = { king: 'IntegerLiteral', type: 'integer', value: 1 };
 const neg = x => core.unaryExpression("-", x, 'integer');
 const program = core.program;
-const xpp = core.incrementStatement(x);
-const xmm = core.decrementStatement(x);
-const emptyArray = [];
 const printStatement = core.printStatement(x);
 const breakStatement = core.breakStatement();
 const block = core.block([printStatement, breakStatement]);
-const variable = core.variable('v', 'integer', 'true');
-const a = { kind: 'IntegerLiteral', type: 'integer', value: 4 };
-const b = { kind: 'IntegerLiteral', type: 'integer', value: 5 };
-const c = { kind: 'IntegerLiteral', type: 'integer', value: 6 };
-const array = core.variableDeclaration(core.variable('x', 'integer[]', true), core.arrayExpression([4, 5, 6], 'integer[]'));
-const printArray = core.printStatement(core.subscriptExpression(array, 2 + 3, 'integer'));
 const trueValue = { type: 'boolean', value: true };
 const falseValue = { type: 'boolean', value: false };
 const makeVar = core.variableDeclaration(core.variable('x', 'integer', true), { kind: 'IntegerLiteral', type: 'integer', value: 5 })
@@ -84,7 +75,7 @@ const tests = [
   ["optimizes 0-", core.binaryExpression("-", zero, x, "integer"), neg(x)],
   ["optimizes 1*", core.binaryExpression("*", one, x), x],
   ["folds negation on int", core.unaryExpression("-", y), -8],
-  ["folds negation on float", core.unaryExpression("-", f), -8],
+  ["folds negation on float", core.unaryExpression("-", f), -8.27],
   ["optimizes 1** for floats", core.binaryExpression("**", one, x), 1],
   ["optimizes **0", core.binaryExpression("**", x, zero), 1],
   ["removes x=x at beginning", program([core.assignmentStatement(x, x), x]), program([x])],
