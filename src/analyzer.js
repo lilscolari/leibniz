@@ -576,7 +576,6 @@ export default function analyze(match) {
     
     Primary_array(_open, elements, _close) {
       const contents = elements.children.map(e => e.analyze())[0];
-      //|| [];
     
       const isMatrixCandidate = contents.length > 0 && contents.every(
         e => e.kind === "ArrayExpression"
@@ -894,7 +893,3 @@ export default function analyze(match) {
 Number.prototype.type = "number";
 Boolean.prototype.type = "boolean";
 String.prototype.type = "string";
-
-Object.defineProperty(Number.prototype, "value", {
-  get() { return this; }
-});

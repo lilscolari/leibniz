@@ -37,9 +37,6 @@ export default function generate(program) {
       if (s.body.statements) {
         s.body.statements.forEach(gen);
       } 
-      // else {
-      //   s.body.forEach(gen);
-      // }
       output.push("}")
     },
     Variable(v) {
@@ -67,19 +64,6 @@ export default function generate(program) {
       output.push(`if (${gen(s.test)}) {`);
       s.consequent.statements.forEach(gen);
       output.push(`}`);
-      // if (s.alternate?.kind?.endsWith?.("IfStatement")) {
-      //   console.log("IN HERE")
-      //   output.push("} else");
-      //   gen(s.alternate);
-      // } else {
-      //   if (s.alternate != null) {
-      //     output.push("} else {");
-      //     s.alternate.statements.forEach(gen);
-      //     output.push("}");
-      //   } else {
-      //     output.push("}")
-      //   }
-      // }
     },
     BinaryExpression(e) {
       const op = { "==": "===", "!=": "!==" }[e.op] ?? e.op;
@@ -240,12 +224,7 @@ export default function generate(program) {
     
     ForLoopStatement(s) {
       output.push(`for (let ${gen(s.loopVar)} = ${gen(s.start)}; ${gen(s.loopVar)} < ${gen(s.stop)}; ${gen(s.loopVar)} += ${gen(s.step)}) {`);
-      // if (s.body.statements) {
-      //   s.body.statements.forEach(gen);
-      // } 
-      //else {
       s.body.forEach(gen);
-      //}
       output.push("}");
     },
     

@@ -214,7 +214,6 @@ export function returnStatement(expression) {
     kind: "ReturnStatement",
     expression,
     type: expression?.type
-    // ?? "void",
   };
 }
 
