@@ -77,3 +77,10 @@ fnc test(f: float): float = {
 }
 
 print(test(2.3 + 1.4));
+
+obj t = Triangle(3, 4, 5 + 3);
+print(t.perimeter());
+
+
+let m: matrix = [[1, 2], [3, 4]];
+print(m[0+1][0+1]);

@@ -123,8 +123,6 @@ const optimizers = {
     e.left = optimize(e.left)
     e.right = optimize(e.right)
 
-    console.log(e)
-
     if (e.left && e.right && e.left.value !== undefined && e.right.value !== undefined) {
       let resultValue;
       let resultType;
@@ -205,8 +203,8 @@ const optimizers = {
     s.statements = s.statements.flatMap(optimize)
     return s
   },
-  // NOT YET IMPLEMENTED:
   ObjectCreation(s) {
+    s.args = s.args.flatMap(optimize)
     return s
   },
   MethodCall(s) {
@@ -215,7 +213,10 @@ const optimizers = {
   MapOrFilterCall(s) {
     return s
   },
+  // NOT YET IMPLEMENTED:
   MatrixSubscriptExpression(s) {
+    s.row = optimize(s.row)
+    s.column = optimize(s.column)
     return s
   },
   Block(s) {
