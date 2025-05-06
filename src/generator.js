@@ -34,7 +34,11 @@ export default function generate(program) {
     },
     WhileStatement(s) {
       output.push(`while (${gen(s.test)}) {`)
-      s.body.statements.forEach(gen)
+      if (s.body.statements) {
+        s.body.statements.forEach(gen);
+      } else {
+        s.body.forEach(gen);
+      }
       output.push("}")
     },
     Variable(v) {
@@ -233,7 +237,11 @@ export default function generate(program) {
     
     ForLoopStatement(s) {
       output.push(`for (let ${gen(s.loopVar)} = ${gen(s.start)}; ${gen(s.loopVar)} < ${gen(s.stop)}; ${gen(s.loopVar)} += ${gen(s.step)}) {`);
-      s.body.statements.forEach(gen);
+      if (s.body.statements) {
+        s.body.statements.forEach(gen);
+      } else {
+        s.body.forEach(gen);
+      }
       output.push("}");
     },
     
@@ -250,6 +258,11 @@ export default function generate(program) {
     MatrixExpression(e) {
       const elements = e.rows.map(gen).join(", ");
       return `[${elements}]`
+    },
+
+    Block(e) {
+      const elements = e.statements.map(gen);
+      return `${elements}`
     }
   };
     

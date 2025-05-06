@@ -87,23 +87,21 @@ const optimizers = {
   },
   IfStatement(s) {
     s.test = optimize(s.test);
-  
-    if (s.test) {
+           
+    if (s.test.value === true) {
       return optimize(s.consequent);
-    } else if (s.alternate) {
+    } else if (s.alternate !== null) {
       return optimize(s.alternate);
     } else {
-      return [];
+      return s;
     }
   },
   WhileStatement(s) {
     s.test = optimize(s.test)
     if (s.test.value === false) {
-      // while false is a no-op
       return []
     }
-    console.log(s)
-    s.body = s.body.statements.flatMap(optimize)
+    //s.body = s.body.statements.flatMap(optimize)
     return s
   },
   ForLoopStatement(s) {
@@ -121,59 +119,62 @@ const optimizers = {
     e.op = optimize(e.op)
     e.left = optimize(e.left)
     e.right = optimize(e.right)
+    let leftValue, rightValue;
 
-    if (e.left && e.right && e.left.value !== undefined && e.right.value !== undefined) {
+    if (e.left.kind === "Variable") {
+      if (lastAssignedValue[e.left.name]) {
+        leftValue = lastAssignedValue[e.left.name].value
+      } else {
+        leftValue = e.left.value
+      }
+    } else {
+      leftValue = e.left.value
+    }
+
+    if (e.right.kind === "Variable") {
+      if (lastAssignedValue[e.right.name]) {
+        rightValue = lastAssignedValue[e.right.name].value
+      } else {
+        rightValue = e.right.value
+      }
+    } else {
+      rightValue = e.right.value
+    }
+
+    if (e.left && e.right && leftValue !== undefined && rightValue !== undefined) {
       let resultValue;
       let resultType;
-
-      // if (e.op === "+" && isZero(e.right)) {
-      //   return e.left;
-      // } else if (e.op === "+" && isZero(e.left)) {
-      //   return e.right;
-      // } else if (e.op === "-" && isZero(e.right)) {
-      //   return e.left;
-      // } else if (e.op === "-" && isZero(e.left)) {
-      //   return { type: e.right.type, value: -e.right.value };
-      // } else if (e.op === "*" && (isZero(e.left) || isZero(e.right))) {
-      //   return { type: 'integer', value: 0 };
-      // } else if (e.op === "*" && isOne(e.right)) {
-      //   return e.left;
-      // } else if (e.op === "*" && isOne(e.left)) {
-      //   return e.right;
-      // } else if (e.op === "/" && isOne(e.right)) {
-      //   return e.left;
-      // }
     
       if (e.op === "+") {
-        resultValue = e.left.value + e.right.value;
+        resultValue = leftValue + rightValue;
       } else if (e.op === "-") {
-        resultValue = e.left.value - e.right.value;
+        resultValue = leftValue - rightValue;
       } else if (e.op === "*") {
-        resultValue = e.left.value * e.right.value;
+        resultValue = leftValue * rightValue;
       } else if (e.op === "/") {
-        resultValue = e.left.value / e.right.value;
+        resultValue = leftValue / rightValue;
       } else if (e.op === "**") {
-        resultValue = e.left.value ** e.right.value;
+        resultValue = leftValue ** rightValue;
       } else if (e.op === "<") {
-        resultValue = e.left.value < e.right.value;
+        resultValue = leftValue < rightValue;
         return { type: 'boolean', value: resultValue };
       } else if (e.op === "<=") {
-        resultValue = e.left.value <= e.right.value;
+        resultValue = leftValue <= rightValue;
         return { type: 'boolean', value: resultValue };
       } else if (e.op === "==") {
-        resultValue = e.left.value === e.right.value;
+        resultValue = leftValue === rightValue;
         return { type: 'boolean', value: resultValue };
       } else if (e.op === "!=") {
-        resultValue = e.left.value !== e.right.value;
+        resultValue = leftValue !== rightValue;
         return { type: 'boolean', value: resultValue };
       } else if (e.op === ">=") {
-        resultValue = e.left.value >= e.right.value;
+        resultValue = leftValue >= rightValue;
         return { type: 'boolean', value: resultValue };
       } else if (e.op === ">") {
-        resultValue = e.left.value > e.right.value;
+        resultValue = leftValue > rightValue;
         return { type: 'boolean', value: resultValue };
       } else if (e.op === "%") {
-        resultValue = e.left.value % e.right.value;
+        resultValue = leftValue % rightValue;
       }
     
       resultType = (Number.isInteger(resultValue)) ? 'integer' : 'float';
@@ -252,7 +253,7 @@ const optimizers = {
       return s;
     }
     if (known !== undefined) {
-      return { type: known.type, value: known.value };
+      return s;
     }
     return s;
   }

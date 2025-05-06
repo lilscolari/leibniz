@@ -151,20 +151,9 @@ const fixtures = [
     expected: dedent`
       const math = require('mathjs');
       let x_1 = 5.4;
-      if (x_1 > 3) {
       console.log(true);
-      } else
-      if (x_1 === 3) {
-      console.log(2);
-      }
-      if (x_1 >= 2) {
       console.log(x_1);
-      } else {
-      console.log(2);
-      }
-      if (true) {
       console.log("true");
-      }
     `,
   },
   {
@@ -358,7 +347,7 @@ const fixtures = [
       for (let i_4 = 0; i_4 < ITERATIONS_1; i_4 += 1) {
       console.log(math.random(0, 100));
       console.log(math.randomInt(0, 100));
-}
+      }
     `,
   },
   {
