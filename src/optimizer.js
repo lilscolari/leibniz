@@ -38,10 +38,6 @@ const optimizers = {
     d.initializer = optimize(d.initializer)
     return d
   },
-  TypeDeclaration(d) {
-    d.type = optimize(d.type)
-    return d
-  },
   FunctionDeclaration(d) {
     d.fun = optimize(d.fun)
     return d
@@ -73,9 +69,6 @@ const optimizers = {
     s.expression = optimize(s.expression)
     return s
   },
-  ShortReturnStatement(s) {
-    return s
-  },
   IfStatement(s) {
     s.test = optimize(s.test)
     s.consequent = s.consequent.flatMap(optimize)
@@ -89,18 +82,9 @@ const optimizers = {
     }
     return s
   },
-  ShortIfStatement(s) {
-    s.test = optimize(s.test)
-    s.consequent = s.consequent.flatMap(optimize)
-    if (s.test.constructor === Boolean) {
-      return s.test ? s.consequent : []
-    }
-    return s
-  },
   WhileStatement(s) {
-    console.log(s)
     s.test = optimize(s.test)
-    if (s.test === false) {
+    if (s.test.value === false) {
       // while false is a no-op
       return []
     }
@@ -114,15 +98,6 @@ const optimizers = {
     s.step = optimize(s.step)
     s.body = s.body.statements.flatMap(optimize)
     return s
-  },
-  Conditional(e) {
-    e.test = optimize(e.test)
-    e.consequent = optimize(e.consequent)
-    e.alternate = optimize(e.alternate)
-    if (e.test.constructor === Boolean) {
-      return e.test ? e.consequent : e.alternate
-    }
-    return e
   },
   BinaryExpression(e) {
     e.op = optimize(e.op)
@@ -237,9 +212,6 @@ const optimizers = {
     return s;
   },
   IntegerLiteral(s) {
-    return s;
-  },
-  ReturnStatement(s) {
     return s;
   },
   MatrixExpression(s) {

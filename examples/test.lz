@@ -38,3 +38,8 @@ while (2 < 4) {
 }
 
 print([[1, 2 + 2], [3, 4]]);
+
+// this doesnt add to the output:
+while (3 < 2) {
+    print(2 + 4);
+}
