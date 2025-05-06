@@ -52,13 +52,15 @@ const array = core.variableDeclaration(core.variable('x', 'integer[]', true), co
 const printArray = core.printStatement(core.subscriptExpression(array, 2 + 3, 'integer'));
 const trueValue = { type: 'boolean', value: true };
 const falseValue = { type: 'boolean', value: false };
-const makeVar = core.variableDeclaration("x", { kind: 'IntegerLiteral', type: 'integer', value: 5 })
+const makeVar = core.variableDeclaration(core.variable('x', 'integer', true), { kind: 'IntegerLiteral', type: 'integer', value: 5 })
+const assignVar = core.assignmentStatement({ kind: 'IntegerLiteral', type: 'integer', value: 5 }, core.variable('x', 'integer', true))
 const printStatement2 = core.binaryExpression('+', { kind: 'IntegerLiteral', type: 'integer', value: 4 }, core.variable("x", "integer", true), 'integer');
-const block2 = core.block([makeVar, printStatement2]);
+const nine = { type: 'integer',value: 9 };
 
 
 const tests = [
-  ["adds 4 + x", program([makeVar, printStatement2]), 9],
+  ["removes same assignment", program([makeVar, assignVar]), program([makeVar])],
+  ["adds 4 + x", program([makeVar, printStatement2]), program([makeVar, nine])],
   ["folds +", core.binaryExpression("+", x, y, "integer"), 13],
   ["folds -", core.binaryExpression("-", x, y, "integer"), -3],
   ["folds *", core.binaryExpression("*", x, y, "integer"), 40],

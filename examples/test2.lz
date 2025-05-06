@@ -1,2 +1,2 @@
 let x: integer = 5;
-print(4 + x);
+x = 5;
